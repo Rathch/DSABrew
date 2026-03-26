@@ -72,7 +72,7 @@ The user needs standard book navigation aids: page numbers, footnotes, and a tab
 ### Edge Cases
 
 - What happens when the input is empty or contains only whitespace? → It produces exactly one empty rendered page in the output document.
-- What happens when a macro is malformed (e.g., missing closing brace in `\chapter{...}`)?
+- What happens when a macro is malformed (e.g., missing closing brace in `\map{...`)?
 - What happens when a macro references an unknown asset key (e.g., `\rauten{rot-999}`)?
 - What happens when the user includes raw HTML elements like `<img src="...">` or `<iframe>`?
 - What happens when a large document is provided (many `\page` blocks)? → Up to ~200 pages / ~100k characters render without crash and within 15 seconds, with output structure correct.
@@ -109,6 +109,12 @@ The user needs standard book navigation aids: page numbers, footnotes, and a tab
 - **FR-010**: System MUST implement footnote macro `{{footnote LABEL | CONTENT}}` where `LABEL` is the visible reference label and `CONTENT` is the footnote text; footnotes MUST be collected per page and rendered as a footnote list at the bottom of the page containing the reference.
 - **FR-011**: System MUST implement TOC macro `{{tocDepthH3}}` to generate a table of contents derived from document headings; it MUST include headings up to depth level H3 and insert the TOC at the macro location.
 - **FR-012**: System MUST remain stable and produce correct rendered output for large documents (up to ~200 pages / ~100k characters) within 15 seconds of the preview/render action (no crash/hang).
+- **FR-013**: When creating a new document, the system MUST initialize it with exactly 4 pages by default: (1) a cover page (Einband), (2) and (3) two content pages, and (4) a final/back page.
+- **FR-013a**: The default new-document backgrounds MUST be applied as follows (local packaged assets):
+  - Page 1 (cover/Einband): composed using `media/image13.png` and `media/image14.png`.
+  - Page 2 (even content page): `media/image12.jpeg`.
+  - Page 3 (odd content page): `media/image17.jpeg`.
+  - Page 4 (final/back page): `media/image32.png`.
 
 ### Key Entities *(include if feature involves data)*
 
