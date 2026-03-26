@@ -25,7 +25,7 @@
 
 ### Decision: Table of contents generation
 
-**Chosen**: Generate TOC from heading tokens (chapter macro + Markdown headings) during render, with an explicit depth cap for `{{tocDepthH3}}`.
+**Chosen**: Generate TOC from heading tokens (Markdown headings) during render, with an explicit depth cap for `{{tocDepthH3}}`.
 **Rationale**: Deterministic, does not require layout measurement; can be inserted at macro location as a generated block.
 **Alternatives considered**: DOM scanning after render (works but less deterministic and harder to keep stable across renderer changes).
 
@@ -44,4 +44,4 @@
 ## Open Questions (deferred to implementation detail, not spec-level)
 
 - Exact visual layout (typography, margins, footer placement) for page number/footnotes/TOC.
-- Which headings count as “H1/H2/H3” when mixing `\chapter{}` with Markdown headings.
+- Exact rules for which headings count as H1/H2/H3 for TOC generation (based on Markdown heading levels).
