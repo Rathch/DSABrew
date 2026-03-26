@@ -17,7 +17,7 @@ The user writes RPG content in Markdown, includes DSA-specific layout macros, an
 
 **Acceptance Scenarios**:
 
-1. **Given** an empty editor and a sample Markdown containing `\page`, `\chapter{...}`, and background macros, **When** the user saves/updates the preview, **Then** the preview displays multiple page sections corresponding to the `\page` blocks.
+1. **Given** an empty editor and a sample Markdown containing `\page`, Markdown headings (e.g., `#`, `##`, `###`), and background macros, **When** the user saves/updates the preview, **Then** the preview displays multiple page sections corresponding to the `\page` blocks.
 2. **Given** a rendered multi-page preview, **When** the user triggers print/export from the page, **Then** the printed output contains distinct pages at the expected `\page` boundaries (including empty pages created by consecutive `\page` blocks).
 
 ---
@@ -49,7 +49,7 @@ The user expects macros that reference known background keys (e.g., map theme an
 
 1. **Given** Markdown input with a known `\map{...}` key and a known `\rauten{...}` key, **When** the preview is rendered, **Then** the page backgrounds show the corresponding local assets.
 2. **Given** Markdown input with an unknown `\map{...}` key or an unknown `\rauten{...}` key, **When** the preview is rendered, **Then** rendering completes and the page shows a visible warning/placeholder marker for the unknown background key (background is omitted).
-3. **Given** Markdown input with a malformed macro invocation (e.g., missing closing brace in `\chapter{...}` / `\map{...}`), **When** the preview is rendered, **Then** rendering completes and the malformed macro is ignored, while the page shows a visible warning/placeholder marker.
+3. **Given** Markdown input with a malformed macro invocation (e.g., missing closing brace in `\map{...}`), **When** the preview is rendered, **Then** rendering completes and the malformed macro is ignored, while the page shows a visible warning/placeholder marker.
 
 ---
 
@@ -59,13 +59,13 @@ The user needs standard book navigation aids: page numbers, footnotes, and a tab
 
 **Why this priority**: These features materially improve readability and make the generated document feel like a structured printed book.
 
-**Independent Test**: Test by entering a sample document that spans multiple `\page` blocks and contains `\chapter{...}`, `##`/`###` headings, footnotes, and the three macros `{{pageNumber 2}}`, `{{footnote ... | ...}}`, and `{{tocDepthH3}}`, then verify that the preview displays correct page numbers, per-page footnote lists, and a TOC that matches the included headings.
+**Independent Test**: Test by entering a sample document that spans multiple `\page` blocks and contains Markdown headings (`#`/`##`/`###`), footnotes, and the three macros `{{pageNumber 2}}`, `{{footnote ... | ...}}`, and `{{tocDepthH3}}`, then verify that the preview displays correct page numbers, per-page footnote lists, and a TOC that matches the included headings.
 
 **Acceptance Scenarios**:
 
 1. **Given** a document with multiple `\page` blocks and the macro `{{pageNumber N}}`, **When** the preview is rendered, **Then** the first rendered page displays `N`, and each subsequent rendered page displays an incremented page number (N + 1, N + 2, ...).
 2. **Given** a document with footnote macros like `{{footnote PART 2 | BORING STUFF}}`, **When** the preview is rendered, **Then** each footnote reference shows the provided label `PART 2` at the reference position, and the corresponding footnote content `BORING STUFF` appears in the footnote list at the bottom of the page where the reference occurs.
-3. **Given** a document containing headings (including `\chapter{...}` and Markdown headings like `##` and `###`) and the macro `{{tocDepthH3}}`, **When** the preview is rendered, **Then** the TOC inserted at the macro location includes headings up to depth level H3 in document order, with titles matching the source headings.
+3. **Given** a document containing Markdown headings (e.g., `#`, `##`, `###`) and the macro `{{tocDepthH3}}`, **When** the preview is rendered, **Then** the TOC inserted at the macro location includes headings up to depth level H3 in document order, with titles matching the source headings.
 
 ---
 
@@ -98,7 +98,7 @@ The user needs standard book navigation aids: page numbers, footnotes, and a tab
 - **FR-001**: System MUST provide an interactive way for users to enter or edit Markdown content.
 - **FR-002**: System MUST render the input Markdown into an A4 multi-page layout using a `\page` semantic that starts a new printed page; consecutive `\page` blocks MUST create additional pages even if no visible content exists on those pages.
 - **FR-002a**: System MUST treat empty or whitespace-only Markdown input as producing exactly one rendered page in the output document (even if no explicit `\page` blocks are present).
-- **FR-003**: System MUST support chapter headings via `\chapter{...}` and place them in a consistent header area for each page where used.
+- **FR-003**: System MUST support headings via Markdown heading syntax (e.g., `#`, `##`, `###`) and preserve a consistent hierarchy for TOC generation up to H3.
 - **FR-004**: System MUST support background macros for maps and rauten via a predefined macro-to-asset mapping.
 - **FR-005**: System MUST resolve known macro keys deterministically to the corresponding local template assets packaged with the tool.
 - **FR-006**: System MUST handle unknown macro keys safely by omitting the background and showing a visible warning/placeholder marker for the unknown background key, without breaking page rendering.
@@ -137,4 +137,3 @@ The user needs standard book navigation aids: page numbers, footnotes, and a tab
 - PDF export is implemented via the browser’s standard print dialog, so users can save to PDF using the OS/browser UI.
 - The initial macro set is limited to the documented subset; extensibility beyond that subset is handled by adding entries to the supported macro mapping.
 - Footnote rendering is per-page: each page contains a footnote list for references that appear on that page.
-
