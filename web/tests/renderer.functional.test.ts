@@ -27,6 +27,20 @@ describe("renderer functional", () => {
     expect(html).toContain("BORING STUFF");
   });
 
+  it("TOC entries use fragment links matching heading ids", () => {
+    const md = "{{pageNumber 1}}\n# Kapitel Alpha\n\n{{tocDepthH3}}\n";
+    const html = renderDocument(md).pages[0].renderedHtml;
+    expect(html).toContain('href="#p1-kapitel-alpha"');
+    expect(html).toContain('id="p1-kapitel-alpha"');
+  });
+
+  it("TOC links target anchors on later pages", () => {
+    const md = "{{pageNumber 1}}\n{{tocDepthH3}}\n\\page\n# Auf Seite Zwei\n";
+    const r = renderDocument(md);
+    expect(r.pages[0].renderedHtml).toContain('href="#p2-auf-seite-zwei"');
+    expect(r.pages[1].renderedHtml).toContain('id="p2-auf-seite-zwei"');
+  });
+
   it("wraps Markdown tables in dsa-md-table for Scriptorium styling", () => {
     const md = `| A | B |
 | --- | --- |

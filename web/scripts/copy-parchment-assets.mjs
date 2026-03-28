@@ -17,7 +17,8 @@ const copies = [
   ["media/image27.png", "note-gm-parchment.png"],
   ["media/image29.png", "note-gm-meister-bg.png"],
   ["media/image31.png", "note-gm-meister-trennlinie.png"],
-  ["media/image30.png", "npc-parchment-texture.png"]
+  ["media/image30.png", "npc-parchment-texture.png"],
+  ["media/npc-portrait-dummy.svg", "npc-portrait-dummy.svg"]
 ];
 
 mkdirSync(outDir, { recursive: true });

@@ -871,9 +871,10 @@ function buildNpcBlockHtml(fields: Record<string, string>): string {
   const portraitRaw = npcVal(fields, "portrait");
   const portraitSrc = portraitSrcForHtml(portraitRaw);
 
+  const portraitDummySrc = "/dsa/npc-portrait-dummy.svg";
   const portraitInner = portraitSrc
     ? `<img class="dsa-npc__portrait-img" src="${portraitSrc}" alt="" loading="lazy" decoding="async" />`
-    : `<div class="dsa-npc__portrait-placeholder" aria-hidden="true"></div>`;
+    : `<img class="dsa-npc__portrait-img dsa-npc__portrait-img--dummy" src="${portraitDummySrc}" alt="" role="presentation" loading="lazy" decoding="async" />`;
 
   const metaGroesse = groesse
     ? `<p class="dsa-npc__meta"><strong>Größe:</strong> ${esc(groesse)}</p>`

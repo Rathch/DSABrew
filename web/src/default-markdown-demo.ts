@@ -170,7 +170,7 @@ Interner Link zurück zur ersten Inhaltsseite: [zur Markdown-Referenz](#p3-markd
 
 {{npcBlock
 name=Lorem-Riese / NSC
-portrait=/dsa/portrait.png
+portrait=/dsa/npc-portrait-dummy.svg
 groesse=2,00 Schritt
 gewicht=100 Stein
 mu=12 kl=11 in=10 ch=9 ff=10 ge=11 ko=12 kk=11
@@ -226,7 +226,7 @@ Schach im Text: {{ chess | knight }} und Rauten {{ difficulty | Kampf: | rot 2 }
 
 {{npcBlock
 name=Schmaler Demo-NSC
-portrait=/dsa/portrait.png
+portrait=/dsa/npc-portrait-dummy.svg
 groesse=1,75 Schritt
 gewicht=70 Stein
 mu=11 kl=11 in=11 ch=10 ff=10 ge=10 ko=11 kk=10

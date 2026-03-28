@@ -3,6 +3,25 @@
  * aber weiterhin reines Markdown für DSABrew.
  */
 
+import easierIconUrl from "@media/image19.png?url";
+import harderIconUrl from "@media/image20.png?url";
+import npcPortraitDummyUrl from "@media/npc-portrait-dummy.svg?url";
+
+/** CSS-Suffix für `.md-toolbar-preview--…` oder `image` für bundled Asset. */
+type ToolbarPreviewKind =
+  | "hr"
+  | "page-2col"
+  | "page-1col"
+  | "read-aloud"
+  | "gm"
+  | "roulbox"
+  | "easier"
+  | "harder"
+  | "chess"
+  | "difficulty"
+  | "npc"
+  | "table";
+
 function dispatchInput(textarea: HTMLTextAreaElement): void {
   textarea.dispatchEvent(new Event("input", { bubbles: true }));
 }
@@ -143,6 +162,8 @@ const ACTIONS: {
   label: string;
   title: string;
   run: (ta: HTMLTextAreaElement) => void;
+  /** Kleine Vorschau links im Button (Makros / Layout). */
+  preview?: ToolbarPreviewKind;
 }[] = [
   {
     id: "bold",
@@ -224,29 +245,37 @@ const ACTIONS: {
     title: "Code-Block",
     run: insertCodeBlock
   },
+  {
+    id: "table",
+    label: "Tabelle",
+    title: "Markdown-Tabelle (2 Spalten, Kopfzeile — Scriptorium-Stil in der Vorschau)",
+    preview: "table",
+    run: (ta) =>
+      insertAtCursor(
+        ta,
+        "\n\n| Spalte 1 | Spalte 2 |\n| --- | --- |\n|  |  |\n\n"
+      )
+  },
   { id: "sep3", label: "|", title: "", run: () => {} },
   {
     id: "hr",
     label: "—",
     title: "Trennlinie (---) — Scriptorium-Grafik in der Vorschau",
+    preview: "hr",
     run: (ta) => insertAtCursor(ta, "\n\n---\n\n")
   },
   {
     id: "page",
     label: "Seite",
     title: "Seitenumbruch (\\page)",
+    preview: "page-2col",
     run: (ta) => insertAtCursor(ta, "\n\\page\n")
-  },
-  {
-    id: "pageAlias",
-    label: "{{page}}",
-    title: "Seitenumbruch (Alias)",
-    run: (ta) => insertAtCursor(ta, "\n{{page}}\n")
   },
   {
     id: "pageSingle",
     label: "1 Spalte",
     title: "Seite ohne Zweispaltigkeit (\\pageSingle / {{pageSingle}}) — folgende Seite einspaltig",
+    preview: "page-1col",
     run: (ta) => insertAtCursor(ta, "\n\\pageSingle\n")
   },
   { id: "sep4", label: "|", title: "", run: () => {} },
@@ -254,6 +283,7 @@ const ACTIONS: {
     id: "readAloudNote",
     label: "Vorlesen",
     title: "Pergament-Box ({{readAloudNote Titel | Text}})",
+    preview: "read-aloud",
     run: (ta) =>
       insertAtCursor(
         ta,
@@ -264,6 +294,7 @@ const ACTIONS: {
     id: "gmNote",
     label: "SL-Info",
     title: "Meister-Box ({{gmNote Titel | Text}})",
+    preview: "gm",
     run: (ta) =>
       insertAtCursor(ta, "\n\n{{gmNote Meisterinformation: |\nGeheime Infos für die Spielleitung.\n}}\n\n")
   },
@@ -271,6 +302,7 @@ const ACTIONS: {
     id: "roulbox",
     label: "Regel",
     title: "Regel-Kasten ({{roulbox Titel | Untertitel | Markdown}}; Untertitel leer: Titel | | Text)",
+    preview: "roulbox",
     run: (ta) =>
       insertAtCursor(
         ta,
@@ -281,6 +313,7 @@ const ACTIONS: {
     id: "easier",
     label: "Leichter",
     title: "Optional leichter ({{easier | Markdown}})",
+    preview: "easier",
     run: (ta) =>
       insertAtCursor(
         ta,
@@ -291,6 +324,7 @@ const ACTIONS: {
     id: "harder",
     label: "Schwerer",
     title: "Optional schwerer ({{harder | Markdown}})",
+    preview: "harder",
     run: (ta) =>
       insertAtCursor(
         ta,
@@ -301,6 +335,7 @@ const ACTIONS: {
     id: "chess",
     label: "Figur",
     title: "Schachfigur inline ({{ chess | pawn }} — pawn, rook, knight, bishop, queen, king …)",
+    preview: "chess",
     run: (ta) => insertAtCursor(ta, "{{ chess | pawn }}")
   },
   {
@@ -308,6 +343,7 @@ const ACTIONS: {
     label: "Rauten",
     title:
       "Schwierigkeit 0–4 ({{ difficulty | rot 2 }}, {{ difficulty | Kapitel: | grün 3 }} mit optionalem Text vor den Rauten)",
+    preview: "difficulty",
     run: (ta) => insertAtCursor(ta, "{{ difficulty | Kampf: | grün 2 }}")
   },
   {
@@ -315,6 +351,7 @@ const ACTIONS: {
     label: "NSC",
     title:
       "NSC-/Monster-Kasten ({{npcBlock … {{/npcBlock}}); gleiche Syntax wie Renderer — optional einzeilig, empfohlen mehrzeilig",
+    preview: "npc",
     run: (ta) =>
       insertAtCursor(
         ta,
@@ -322,7 +359,7 @@ const ACTIONS: {
 
 {{npcBlock
 name=Lorem-Riese / NSC
-portrait=/dsa/portrait.png
+portrait=/dsa/npc-portrait-dummy.svg
 groesse=2,00 Schritt
 gewicht=100 Stein
 mu=12 kl=11 in=10 ch=9 ff=10 ge=11 ko=12 kk=11
@@ -341,6 +378,44 @@ talente=Schwimmen 3, Klettern 2
 
 function isSeparator(id: string): boolean {
   return id.startsWith("sep");
+}
+
+function appendPreviewVisual(preview: ToolbarPreviewKind, host: HTMLElement): void {
+  host.classList.add("md-toolbar-preview", `md-toolbar-preview--${preview}`);
+  if (preview === "difficulty") {
+    const colors = ["#c62828", "#c62828", "#2e7d32", "#bdbdbd"] as const;
+    for (const c of colors) {
+      const d = document.createElement("span");
+      d.className = "md-toolbar-preview__diamond";
+      d.style.backgroundColor = c;
+      host.appendChild(d);
+    }
+    return;
+  }
+  if (preview === "easier") {
+    const img = document.createElement("img");
+    img.src = easierIconUrl;
+    img.className = "md-toolbar-preview__img";
+    img.alt = "";
+    img.decoding = "async";
+    host.appendChild(img);
+  } else if (preview === "harder") {
+    const img = document.createElement("img");
+    img.src = harderIconUrl;
+    img.className = "md-toolbar-preview__img";
+    img.alt = "";
+    img.decoding = "async";
+    host.appendChild(img);
+  } else if (preview === "npc") {
+    const img = document.createElement("img");
+    img.src = npcPortraitDummyUrl;
+    img.className = "md-toolbar-preview__img";
+    img.alt = "";
+    img.decoding = "async";
+    host.appendChild(img);
+  } else if (preview === "chess") {
+    host.textContent = "\u265f";
+  }
 }
 
 /**
@@ -366,8 +441,20 @@ export function attachMarkdownToolbar(
     btn.type = "button";
     btn.className = "md-toolbar-btn";
     btn.id = `md-tool-${action.id}`;
-    btn.textContent = action.label;
     btn.title = action.title;
+    if (action.preview) {
+      btn.classList.add("md-toolbar-btn--with-preview");
+      const previewEl = document.createElement("span");
+      previewEl.setAttribute("aria-hidden", "true");
+      appendPreviewVisual(action.preview, previewEl);
+      btn.appendChild(previewEl);
+      const labelEl = document.createElement("span");
+      labelEl.className = "md-toolbar-label";
+      labelEl.textContent = action.label;
+      btn.appendChild(labelEl);
+    } else {
+      btn.textContent = action.label;
+    }
     btn.addEventListener("click", () => action.run(textarea));
     container.appendChild(btn);
   }
