@@ -26,6 +26,8 @@ npm run dev
 
 Vite leitet Anfragen an **`/api`** per Proxy an `http://127.0.0.1:3001` weiter — die Web-App kann relative URLs (`/api/...`) verwenden.
 
+Die Web-Oberfläche stylt den **App-Chrome** mit **reinem CSS** in `web/src/style.css` (Hell/Dunkel über **`html.dark`**, kein Tailwind). Theme-Persistenz: **`localStorage`**-Key **`dsabrew-theme`** (siehe `specs/002-modern-ui-darkmode/contracts/ui-shell.md`).
+
 Optional: `VITE_PUBLIC_API_BASE=https://api.example.com` setzen, wenn Frontend und API auf **verschiedenen Origins** liegen; dann entfällt der Proxy und CORS muss auf der API passen (`@fastify/cors` ist aktiv).
 
 ## Umgebungsvariablen (Server)

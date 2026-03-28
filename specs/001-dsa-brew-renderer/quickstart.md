@@ -65,3 +65,5 @@ Vertrag: `contracts/public-documents.md` · Betrieb: `docs/hosting.md`.
 - **`VITE_PUBLIC_API_BASE`** setzen, wenn Web und API auf **verschiedenen Origins** liegen (sonst relativer `/api`-Proxy unter Vite).
 
 Details: Rate Limits, 24h-TTL, Lazy Deletion — `research.md` (Public hosting) und `docs/hosting.md`.
+
+**UI-Theme:** In der App-Leiste (Dokument, Impressum, Datenschutz) kann das Farbschema **System / Hell / Dunkel** gewählt werden; Umsetzung mit **reinem CSS** (`style.css`, `html.dark`). Die Wahl liegt in `localStorage` unter **`dsabrew-theme`** (siehe `specs/002-modern-ui-darkmode/contracts/ui-shell.md`).
