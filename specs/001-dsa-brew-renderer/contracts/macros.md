@@ -151,6 +151,15 @@ Headings are expressed using plain Markdown headings:
 - Leerer TITEL → Standard **„Meisterinformation:“**.
 - Dasselbe Parsing wie bei `readAloudNote` (Markdown im INHALT; `}}`-Hinweis wie oben).
 
+## Macro: `{{roulbox TITEL | UNTERTITEL | INHALT}}`
+
+**Type**: Styled block (Regel / Optional-Regel, DSA-ähnlicher Kasten)
+
+- **Drei durch `|` getrennte Felder:** **TITEL** (groß, weiß im dunklen Kopfbalken), **UNTERTITEL** (kleiner, kursiv, weiß; optional leer: `TITEL | | INHALT`), **INHALT** = Markdown (Absätze, **Fett** als Zwischenüberschrift, Listen).
+- Leerer TITEL → Standard **„Regel“**.
+- **Aufzählungslisten** (`-` / `*`) im INHALT verwenden ein **stilisiertes Augen-Symbol** (grün / Lid-Farben) statt Standard-Bullets; nummerierte Listen bleiben normal.
+- Derselbe `}}`-Hinweis wie bei `readAloudNote` (wörtliches `}}` im INHALT beendet das Makro vorzeitig).
+
 ## Macro: `{{npcBlock` … `{{/npcBlock}}`
 
 **Type**: Styled block (NSC / Monster-Werte)
@@ -182,6 +191,7 @@ Headings are expressed using plain Markdown headings:
 ## Layout (preview + print)
 
 - **Body text**: two columns (`column-count: 2`) for the main flow inside each page body.
+- **Markdown tables** (`table.dsa-md-table`): same as body flow — **one column** wide (no `column-span`), `width: 100%` refers to the column.
 - **Full-width blocks**: warnings, TOC (`nav.toc`), headings H1–H3, the read-aloud / GM note wrappers (`.dsa-note-wrap`), NPC blocks (`.dsa-npc-wrap`), and the per-page footnote block SHOULD use full width (column-span), not split across columns.
 
 ## Safety Contract (non-negotiable)

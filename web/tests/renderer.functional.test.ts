@@ -27,6 +27,16 @@ describe("renderer functional", () => {
     expect(html).toContain("BORING STUFF");
   });
 
+  it("wraps Markdown tables in dsa-md-table for Scriptorium styling", () => {
+    const md = `| A | B |
+| --- | --- |
+| x | y |`;
+    const html = renderDocument(md).pages[0].renderedHtml;
+    expect(html).toContain('class="dsa-md-table"');
+    expect(html).toContain("<thead>");
+    expect(html).toContain("<tbody>");
+  });
+
   it("splits pages for {{page}} alias", () => {
     const result = renderDocument("# A\n\n{{page}}\n\n# B");
     expect(result.pages.length).toBe(2);
@@ -89,6 +99,17 @@ mu=10
     expect(html).toContain("dsa-diff--easier");
     expect(html).toContain("dsa-diff__icon");
     expect(html).not.toContain("{{easier");
+  });
+
+  it("renders roulbox with header, body and no raw macro", () => {
+    const md =
+      "{{roulbox Regel A | Unter B |\n**Kapitel** und Text.\n\n- Eins\n}}";
+    const html = renderDocument(md).pages[0].renderedHtml;
+    expect(html).toContain("dsa-roulbox");
+    expect(html).toContain("dsa-roulbox__header");
+    expect(html).toContain("Regel A");
+    expect(html).toContain("Unter B");
+    expect(html).not.toContain("{{roulbox");
   });
 
   it("renders chess macro inline with dsa-chess", () => {

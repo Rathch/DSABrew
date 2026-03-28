@@ -403,6 +403,68 @@ body {
   overflow: hidden;
 }
 
+/* Markdown-Tabellen: Scriptorium / Speisenliste — wie Fließtext/Kästen nur eine Spalte (kein column-span) */
+.page-body table.dsa-md-table {
+  break-inside: avoid;
+  page-break-inside: avoid;
+  width: 100%;
+  max-width: 100%;
+  margin: 0.5em 0 0.65em;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-family: var(--font-gentium);
+  font-size: var(--fs-text);
+  color: #1a1a1a;
+  border: none;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.page-body table.dsa-md-table thead th,
+.page-body table.dsa-md-table tbody td {
+  padding: 5px 10px;
+  border: none;
+  border-bottom: 1px solid #d3d3d3;
+  vertical-align: top;
+  text-align: left;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.page-body table.dsa-md-table thead th {
+  background-color: #d1a79c;
+  font-weight: 700;
+}
+
+.page-body table.dsa-md-table tbody td:nth-child(1) {
+  width: 52%;
+}
+
+.page-body table.dsa-md-table tbody td:nth-child(2) {
+  width: 48%;
+}
+
+/* Abschnittszeile: | **Name** | | — volle Breite, grauer Balken */
+.page-body table.dsa-md-table tbody tr:has(> td:nth-child(2):empty):has(> td:nth-child(1) > strong:only-child),
+.page-body table.dsa-md-table tbody tr:has(> td:nth-child(2):empty):has(> td:nth-child(1) > p:only-child > strong:only-child) {
+  background-color: #e0e0e0;
+}
+
+.page-body table.dsa-md-table tbody tr:has(> td:nth-child(2):empty):has(> td:nth-child(1) > strong:only-child) td:nth-child(1),
+.page-body table.dsa-md-table tbody tr:has(> td:nth-child(2):empty):has(> td:nth-child(1) > p:only-child > strong:only-child) td:nth-child(1) {
+  font-weight: 700;
+}
+
+.page-body table.dsa-md-table tbody tr:has(> td:nth-child(2):empty):has(> td:nth-child(1) > strong:only-child) td:nth-child(2),
+.page-body table.dsa-md-table tbody tr:has(> td:nth-child(2):empty):has(> td:nth-child(1) > p:only-child > strong:only-child) td:nth-child(2) {
+  width: 0;
+  min-width: 0;
+  padding-left: 0;
+  padding-right: 0;
+  overflow: hidden;
+  border-bottom-color: transparent;
+}
+
 /* Vorlese-/Meister-Notizen + NSC: eine Spalte der Zweispaltigkeit, nicht volle Seitenbreite */
 .page-body .dsa-note-wrap,
 .page-body .dsa-npc-wrap,
@@ -933,6 +995,96 @@ body {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+}
+
+/* {{roulbox Titel | Untertitel | Markdown}} — Regelkasten (dunkler Kopf, grauer Körper, Augen-Listenpunkte) */
+.dsa-roulbox-wrap {
+  margin: 0.95em 0 1.05em;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  filter: drop-shadow(1px 3px 8px rgba(20, 22, 26, 0.22));
+}
+
+.dsa-roulbox {
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 0;
+  font-family: var(--font-gentium);
+  font-size: var(--fs-text);
+  line-height: 1.45;
+}
+
+.dsa-roulbox__header {
+  background: rgba(0, 0, 0, 0.4);
+  color: #f7f7f5;
+  padding: 0.55em 0.75em 0.6em;
+  margin: 0;
+}
+
+.dsa-roulbox__title {
+  margin: 0;
+  font-family: var(--font-gentium);
+  font-size: var(--fs-unterkapitel);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  color: #fff;
+}
+
+.dsa-roulbox__subtitle {
+  margin: 0.2em 0 0;
+  font-family: var(--font-gentium);
+  font-size: calc(var(--fs-text) * 0.98);
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.dsa-roulbox__body {
+  background: rgba(185, 190, 196, 0.2);
+  color: #121418;
+  padding: 0.65em 0.85em 0.75em;
+  margin: 0;
+}
+
+.dsa-roulbox__body > :first-child {
+  margin-top: 0;
+}
+
+.dsa-roulbox__body > :last-child {
+  margin-bottom: 0;
+}
+
+/* Stylisiertes „Auge“ (grün / Lid-Ton) als Aufzählung — nur in roulbox */
+.dsa-roulbox__body ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0.45em 0;
+}
+
+.dsa-roulbox__body ul > li {
+  position: relative;
+  padding-left: 1.55em;
+  margin: 0.25em 0;
+}
+
+.dsa-roulbox__body ul > li::before {
+  content: "";
+  position: absolute;
+  left: 0.05em;
+  top: 0.38em;
+  width: 1.05em;
+  height: 0.52em;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 16'%3E%3Cpath fill='%23b8956a' d='M2 8c6-6 22-6 28 0-6 6-22 6-28 0z'/%3E%3Cellipse cx='16' cy='8' rx='9' ry='4.5' fill='%233d6b2e'/%3E%3Cellipse cx='16' cy='8' rx='3.5' ry='2' fill='%231a3012'/%3E%3C/svg%3E")
+    no-repeat center / contain;
+}
+
+.dsa-roulbox__body ol {
+  margin: 0.45em 0;
+  padding-left: 1.35em;
 }
 
 /* Vorlese-Box: nur Schlagschatten; kein äußerer dunkler Rand (Pergamentgrafik ohne zusätzlichen Frame) */

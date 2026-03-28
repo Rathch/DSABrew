@@ -262,6 +262,16 @@ const ACTIONS: {
       insertAtCursor(ta, "\n\n{{gmNote Meisterinformation: |\nGeheime Infos für die Spielleitung.\n}}\n\n")
   },
   {
+    id: "roulbox",
+    label: "Regel",
+    title: "Regel-Kasten ({{roulbox Titel | Untertitel | Markdown}}; Untertitel leer: Titel | | Text)",
+    run: (ta) =>
+      insertAtCursor(
+        ta,
+        "\n\n{{roulbox Regeltitel | Optionaler Untertitel |\nFließtext mit **Zwischenüberschrift** und Liste:\n\n- Punkt eins\n- Punkt zwei\n}}\n\n"
+      )
+  },
+  {
     id: "easier",
     label: "Leichter",
     title: "Optional leichter ({{easier | Markdown}})",

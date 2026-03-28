@@ -93,6 +93,19 @@ function lorem(ipsum: string): string {
 }
 \`\`\`
 
+## Tabellen (Speisen & Getränke)
+
+| Posten | Preis |
+| ------ | ----- |
+| Getreidesuppe | 2 Kreuzer |
+| Brot und Käse | 3 Kreuzer |
+| Lorem ipsum (Platzhalter) | |
+| **Übernachten** | |
+| Schlafsaal | 4 Heller |
+| Doppelzimmer | 1 Silber |
+
+Abschnittszeile: erste Spalte nur **fett**, zweite leer (\`| **Übernachten** | |\`).
+
 \\page
 \\map{content-odd}
 # Makros — Vorlesen und Meister
@@ -122,6 +135,19 @@ Zweiter Absatz im Meister-Block.
 
 {{meisterNote Notiz (Alias meisterNote): |
 Kurzer *meisterNote*-Test mit Lorem ipsum.
+}}
+
+{{roulbox Meine eigene coole Regel | Optionale Regel |
+Absatz mit **Something** und normalem Text.
+
+**Anything** — weiterer Hinweis.
+
+- Aufzählung 1
+- Aufzählung 2
+}}
+
+{{roulbox Regel ohne Untertitel | |
+Nur Titel und Körper; Untertitel-Feld leer (\`Titel | | Text\`).
 }}
 
 {{easier |

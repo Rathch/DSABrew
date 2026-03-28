@@ -54,6 +54,9 @@ md.validateLink = (url: string): boolean => {
   return true;
 };
 
+/** Scriptorsium-Pergament-Stil für Markdown-Tabellen (siehe style.css `.dsa-md-table`). */
+md.renderer.rules.table_open = () => '<table class="dsa-md-table">\n';
+
 export interface Footnote {
   label: string;
   content: string;
@@ -97,6 +100,9 @@ const FOOTNOTE_MACRO = /\{\{footnote\s+([^|]+?)\s*\|\s*([^}]+)\}\}/g;
 const READ_ALOUD_NOTE_MACRO = /\{\{(readAloudNote|vorlesenNote)\s+([^|]*?)\s*\|\s*([\s\S]*?)\}\}/g;
 /** Meisterinformation (dunkel); Alias: `meisterNote`. */
 const GM_NOTE_MACRO = /\{\{(gmNote|meisterNote)\s+([^|]*?)\s*\|\s*([\s\S]*?)\}\}/g;
+/** Regel-/Optional-Kasten (grauer Körper, dunkler Kopf): `Titel | Untertitel | Markdown`. Leeres Untertitel-Feld: `Titel | | Körper`. */
+const ROULBOX_MACRO =
+  /\{\{\s*roulbox\s+([^|]*?)\s*\|\s*([^|]*?)\s*\|\s*([\s\S]*?)\}\}/gi;
 /** Optional-Hinweise: Symbol links (`media/image19` / `image20`), Inhalt = Markdown. */
 const EASIER_HARDER_MACRO = /\{\{(easier|harder)\s*\|\s*([\s\S]*?)\}\}/gi;
 /** Inline-Schachfigur: `{{ chess | pawn }}` — Namen siehe `resolveChessPiece`. */
@@ -259,6 +265,10 @@ function readAloudNotePlaceholder(sequence: number): string {
 
 function gmNotePlaceholder(sequence: number): string {
   return `DSABREWGMNOTE${String(sequence).padStart(5, "0")}`;
+}
+
+function roulboxPlaceholder(sequence: number): string {
+  return `DSABREWROULBOX${String(sequence).padStart(5, "0")}`;
 }
 
 function npcBlockPlaceholder(sequence: number): string {
@@ -503,6 +513,27 @@ function collectGmNotes(raw: string): { cleaned: string; items: CollectedNoteMac
   return { cleaned, items };
 }
 
+interface CollectedRoulboxMacro {
+  token: string;
+  title: string;
+  subtitle: string;
+  body: string;
+}
+
+function collectRoulboxes(raw: string): { cleaned: string; items: CollectedRoulboxMacro[] } {
+  let sequence = 1;
+  const items: CollectedRoulboxMacro[] = [];
+  ROULBOX_MACRO.lastIndex = 0;
+  const cleaned = raw.replace(ROULBOX_MACRO, (_full, title: string, subtitle: string, body: string) => {
+    const token = roulboxPlaceholder(sequence);
+    items.push({ token, title, subtitle, body });
+    sequence += 1;
+    return token;
+  });
+  ROULBOX_MACRO.lastIndex = 0;
+  return { cleaned, items };
+}
+
 const DEFAULT_READ_ALOUD_TITLE = "Zum Vorlesen oder Nacherzählen:";
 const DEFAULT_GM_TITLE = "Meisterinformation:";
 
@@ -518,6 +549,17 @@ function buildGmNoteHtml(title: string, bodyMarkdown: string): string {
   const titleHtml = md.utils.escapeHtml(titleText);
   const bodyHtml = md.render(bodyMarkdown.trim());
   return `<div class="dsa-note-wrap dsa-note-wrap--gm"><div class="dsa-gm-frame" role="note"><div class="dsa-gm-frame__cap dsa-gm-frame__cap--top"><img class="dsa-gm-frame__cap-img" src="/dsa/gm-frame-cap-top.png" alt="" decoding="async" /></div><div class="dsa-gm-frame__mid"><aside class="dsa-note dsa-note--gm dsa-note--gm-framed"><h3 class="dsa-note__title">${titleHtml}</h3><div class="dsa-note__body">${bodyHtml}</div></aside></div><div class="dsa-gm-frame__cap dsa-gm-frame__cap--bottom"><img class="dsa-gm-frame__cap-img" src="/dsa/gm-frame-cap-bottom.png" alt="" decoding="async" /></div></div></div>`;
+}
+
+function buildRoulboxHtml(title: string, subtitle: string, bodyMarkdown: string): string {
+  const titleText = title.trim() || "Regel";
+  const titleHtml = md.utils.escapeHtml(titleText);
+  const subTrim = subtitle.trim();
+  const subBlock = subTrim
+    ? `<p class="dsa-roulbox__subtitle">${md.utils.escapeHtml(subTrim)}</p>`
+    : "";
+  const bodyHtml = md.render(bodyMarkdown.trim());
+  return `<div class="dsa-roulbox-wrap"><aside class="dsa-roulbox" role="note"><header class="dsa-roulbox__header"><h3 class="dsa-roulbox__title">${titleHtml}</h3>${subBlock}</header><div class="dsa-roulbox__body">${bodyHtml}</div></aside></div>`;
 }
 
 function buildDifficultyCalloutHtml(kind: "easier" | "harder", bodyMarkdown: string): string {
@@ -549,6 +591,14 @@ function injectNoteMacros(html: string, items: CollectedNoteMacro[]): string {
         ? buildReadAloudNoteHtml(item.title, item.body)
         : buildGmNoteHtml(item.title, item.body);
     out = injectBlockToken(out, item.token, block);
+  }
+  return out;
+}
+
+function injectRoulboxMacros(html: string, items: CollectedRoulboxMacro[]): string {
+  let out = html;
+  for (const item of items) {
+    out = injectBlockToken(out, item.token, buildRoulboxHtml(item.title, item.subtitle, item.body));
   }
   return out;
 }
@@ -977,7 +1027,7 @@ interface TocHeadingItem {
 
 /**
  * Sammelt `#`–`###`-Zeilen in Dokumentreihenfolge (alle \\page-Segmente).
- * Überspringt Fenced Code, {{npcBlock}}- und {{easier|}}/{{harder|}}-Körper, damit keine falschen Treffer.
+ * Überspringt Fenced Code, {{npcBlock}}-, {{roulbox …}}-, {{easier|}}/{{harder|}}-Körper, damit keine falschen Treffer.
  * Slug/ID pro Seite wie beim Heading-Anchor-Plugin (p{Seite}-{slug}).
  */
 function collectDocumentHeadingsForToc(pageSources: string[], pageNumberStart: number): TocHeadingItem[] {
@@ -990,6 +1040,7 @@ function collectDocumentHeadingsForToc(pageSources: string[], pageNumberStart: n
     const lines = source.replace(/\r\n/g, "\n").split("\n");
     let inFence = false;
     let inNpcBlock = false;
+    let inRoulbox = false;
     let inEasierHarder = false;
     let inChess = false;
     let inDifficultyRating = false;
@@ -1008,6 +1059,15 @@ function collectDocumentHeadingsForToc(pageSources: string[], pageNumberStart: n
       if (inNpcBlock) {
         if (/\{\{\s*\/npcBlock\s*\}\}/i.test(line)) {
           inNpcBlock = false;
+        }
+        continue;
+      }
+      if (/\{\{\s*roulbox\b/i.test(line)) {
+        inRoulbox = true;
+      }
+      if (inRoulbox) {
+        if (/\}\}/.test(line)) {
+          inRoulbox = false;
         }
         continue;
       }
@@ -1129,7 +1189,8 @@ export function renderDocument(markdown: string, options?: RenderDocumentOptions
     const footnoteData = collectFootnotes(withoutImpressumMacro);
     const readAloudData = collectReadAloudNotes(footnoteData.cleaned);
     const gmData = collectGmNotes(readAloudData.cleaned);
-    const easierHarderData = collectEasierHarderMacros(gmData.cleaned);
+    const roulboxData = collectRoulboxes(gmData.cleaned);
+    const easierHarderData = collectEasierHarderMacros(roulboxData.cleaned);
     /* NPC vor chess/difficulty: verhindert, dass spätere Makros den Block-Körper mit „{{ … }}“ beschädigen. */
     const npcData = !hasImpressumMacro
       ? collectNpcBlocks(easierHarderData.cleaned)
@@ -1149,6 +1210,7 @@ export function renderDocument(markdown: string, options?: RenderDocumentOptions
     } else {
       html = md.render(difficultyRatingData.cleaned);
       html = injectNoteMacros(html, [...readAloudData.items, ...gmData.items]);
+      html = injectRoulboxMacros(html, roulboxData.items);
       html = injectDifficultyMacros(html, easierHarderData.items);
       html = injectChessMacros(html, chessData.items);
       html = injectDifficultyRatingMacros(html, difficultyRatingData.items);
