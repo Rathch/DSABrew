@@ -148,6 +148,17 @@ Headings are expressed using plain Markdown headings:
 - The TOC is generated from document headings up to depth H3.
 - Heading sources include Markdown headings.
 
+## Macro: `{{abschnitt N | LABEL}}`
+
+**Type**: Solo-Abenteuer / interner Sprung
+
+- **`N`**: positive ganze Zahl — Ziel ist die **`##`-Überschrift (H2)**, deren Titel mit **`N`** beginnt und danach **mindestens ein Leerzeichen** folgt, optional mit **Punkt** vor dem Leerzeichen: `## 15. Eine Nacht …` oder `## 15 Eine Nacht …` / `## 15 foo`.
+- **`LABEL`**: Anzeigetext als **Markdown-Inline** (Fett, Kursiv, …). Leer → Standard **`Abschnitt N`**. **Kein wörtliches `}}`** im LABEL (beendet das Makro).
+- **Ziel-Anker**: dieselbe Regel wie bei automatischen Überschriften-IDs: `p{Seitennummer}-{slug}` (Slug aus dem **gesamten** H2-Titel inkl. `N.`).
+- **Dokumentweite Karte**: Mehrere H2 mit derselben führenden Nummer → Warnung; es gilt der **zuletzt** im Quelltext vorkommende Treffer. Unbekanntes **`N`** → sichtbarer Platzhalter (`.dsa-abschnitt-ref--missing`) und Warnung.
+- Nicht auf derselben Seite wie `{{impressumPage}}` im Fließtext-Makropfad nötig; Impressum-Seite rendert keinen normalen Markdown-Body.
+- **Nicht** im **INHALT** von `{{readAloudNote}}` / `{{gmNote}}` / `{{roulbox}}` verwenden (diese Körper werden separat gerendert; das Makro wird dort nicht expandiert).
+
 ## Macro: `{{readAloudNote TITEL | INHALT}}` (Alias: `{{vorlesenNote …}}`)
 
 **Type**: Styled block (Vorlesen / Pergament)

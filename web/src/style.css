@@ -190,6 +190,18 @@ body {
   color: #222;
 }
 
+.md-toolbar-preview--abschnitt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #f4efe6 0%, #e8dfd2 100%);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  color: #4a3728;
+  letter-spacing: 0.02em;
+}
+
 /* Vier Rauten wie im Makro (rot / rot / grün / leer) */
 .md-toolbar-preview--difficulty {
   display: flex;
@@ -1079,6 +1091,20 @@ body {
 
 .page-body .toc-line:hover {
   text-decoration: underline;
+}
+
+/* {{abschnitt N | …}} — Sprung zu nummerierter H2 */
+.page-body a.dsa-abschnitt-ref {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  color: inherit;
+  cursor: pointer;
+}
+
+.page-body .dsa-abschnitt-ref--missing {
+  text-decoration: underline dotted;
+  color: #a32626;
+  cursor: help;
 }
 
 .page-body .toc-title {

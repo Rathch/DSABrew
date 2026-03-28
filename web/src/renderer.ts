@@ -114,6 +114,9 @@ const CHESS_MACRO = /\{\{\s*chess\s*\|\s*([^}]+?)\s*\}\}/gi;
 /** Vier Rauten 0–4; optional Präfix: `{{ difficulty | Kampf: | grün 4 }}` oder `{{ difficulty | rot 3 }}` (Alias `dificulty`). Label darf kein `}` enthalten — sonst frisst `[^|]*?` über `}}` bis zum `|` des nächsten Makros. */
 const DIFFICULTY_RATING_MACRO =
   /\{\{\s*(?:difficulty|dificulty)\s*\|\s*(?:([^|}]*?)\s*\|\s*)?([^}]+?)\s*\}\}/gi;
+/** Solo-Abenteuer: Sprung zu nummerierter `## N. …`-Überschrift; LABEL = Markdown-Inline. Kein `}}` im LABEL. */
+const ABSCHNITT_MACRO =
+  /\{\{\s*abschnitt\s+(\d+)\s*\|\s*([\s\S]*?)\}\}/gi;
 /** NPC-/Monster-Kasten: `schlüssel=wert`, Ende `{{/npcBlock}}` (ein- oder mehrzeilig). `gi`: optional Leerzeichen nach `{{`, Schreibweise npcBlock. */
 const NPC_BLOCK_MACRO =
   /\{\{\s*npcBlock\s*\n?([\s\S]*?)\s*\{\{\s*\/npcBlock\s*\}\}/gi;
@@ -315,6 +318,10 @@ function harderPlaceholder(sequence: number): string {
 
 function chessPlaceholder(sequence: number): string {
   return `DSABREWCHESS${String(sequence).padStart(5, "0")}`;
+}
+
+function abschnittPlaceholder(sequence: number): string {
+  return `DSABREWABSCHNITT${String(sequence).padStart(5, "0")}`;
 }
 
 function difficultyRatingPlaceholder(sequence: number): string {
@@ -1057,17 +1064,16 @@ interface TocHeadingItem {
 }
 
 /**
- * Sammelt `#`–`###`-Zeilen in Dokumentreihenfolge (alle \\page-Segmente).
- * Überspringt Fenced Code, {{npcBlock}}-, {{roulbox …}}-, {{easier|}}/{{harder|}}-Körper, damit keine falschen Treffer.
- * Slug/ID pro Seite wie beim Heading-Anchor-Plugin (p{Seite}-{slug}).
+ * Rohe Markdown-Zeilen je Seite (nach \\page), mit denselben Ausblendungen wie TOC / Abschnitts-Index.
  */
-function collectDocumentHeadingsForToc(pageSources: PageSegment[], pageNumberStart: number): TocHeadingItem[] {
-  const items: TocHeadingItem[] = [];
-  const headingLineRe = /^\s{0,3}(#{1,3})\s+(.+?)\s*$/;
+function forEachDocumentMarkdownLine(
+  pageSources: PageSegment[],
+  pageNumberStart: number,
+  onLine: (line: string, displayPage: number) => void
+): void {
   for (let pageIndex = 0; pageIndex < pageSources.length; pageIndex++) {
     const source = pageSources[pageIndex].raw;
     const displayPage = pageNumberStart + pageIndex;
-    const usedSlugs = new Set<string>();
     const lines = source.replace(/\r\n/g, "\n").split("\n");
     let inFence = false;
     let inNpcBlock = false;
@@ -1129,34 +1135,165 @@ function collectDocumentHeadingsForToc(pageSources: PageSegment[], pageNumberSta
         }
         continue;
       }
-      const m = headingLineRe.exec(line);
-      if (!m) {
-        continue;
-      }
-      const titleRaw = m[2].trim();
-      if (!titleRaw) {
-        continue;
-      }
-      const base = slugifyHeadingText(titleRaw);
-      let slug = base;
-      if (usedSlugs.has(slug)) {
-        let n = 2;
-        while (usedSlugs.has(`${base}-${n}`)) {
-          n += 1;
-        }
-        slug = `${base}-${n}`;
-      }
-      usedSlugs.add(slug);
-      const anchorId = `p${displayPage}-${slug}`;
-      items.push({
-        level: m[1].length,
-        titleHtml: md.renderInline(titleRaw),
-        pageNumber: displayPage,
-        anchorId
-      });
+      onLine(line, displayPage);
     }
   }
+}
+
+/**
+ * Sammelt `#`–`###`-Zeilen in Dokumentreihenfolge (alle \\page-Segmente).
+ * Überspringt Fenced Code, {{npcBlock}}-, {{roulbox …}}-, {{easier|}}/{{harder|}}-Körper, damit keine falschen Treffer.
+ * Slug/ID pro Seite wie beim Heading-Anchor-Plugin (p{Seite}-{slug}).
+ */
+function collectDocumentHeadingsForToc(pageSources: PageSegment[], pageNumberStart: number): TocHeadingItem[] {
+  const items: TocHeadingItem[] = [];
+  const headingLineRe = /^\s{0,3}(#{1,3})\s+(.+?)\s*$/;
+  const slugsByPage = new Map<number, Set<string>>();
+  forEachDocumentMarkdownLine(pageSources, pageNumberStart, (line, displayPage) => {
+    const m = headingLineRe.exec(line);
+    if (!m) {
+      return;
+    }
+    const titleRaw = m[2].trim();
+    if (!titleRaw) {
+      return;
+    }
+    let usedSlugs = slugsByPage.get(displayPage);
+    if (!usedSlugs) {
+      usedSlugs = new Set<string>();
+      slugsByPage.set(displayPage, usedSlugs);
+    }
+    const base = slugifyHeadingText(titleRaw);
+    let slug = base;
+    if (usedSlugs.has(slug)) {
+      let n = 2;
+      while (usedSlugs.has(`${base}-${n}`)) {
+        n += 1;
+      }
+      slug = `${base}-${n}`;
+    }
+    usedSlugs.add(slug);
+    const anchorId = `p${displayPage}-${slug}`;
+    items.push({
+      level: m[1].length,
+      titleHtml: md.renderInline(titleRaw),
+      pageNumber: displayPage,
+      anchorId
+    });
+  });
   return items;
+}
+
+/**
+ * Nummerierte H2 (`## 14. Titel`) → Anker-ID für {{abschnitt N | …}} (gleiche Slug-Regeln wie Überschriften-Plugin).
+ */
+function collectNumberedH2AnchorMap(
+  pageSources: PageSegment[],
+  pageNumberStart: number
+): { map: Map<number, string>; warnings: string[] } {
+  const map = new Map<number, string>();
+  const warnings: string[] = [];
+  const headingLineRe = /^\s{0,3}(#{1,3})\s+(.+?)\s*$/;
+  /** `## 15. Titel` oder `## 15 Titel` (Punkt nach Nummer optional). */
+  const sectionNumRe = /^(\d+)(?:\.\s+|\s+)/;
+  const slugsByPage = new Map<number, Set<string>>();
+  forEachDocumentMarkdownLine(pageSources, pageNumberStart, (line, displayPage) => {
+    const m = headingLineRe.exec(line);
+    if (!m || m[1].length !== 2) {
+      return;
+    }
+    const titleRaw = m[2].trim();
+    if (!titleRaw) {
+      return;
+    }
+    const numM = sectionNumRe.exec(titleRaw);
+    if (!numM) {
+      return;
+    }
+    const sectionNum = Number.parseInt(numM[1], 10);
+    if (!Number.isFinite(sectionNum)) {
+      return;
+    }
+    let usedSlugs = slugsByPage.get(displayPage);
+    if (!usedSlugs) {
+      usedSlugs = new Set<string>();
+      slugsByPage.set(displayPage, usedSlugs);
+    }
+    const base = slugifyHeadingText(titleRaw);
+    let slug = base;
+    if (usedSlugs.has(slug)) {
+      let n = 2;
+      while (usedSlugs.has(`${base}-${n}`)) {
+        n += 1;
+      }
+      slug = `${base}-${n}`;
+    }
+    usedSlugs.add(slug);
+    const anchorId = `p${displayPage}-${slug}`;
+    if (map.has(sectionNum)) {
+      warnings.push(
+        `[WARN] {{abschnitt}}: Abschnittsnummer ${sectionNum} mehrfach im Dokument — es gilt der zuletzt gefundene Anker`
+      );
+    }
+    map.set(sectionNum, anchorId);
+  });
+  return { map, warnings };
+}
+
+interface CollectedAbschnittRef {
+  sectionNum: number;
+  labelMarkdown: string;
+}
+
+function collectAbschnittMacros(raw: string): {
+  cleaned: string;
+  items: CollectedAbschnittRef[];
+  warnings: string[];
+} {
+  const items: CollectedAbschnittRef[] = [];
+  const warnings: string[] = [];
+  let seq = 0;
+  const re = new RegExp(ABSCHNITT_MACRO.source, "gi");
+  const cleaned = raw.replace(re, (_full, nStr: string, label: string) => {
+    const sectionNum = Number.parseInt(nStr, 10);
+    if (!Number.isFinite(sectionNum) || sectionNum < 0) {
+      warnings.push(`[WARN] {{abschnitt}}: ungültige Nummer „${nStr}“`);
+      return label.trim();
+    }
+    seq += 1;
+    items.push({ sectionNum, labelMarkdown: label.trim() });
+    return abschnittPlaceholder(seq);
+  });
+  return { cleaned, items, warnings };
+}
+
+function injectAbschnittRefs(
+  html: string,
+  items: CollectedAbschnittRef[],
+  anchorBySection: Map<number, string>
+): { html: string; warnings: string[] } {
+  const warnings: string[] = [];
+  let out = html;
+  for (let i = 0; i < items.length; i++) {
+    const token = abschnittPlaceholder(i + 1);
+    const { sectionNum, labelMarkdown } = items[i];
+    const id = anchorBySection.get(sectionNum);
+    const labelHtml = md.renderInline(
+      labelMarkdown.length > 0 ? labelMarkdown : `Abschnitt ${sectionNum}`
+    );
+    if (!id) {
+      warnings.push(
+        `[WARN] {{abschnitt ${sectionNum} | …}}: keine ##-Überschrift mit führender Nummer ${sectionNum} gefunden`
+      );
+      out = out.split(token).join(
+        `<span class="dsa-abschnitt-ref dsa-abschnitt-ref--missing" data-abschnitt="${sectionNum}">${labelHtml}</span>`
+      );
+      continue;
+    }
+    const href = `#${md.utils.escapeHtml(id)}`;
+    out = out.split(token).join(`<a class="dsa-abschnitt-ref" href="${href}">${labelHtml}</a>`);
+  }
+  return { html: out, warnings };
 }
 
 function buildTocNavHtml(items: TocHeadingItem[]): string {
@@ -1202,6 +1339,8 @@ export function renderDocument(markdown: string, options?: RenderDocumentOptions
   const runningTitle = runningTitleMerged.projectTitle.trim() || DEFAULT_IMPRESSUM_DATA.projectTitle;
 
   const documentTocItems = collectDocumentHeadingsForToc(pages, pageNumberData.start);
+  const abschnittAnchorBySection = collectNumberedH2AnchorMap(pages, pageNumberData.start);
+  let abschnittIndexWarningsEmitted = false;
   const firstH1TocItem = documentTocItems.find((item) => item.level === 1);
   const plainFirstH1 = firstH1TocItem ? htmlToPlainFooterTitle(firstH1TocItem.titleHtml) : "";
   const runningFooterTitle = plainFirstH1.length > 0 ? plainFirstH1 : runningTitle;
@@ -1229,6 +1368,7 @@ export function renderDocument(markdown: string, options?: RenderDocumentOptions
       : { cleaned: easierHarderData.cleaned, items: [] as CollectedNpcMacro[], warnings: [] as string[] };
     const chessData = collectChessMacros(npcData.cleaned);
     const difficultyRatingData = collectDifficultyRatingMacros(chessData.cleaned);
+    const abschnittMacroData = collectAbschnittMacros(difficultyRatingData.cleaned);
 
     /* Makros im Dokument überschreiben programmatische Optionen */
     const impressumDataMerged = mergeImpressum({
@@ -1237,10 +1377,11 @@ export function renderDocument(markdown: string, options?: RenderDocumentOptions
     });
 
     let html: string;
+    let abschnittRefWarnings: string[] = [];
     if (hasImpressumMacro) {
       html = renderImpressumHtml(impressumDataMerged, (s) => md.utils.escapeHtml(s));
     } else {
-      html = md.render(difficultyRatingData.cleaned);
+      html = md.render(abschnittMacroData.cleaned);
       html = injectNoteMacros(html, [...readAloudData.items, ...gmData.items]);
       html = injectRoulboxMacros(html, roulboxData.items);
       html = injectDifficultyMacros(html, easierHarderData.items);
@@ -1249,6 +1390,13 @@ export function renderDocument(markdown: string, options?: RenderDocumentOptions
       html = injectNpcBlocks(html, npcData.items);
       html = injectFootnoteRefs(html, footnoteData.footnotes);
       html = injectTocMacro(html, documentTocItems);
+      const abschnittInjected = injectAbschnittRefs(
+        html,
+        abschnittMacroData.items,
+        abschnittAnchorBySection.map
+      );
+      html = abschnittInjected.html;
+      abschnittRefWarnings = abschnittInjected.warnings;
     }
 
     const footnoteHtml =
@@ -1263,8 +1411,14 @@ export function renderDocument(markdown: string, options?: RenderDocumentOptions
       ...imFields.fieldWarnings,
       ...chessData.warnings,
       ...difficultyRatingData.warnings,
-      ...npcData.warnings
+      ...npcData.warnings,
+      ...abschnittMacroData.warnings,
+      ...abschnittRefWarnings
     ];
+    if (!hasImpressumMacro && !abschnittIndexWarningsEmitted) {
+      allWarnings.push(...abschnittAnchorBySection.warnings);
+      abschnittIndexWarningsEmitted = true;
+    }
 
     const warningHtml =
       allWarnings.length > 0

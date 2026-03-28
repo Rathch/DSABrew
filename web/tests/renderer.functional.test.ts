@@ -41,6 +41,30 @@ describe("renderer functional", () => {
     expect(r.pages[1].renderedHtml).toContain('id="p2-auf-seite-zwei"');
   });
 
+  it("{{abschnitt N | …}} links to numbered H2 anchor (mit Punkt nach N)", () => {
+    const md =
+      "{{pageNumber 1}}\n## 14. Alpha\n\nWeiter: {{abschnitt 15 | **Abschnitt 15**}}\n\n## 15. Beta\n";
+    const html = renderDocument(md).pages[0].renderedHtml;
+    expect(html).toContain('class="dsa-abschnitt-ref"');
+    expect(html).toContain('href="#p1-15-beta"');
+    expect(html).toContain("<strong>Abschnitt 15</strong>");
+    expect(html).toContain('id="p1-15-beta"');
+  });
+
+  it("{{abschnitt N | …}} erkennt ## N Titel ohne Punkt nach der Nummer", () => {
+    const md = "{{pageNumber 1}}\n## 14 x\n\n{{abschnitt 15 | weiter}}\n\n## 15 foo\n";
+    const html = renderDocument(md).pages[0].renderedHtml;
+    expect(html).toContain('href="#p1-15-foo"');
+    expect(html).toContain('id="p1-15-foo"');
+  });
+
+  it("{{abschnitt}} missing target renders placeholder and warning", () => {
+    const md = "{{pageNumber 1}}\n{{abschnitt 99 | nirgends}}\n";
+    const page = renderDocument(md).pages[0];
+    expect(page.renderedHtml).toContain("dsa-abschnitt-ref--missing");
+    expect(page.warnings.some((w) => w.includes("abschnitt 99"))).toBe(true);
+  });
+
   it("wraps Markdown tables in dsa-md-table for Scriptorium styling", () => {
     const md = `| A | B |
 | --- | --- |

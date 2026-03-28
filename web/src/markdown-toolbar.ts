@@ -20,7 +20,8 @@ type ToolbarPreviewKind =
   | "chess"
   | "difficulty"
   | "npc"
-  | "table";
+  | "table"
+  | "abschnitt";
 
 function dispatchInput(textarea: HTMLTextAreaElement): void {
   textarea.dispatchEvent(new Event("input", { bubbles: true }));
@@ -157,6 +158,37 @@ function insertLink(textarea: HTMLTextAreaElement): void {
   insertAtCursor(textarea, `[${label || "Text"}](${url})`);
 }
 
+function insertAbschnittMacro(textarea: HTMLTextAreaElement): void {
+  const nRaw = window.prompt("Abschnittsnummer N (Ziel: ## N Titel oder ## N. Titel):", "15");
+  if (nRaw === null) {
+    return;
+  }
+  const n = nRaw.trim();
+  if (!/^\d+$/.test(n) || n.startsWith("0") && n !== "0") {
+    window.alert("Bitte eine gültige Abschnittsnummer eingeben (z. B. 15).");
+    return;
+  }
+  if (n === "0") {
+    window.alert("N muss eine positive Zahl sein.");
+    return;
+  }
+  const { selectionStart, selectionEnd, value } = textarea;
+  const selected = value.slice(selectionStart, selectionEnd).trim();
+  if (selected.length > 0) {
+    const macro = `{{abschnitt ${n} | ${selected}}}`;
+    textarea.value = value.slice(0, selectionStart) + macro + value.slice(selectionEnd);
+    textarea.setSelectionRange(selectionStart, selectionStart + macro.length);
+    textarea.focus();
+    dispatchInput(textarea);
+    return;
+  }
+  const label = window.prompt("Link-Text (Markdown inline erlaubt, leer = „Abschnitt N“):", `Lies bei Abschnitt ${n} weiter`);
+  if (label === null) {
+    return;
+  }
+  insertAtCursor(textarea, `{{abschnitt ${n} | ${label}}}`);
+}
+
 const ACTIONS: {
   id: string;
   label: string;
@@ -277,6 +309,13 @@ const ACTIONS: {
     title: "Seite ohne Zweispaltigkeit (\\pageSingle / {{pageSingle}}) — folgende Seite einspaltig",
     preview: "page-1col",
     run: (ta) => insertAtCursor(ta, "\n\\pageSingle\n")
+  },
+  {
+    id: "abschnitt",
+    label: "Abschnitt",
+    title: "Solo-Sprung ({{abschnitt N | Text}}) — Ziel: ## N Titel oder ## N. Titel; mit markiertem Text als Beschriftung",
+    preview: "abschnitt",
+    run: insertAbschnittMacro
   },
   { id: "sep4", label: "|", title: "", run: () => {} },
   {
@@ -415,6 +454,8 @@ function appendPreviewVisual(preview: ToolbarPreviewKind, host: HTMLElement): vo
     host.appendChild(img);
   } else if (preview === "chess") {
     host.textContent = "\u265f";
+  } else if (preview === "abschnitt") {
+    host.textContent = "\u00a7\u2192";
   }
 }
 
