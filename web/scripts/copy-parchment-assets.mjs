@@ -12,6 +12,7 @@ const repoRoot = join(webRoot, "..");
 const outDir = join(webRoot, "public/dsa");
 
 const copies = [
+  ["media/image1.png", "list-bullet.png"],
   ["media/image24.png", "note-read-aloud-parchment.png"],
   ["media/image27.png", "note-gm-parchment.png"],
   ["media/image29.png", "note-gm-meister-bg.png"],

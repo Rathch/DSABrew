@@ -330,6 +330,50 @@ body {
   margin: 0.45em 0 0.2em;
 }
 
+/* Ungeordnete Listen: Aufzählungszeichen = media/image1.png → list-bullet.png (wie Scriptorium: hängend, erste Zeile) */
+.page-body ul {
+  list-style: none;
+  margin: 0.4em 0;
+  padding-left: 0;
+}
+
+.page-body ul > li {
+  position: relative;
+  margin: 0.2em 0;
+  /* Platz für breites Icon + ~2–3 Zeichen Abstand zum Text */
+  padding-left: 1.75em;
+}
+
+.page-body ul > li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  /* Mitte des Icons an der ersten Textzeile */
+  top: 0.38em;
+  top: calc(0.5lh - 0.34em);
+  width: 1.12em;
+  height: 0.68em;
+  background-image: url(/dsa/list-bullet.png);
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: contain;
+}
+
+.page-body ul ul {
+  margin: 0.25em 0 0.25em 0.4em;
+}
+
+.page-body ul ul > li {
+  padding-left: 1.55em;
+}
+
+.page-body ul ul > li::before {
+  top: 0.36em;
+  top: calc(0.5lh - 0.3em);
+  width: 0.98em;
+  height: 0.6em;
+}
+
 /* `---` / Trennlinien-Button: <hr> als Scriptorium-Grafik (media/image31 → note-gm-meister-trennlinie.png).
  * Volle Spaltenbreite: background-size 100% auto (nicht contain — sonst winzig zentriert).
  * aspect-ratio = Bildbreite/Bildhöhe (PNG image31: 800×48); bei anderem Export anpassen. */
@@ -562,9 +606,119 @@ body {
   font-size: var(--fs-text);
 }
 
+/* {{tocDepthH3}} — Inhaltsverzeichnis mit Punktlinie und rechter Seitenzahl (eine Spalte) */
 .page-body .toc {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0.35em 0 0.75em;
+  padding: 0.55em 0.45em 0.65em;
+  overflow: hidden;
   font-family: var(--font-gentium);
   font-size: var(--fs-text);
+  line-height: 1.35;
+  color: inherit;
+  background: rgba(252, 246, 232, 0.42);
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 1px rgba(80, 60, 35, 0.1);
+}
+
+.page-body .toc-heading {
+  margin: 0 0 0.55em;
+  font-family: var(--font-gentium);
+  font-size: var(--fs-abschnitt);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+}
+
+.page-body .toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.page-body .toc-item {
+  margin: 0.28em 0;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.page-body .toc-line {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: nowrap;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  gap: 0;
+  text-decoration: none;
+  color: inherit;
+}
+
+.page-body .toc-title {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  padding-right: 0.35em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.page-body .toc-l1 .toc-title {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+}
+
+.page-body .toc-l2 .toc-line {
+  padding-left: 1.1em;
+}
+
+.page-body .toc-l3 .toc-line {
+  padding-left: 2em;
+}
+
+.page-body .toc-l2 .toc-title,
+.page-body .toc-l3 .toc-title {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.page-body .toc-leader {
+  flex: 1 1 0;
+  min-width: 0.35em;
+  margin: 0 0.15em 0.25em;
+  border-bottom: 1px dotted currentColor;
+  opacity: 0.5;
+  height: 0.55em;
+  align-self: flex-end;
+}
+
+.page-body .toc-num {
+  flex: 0 0 auto;
+  flex-shrink: 0;
+  min-width: 1.75em;
+  padding-left: 0.25em;
+  text-align: right;
+  font-variant-numeric: lining-nums;
+  font-weight: 400;
+}
+
+.page-body .toc-empty {
+  margin: 0;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.a4-page.page-bg-einband:not(.page-einband-hell) .page-body .toc {
+  background: rgba(35, 40, 48, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
 .footnote-ref {
@@ -1079,7 +1233,9 @@ body {
   .dsa-gm-frame,
   .dsa-gm-frame__mid,
   .dsa-gm-frame__cap-img,
+  .page-body .toc,
   .page-body hr,
+  .page-body ul > li::before,
   .dsa-npc__template,
   .dsa-npc__frame,
   .a4-page.page-bg-einband::before,
