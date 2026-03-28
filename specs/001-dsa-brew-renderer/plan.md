@@ -1,16 +1,16 @@
 # Implementation Plan: DSABrew Markdown-to-DSA Renderer
 
-**Branch**: `001-dsa-brew-renderer` | **Date**: 2026-03-26 | **Spec**: `specs/001-dsa-brew-renderer/spec.md`  
+**Branch**: `001-dsa-brew-renderer` | **Date**: 2026-03-26 (updated 2026-03-27) | **Spec**: `specs/001-dsa-brew-renderer/spec.md`  
 **Input**: Feature specification from `/specs/001-dsa-brew-renderer/spec.md`
 
 ## Summary
 
-Build a web-based Markdown editor + preview that renders DSA-styled, multi-page A4 output with explicit page semantics (`\page`), safe macro expansion, and print-to-PDF via the browser. Implement page numbers (`{{pageNumber N}}`), per-page footnotes (`{{footnote LABEL | CONTENT}}`), and an auto-generated TOC from Markdown headings (`{{tocDepthH3}}`). A new document initializes with 4 pages (cover, two content pages, final page) and default backgrounds from packaged assets.
+Build a web-based Markdown editor + preview that renders DSA-styled, multi-page A4 output with explicit page semantics (`\page` and **`{{page}}`** alias), safe macro expansion, and print-to-PDF via the browser. Implement page numbers (`{{pageNumber N}}`), per-page footnotes (`{{footnote LABEL | CONTENT}}`), and an auto-generated TOC from Markdown headings (`{{tocDepthH3}}`). A new document initializes with 5 pages (cover, Impressum, two content pages, final page) and default backgrounds from packaged assets; **content pages without `\map`** use **automatic even/odd** backgrounds. The preview shows **two-column** body text with full-width headings/TOC/footnotes; the **preview pane scrolls** in the viewport, while the **editor textarea scrolls** only when its content exceeds its allocated height.
 
 ## Technical Context
 
 **Language/Version**: TypeScript (ES2022)  
-**Primary Dependencies**: Vite (bundling/dev server), a Markdown parser (e.g., markdown-it)  
+**Primary Dependencies**: Vite 5.x (bundling/dev server; Node 18+ compatible), **markdown-it**  
 **Storage**: N/A (in-memory in the browser for MVP)  
 **Testing**: Manual print validation required; minimal automated tests optional  
 **Target Platform**: Modern desktop browsers (Chrome/Edge/Firefox)  
@@ -43,8 +43,10 @@ specs/001-dsa-brew-renderer/
 ├── data-model.md
 ├── quickstart.md
 ├── spec.md
+├── tasks.md
 ├── contracts/
-│   └── macros.md
+│   ├── macros.md
+│   └── typography.md
 └── checklists/
     ├── requirements.md
     └── security.md
@@ -54,10 +56,10 @@ specs/001-dsa-brew-renderer/
 
 ```text
 web/
-├── src/                # app code (currently empty; will be initialized)
+├── src/                # app code (renderer, UI, styles)
 ├── public/
 │   └── dsa/            # static assets (backgrounds, frames, etc.)
-└── package.json        # will be added when app is initialized
+└── package.json
 
 .cursor/
 .specify/

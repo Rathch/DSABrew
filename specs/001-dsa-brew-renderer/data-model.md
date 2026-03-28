@@ -1,6 +1,6 @@
 # Data Model: DSABrew Markdown-to-DSA Renderer
 
-**Date**: 2026-03-26  
+**Date**: 2026-03-26 (updated 2026-03-27)  
 **Feature**: `specs/001-dsa-brew-renderer/spec.md`
 
 ## Entities
@@ -35,18 +35,21 @@ Single A4 page (print unit).
 - **rawPageMarkdown**: string (original page segment prior to markdown rendering)
 - **renderedHtml**: string (sanitized HTML for page body)
 - **backgrounds**:
-  - **mapKey**: string | null
+  - **mapKey**: string | null — **effective** canonical map id used for chrome (`einband`, `content-even`, `content-odd`, `final`, …): either from an explicit `\map{...}` on that page or, if absent, **derived** from even/odd **displayed** page number for default content pages.
   - **rautenKey**: string | null
   - **missingKeysWarnings**: string[] (unknown keys or malformed macros)
+- **pageChromeClasses**: string (optional presentation) — CSS class names for background/rauten layers on the page shell.
 - **footnotes**: Footnote[]
 
 ### 5) Footnote
 
 Represents a per-page footnote entry.
 
-- **label**: string (e.g., `PART 2`)
-- **content**: string (e.g., `BORING STUFF`)
+- **label**: string (e.g., `PART 2`) — HTML-escaped for display
+- **content**: string (e.g., `BORING STUFF`) — HTML-escaped for display
 - **sequence**: number (order of appearance on the page)
+
+**Note**: The inline reference in the rendered HTML is emitted as `<sup class="footnote-ref">[label]</sup>` after Markdown rendering (see `contracts/macros.md`), to avoid Markdown engines escaping raw `<sup>` when `html` is disabled.
 
 ### 6) TocEntry
 

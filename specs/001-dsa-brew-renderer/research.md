@@ -1,6 +1,6 @@
 # Research: DSABrew Markdown-to-DSA Renderer
 
-**Date**: 2026-03-26  
+**Date**: 2026-03-26 (updated 2026-03-27)  
 **Feature**: `specs/001-dsa-brew-renderer/spec.md`
 
 ## Decisions
@@ -41,7 +41,50 @@
 **Rationale**: Deterministic and simple; aligns with print/PDF needs.
 **Alternatives considered**: Separate “set page number” macro per page (more complex, unclear precedence).
 
+### Decision: Footnote reference injection vs Markdown `html: false`
+
+**Chosen**: Replace `{{footnote …}}` with a **non-HTML placeholder token** before `markdown-it` runs, then inject `<sup class="footnote-ref">…</sup>` **after** Markdown rendering.
+**Rationale**: With `html: false`, inserting `<sup>` in the source would be escaped to text; placeholders must not use Markdown-active patterns (e.g. `__` for emphasis).
+**Alternatives considered**: Enable HTML in Markdown (rejected: weakens untrusted-input guarantees); custom markdown-it inline rule (more coupling).
+
+### Decision: Default content backgrounds without repeating `\map`
+
+**Chosen**: If a page has no `\map{…}`, set effective map to `content-even` when `displayPageNumber` is even, else `content-odd`.
+**Rationale**: Matches book-style even/odd spreads and reduces author boilerplate; explicit `\map` still overrides per page.
+**Alternatives considered**: Require `\map` on every page (more verbose).
+
+### Decision: Page-break alias `{{page}}`
+
+**Chosen**: Normalize `{{page}}` to the same split as `\page`.
+**Rationale**: Author ergonomics; same semantics as `\page`.
+**Alternatives considered**: Only `\page` (less flexible for templating).
+
+### Decision: Two-column body layout
+
+**Chosen**: CSS multi-column (`column-count: 2`) on the page body; headings, TOC, warnings, footnotes use `column-span: all` where appropriate.
+**Rationale**: Matches “scriptorium” print look without a complex layout engine for MVP.
+**Alternatives considered**: CSS Grid per page (heavier); single column (rejected by product).
+
+### Decision: Vite major vs Node LTS
+
+**Chosen**: Pin **Vite 5** so developers on **Node 18** can run the dev server without requiring Node 20+ (Vite 7+).
+**Rationale**: Lower friction for common LTS setups; error `crypto.hash is not a function` on Node 18 + Vite 7 was observed in the wild.
+**Alternatives considered**: Require Node 20.19+ only (stricter environment).
+
+### Decision: Scriptorium typography (Andalus + Gentium)
+
+**Chosen**: Map Markdown `#`–`####` to Word-style levels per `contracts/typography.md`. **Gentium** is loaded as **Gentium Book Plus** from Google Fonts. **Andalus** uses a system `font-family` stack (no redistribution of Microsoft font files).
+**Rationale**: Matches the user’s template sizes; Gentium is OFL-licensed for web embedding; Andalus matches installed Office/Windows users.
+**Alternatives considered**: Substitute a free “Arabic-looking” webfont for Andalus (deviates from exact name); embed Andalus without license (rejected).
+
+### Decision: Impressum page
+
+**Chosen**: Macros `{{impressumField key=value}}` merge into defaults; `{{impressumPage}}` renders the block. Page uses the **same background** as other content pages (even/odd rule), not a separate asset.
+**Rationale**: Matches user expectation; field-level macros allow document-local edits without rebuilding.
+**Alternatives considered**: Separate `\map{impressum}` chrome (rejected: duplicate look vs content pages); JSON-only config (less author-friendly).
+
 ## Open Questions (deferred to implementation detail, not spec-level)
 
 - Exact visual layout (typography, margins, footer placement) for page number/footnotes/TOC.
 - Exact rules for which headings count as H1/H2/H3 for TOC generation (based on Markdown heading levels).
+- Fine-tuning column gaps and hyphenation for very long words in two-column mode.

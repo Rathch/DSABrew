@@ -1,0 +1,1074 @@
+:root {
+  font-family: Arial, sans-serif;
+  /* Scriptorium-Vorlage: siehe specs/001-dsa-brew-renderer/contracts/typography.md */
+  --font-andalus: Andalus, "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+  --font-gentium: "Gentium Book Plus", "Gentium Book Basic", Gentium, "Noto Serif", serif;
+  --fs-kapitel: 23.5pt;
+  --fs-unterkapitel: 14pt;
+  --fs-abschnitt: 13pt;
+  --fs-unterabschnitt: 10pt;
+  --fs-text: 10pt;
+  --einband-title: #c8ccd4;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #f0f0f0;
+  overflow: hidden;
+}
+
+#app {
+  min-height: 0;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 12px;
+  box-sizing: border-box;
+  height: 100vh;
+  max-height: 100vh;
+  min-height: 0;
+}
+
+.layout > * {
+  min-height: 0;
+}
+
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.editor h1 {
+  flex: 0 0 auto;
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.md-toolbar-wrap {
+  flex: 0 0 auto;
+}
+
+.md-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  background: #f4f4f4;
+  border: 1px solid #c8c8c8;
+  border-radius: 4px;
+}
+
+.md-toolbar-sep {
+  width: 1px;
+  align-self: stretch;
+  min-height: 20px;
+  margin: 0 2px;
+  background: #ccc;
+}
+
+.md-toolbar-btn {
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  font-family: inherit;
+  line-height: 1.2;
+  cursor: pointer;
+  border: 1px solid #bbb;
+  border-radius: 3px;
+  background: #fff;
+  color: #222;
+}
+
+.md-toolbar-btn:hover {
+  background: #eaeaea;
+  border-color: #999;
+}
+
+.md-toolbar-btn:active {
+  background: #ddd;
+}
+
+#md-tool-bold {
+  font-weight: 700;
+}
+
+#md-tool-italic {
+  font-style: italic;
+}
+
+#md-tool-strike {
+  text-decoration: line-through;
+}
+
+.editor textarea {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  resize: none;
+  overflow-y: auto;
+  font-family: monospace;
+  line-height: 1.4;
+}
+
+.editor .print-btn {
+  flex: 0 0 auto;
+  align-self: flex-start;
+}
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.preview-error {
+  font-family: var(--font-gentium), serif;
+  font-size: 0.95rem;
+  color: #a32626;
+  border: 1px solid #a32626;
+  padding: 12px;
+  background: #fff5f5;
+  border-radius: 4px;
+  max-width: 100%;
+}
+
+.preview-error pre {
+  margin: 8px 0 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.85rem;
+}
+
+.a4-page {
+  width: 210mm;
+  min-height: 297mm;
+  background: #fff;
+  box-sizing: border-box;
+  margin: 0 auto;
+  /* Kein Seitenpadding hier — sonst liegen ::before/::after nur in der Innenbox; Rand bleibt weiß */
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* FR-013a: lokale Assets unter /dsa/ — Vite public/
+ * Inhalt (even/odd/final): cover = Vollflaeche ohne Verzerrung.
+ * Einband: image13 = oberer Banner, image14 = unterer Rahmen (breit, Mitte transparent).
+ * Nicht als zwei Vollflaechen stacken — sonst wirkt die Grafik "riesig" und falsch beschnitten. */
+/* Dunkler Einband (Standard, \\map{einband} / \\map{einband dunkel}) */
+.a4-page.page-bg-einband:not(.page-einband-hell)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: #0d1520;
+  background-image: url(/dsa/image13.png), url(/dsa/image14.png);
+  background-size: 100% auto, 100% auto;
+  background-position: top center, bottom center;
+  background-repeat: no-repeat, no-repeat;
+}
+
+/* Heller Einband (\\map{einband hell}): Pergament bis zum Seitenrand (100%/100%, kein cover-Letterboxing) */
+.a4-page.page-bg-einband.page-einband-hell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  /* Ton an note-read-aloud-Pergament angeglichen — füllt transparente/sehr helle Bildränder */
+  background-color: #f7f5f2;
+  background-image:
+    url(/dsa/image13.png),
+    url(/dsa/image14.png),
+    url(/dsa/note-read-aloud-parchment.png);
+  background-size: 120%, 120%;
+  background-position: top center, bottom center, center center;
+  background-repeat: no-repeat, no-repeat, no-repeat;
+}
+
+.a4-page.page-bg-content-even::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: url(/dsa/image12.jpeg);
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+.a4-page.page-bg-content-odd::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: url(/dsa/image17.jpeg);
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+/* Final / Rückseite: wie helles Einband-Pergament — Grafik bis zum Seitenrand (100%/100%, kein cover-Letterboxing) */
+.a4-page.page-bg-final::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: #1a1614;
+  background-image: url(/dsa/image32.png);
+  background-size: 100% 100%;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+/* Impressum-Seite: gleicher Wechsel wie Inhalt (ungerade Seite → image12, gerade → image17); Inhalt einspaltig */
+.page-body:has(.impressum-sheet) {
+  column-count: 1;
+}
+
+/* Leichtes Rauten-Overlay (kein externes Asset nötig) */
+.a4-page.page-rauten-default::after,
+.a4-page.page-rauten-dense::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.1;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    45deg,
+    #222 0,
+    #222 1px,
+    transparent 1px,
+    transparent 10px
+  );
+}
+
+.a4-page.page-rauten-dense::after {
+  opacity: 0.16;
+}
+
+.page-body,
+.page-number,
+.book-footer-strip {
+  position: relative;
+  z-index: 1;
+}
+
+/* Zieldokument: Fließtext zweispaltig + Typografie (Gentium 10 / Überschriften laut typography.md) */
+.page-body {
+  box-sizing: border-box;
+  padding: 20mm 15mm 20mm;
+  column-count: 2;
+  column-gap: 5mm;
+  column-fill: balance;
+  orphans: 2;
+  widows: 2;
+  font-family: var(--font-gentium);
+  font-size: var(--fs-text);
+  line-height: 1.38;
+  color: #1a1a1a;
+}
+
+.page-body h1 {
+  font-family: var(--font-andalus);
+  font-size: var(--fs-kapitel);
+  font-weight: 400;
+  line-height: 1.2;
+  margin: 0.6em 0 0.35em;
+}
+
+.page-body h2 {
+  font-family: var(--font-andalus);
+  font-size: var(--fs-unterkapitel);
+  font-weight: 400;
+  line-height: 1.25;
+  margin: 0.65em 0 0.35em;
+}
+
+.page-body h3 {
+  font-family: var(--font-gentium);
+  font-size: var(--fs-abschnitt);
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 0.55em 0 0.3em;
+}
+
+.page-body h4 {
+  font-family: var(--font-gentium);
+  font-size: var(--fs-unterabschnitt);
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0.5em 0 0.25em;
+}
+
+.page-body h5,
+.page-body h6 {
+  column-span: all;
+  font-family: var(--font-gentium);
+  font-size: var(--fs-text);
+  font-weight: 700;
+  margin: 0.45em 0 0.2em;
+}
+
+/* Blöcke, die nicht zwischen Spalten zerrissen werden sollen */
+.page-body .warnings,
+.page-body .toc {
+  column-span: all;
+}
+
+/* Vorlese-/Meister-Notizen + NSC: eine Spalte der Zweispaltigkeit, nicht volle Seitenbreite */
+.page-body .dsa-note-wrap,
+.page-body .dsa-npc-wrap {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.page-body .footnotes {
+  column-span: all;
+  margin-top: 1em;
+}
+
+.page-body h1,
+.page-body h2,
+.page-body h3,
+.page-body h4 {
+  column-span: all;
+}
+
+/* Einband dunkel: Titel silbrig; Fließtext hell (Komplement zum Hintergrund) */
+.a4-page.page-bg-einband:not(.page-einband-hell) .page-body {
+  color: rgba(245, 242, 236, 0.95);
+}
+
+.a4-page.page-bg-einband:not(.page-einband-hell) .page-body a {
+  color: #f0c9a0;
+}
+
+.a4-page.page-bg-einband:not(.page-einband-hell) .page-body > h1:first-of-type {
+  font-family: var(--font-andalus);
+  font-size: var(--fs-kapitel);
+  color: var(--einband-title);
+  text-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.75),
+    0 1px 0 rgba(255, 255, 255, 0.06);
+  letter-spacing: 0.03em;
+  text-align: center;
+  margin-top: clamp(14mm, 18vh, 58mm);
+  margin-bottom: 0.4em;
+}
+
+.a4-page.page-bg-einband:not(.page-einband-hell) .page-body:not(:has(> h1)) > h2:first-of-type {
+  font-family: var(--font-andalus);
+  font-size: var(--fs-unterkapitel);
+  color: var(--einband-title);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.65);
+  text-align: center;
+  margin-top: clamp(14mm, 18vh, 58mm);
+  margin-bottom: 0.4em;
+}
+
+.a4-page.page-bg-einband:not(.page-einband-hell) .page-body:not(:has(> h1, > h2)) > h3:first-of-type {
+  color: var(--einband-title);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+  text-align: center;
+  margin-top: clamp(14mm, 18vh, 58mm);
+  margin-bottom: 0.4em;
+}
+
+/* Einband hell: dunkle Schrift, Titel mit leichtem Aufhellen */
+.a4-page.page-bg-einband.page-einband-hell .page-body {
+  color: #1a1410;
+}
+
+.a4-page.page-bg-einband.page-einband-hell .page-body a {
+  color: #5c3d18;
+}
+
+.a4-page.page-bg-einband.page-einband-hell .page-body > h1:first-of-type {
+  font-family: var(--font-andalus);
+  font-size: var(--fs-kapitel);
+  color: #1e140c;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.03em;
+  text-align: center;
+  margin-top: clamp(14mm, 18vh, 58mm);
+  margin-bottom: 0.4em;
+}
+
+.a4-page.page-bg-einband.page-einband-hell .page-body:not(:has(> h1)) > h2:first-of-type {
+  font-family: var(--font-andalus);
+  font-size: var(--fs-unterkapitel);
+  color: #2a1c14;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+  text-align: center;
+  margin-top: clamp(14mm, 18vh, 58mm);
+  margin-bottom: 0.4em;
+}
+
+.a4-page.page-bg-einband.page-einband-hell .page-body:not(:has(> h1, > h2)) > h3:first-of-type {
+  color: #2a1c14;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+  text-align: center;
+  margin-top: clamp(14mm, 18vh, 58mm);
+  margin-bottom: 0.4em;
+}
+
+.page-number {
+  position: absolute;
+  right: 12mm;
+  bottom: 10mm;
+  font-family: var(--font-gentium);
+  font-size: var(--fs-text);
+}
+
+/* Scriptorium-artige Fußzeile: Laufender Titel + Seitenzahl (nach Impressum) */
+.a4-page--with-book-footer .page-body {
+  padding-bottom: calc(20mm + 13mm);
+}
+
+.book-footer-strip {
+  /* Verschiebung der Seitenzahl in den Kasten der Seitengrafik (content-even/odd) */
+  --footer-num-nudge-x-even: 10.6mm;
+  --footer-num-nudge-x-odd: -10.6mm;
+  --footer-num-nudge-y: -1.2mm;
+
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: stretch;
+  column-gap: 4mm;
+  min-height: 13mm;
+  padding: 2mm 10mm 3mm;
+  box-sizing: border-box;
+  font-family: var(--font-gentium);
+  font-size: 9.5pt;
+  line-height: 1.2;
+  background: linear-gradient(to top, rgba(40, 32, 22, 0.22) 0%, rgba(40, 32, 22, 0.06) 55%, transparent 100%);
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.book-footer-cluster {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 3mm;
+  min-width: 0;
+}
+
+.book-footer-cluster--num-slot {
+  gap: 0;
+  align-items: center;
+}
+
+.book-footer-cluster--start {
+  justify-self: start;
+}
+
+.book-footer-cluster--end {
+  justify-self: end;
+}
+
+/* Nur Text — kein eigener Kasten; Lage per Verschiebung an den dunklen Bereich im Seiten-Hintergrund (image12/17) */
+.book-footer-num {
+  flex: 0 0 auto;
+  margin: 0;
+  text-align: center;
+  line-height: 1;
+  font-family: "Palatino Linotype", Palatino, "Book Antiqua", "Libre Bodoni", Didot, "Bodoni MT", Georgia, serif;
+  font-size: 28.5pt;
+  font-weight: 500;
+  font-variant-numeric: lining-nums;
+  letter-spacing: 0.05em;
+  color: #fff;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.55),
+    0 0 6px rgba(0, 0, 0, 0.3);
+}
+
+.book-footer-strip--even .book-footer-num {
+  transform: translate(var(--footer-num-nudge-x-even), var(--footer-num-nudge-y));
+}
+
+.book-footer-strip--odd .book-footer-num {
+  transform: translate(var(--footer-num-nudge-x-odd), var(--footer-num-nudge-y));
+}
+
+.book-footer-title {
+  grid-column: 2;
+  align-self: center;
+  font-family: var(--font-gentium);
+  font-size: 16pt;
+  line-height: 1.2;
+  color: #1a1410;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.book-footer-strip--odd .book-footer-title {
+  text-align: left;
+}
+
+.book-footer-strip--even .book-footer-title {
+  text-align: right;
+}
+
+.warnings {
+  color: #a32626;
+  border: 1px solid #a32626;
+  padding: 8px;
+  margin-bottom: 8px;
+  font-family: var(--font-gentium);
+  font-size: var(--fs-text);
+}
+
+.footnotes {
+  margin-top: 16px;
+  border-top: 1px solid #aaa;
+  padding-top: 8px;
+  font-family: var(--font-gentium);
+  font-size: var(--fs-text);
+}
+
+.page-body .toc {
+  font-family: var(--font-gentium);
+  font-size: var(--fs-text);
+}
+
+.footnote-ref {
+  font-family: var(--font-gentium);
+  font-size: 0.85em;
+}
+
+/* Makros {{readAloudNote}} / {{gmNote}} — Pergament-Höhe folgt dem Text; Breite wie Spalte */
+.dsa-note-wrap {
+  margin: 0.95em 0 1.05em;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Vorlese-Box: nur Schlagschatten; kein äußerer dunkler Rand (Pergamentgrafik ohne zusätzlichen Frame) */
+.dsa-note-wrap--read-aloud {
+  filter: drop-shadow(2px 5px 11px rgba(30, 22, 12, 0.35));
+}
+
+/* Meisterinfo: dreiteilig (Leisten + wachsende Mitte), bleibt in einer Spalte */
+.dsa-note-wrap--gm {
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  filter: drop-shadow(2px 6px 12px rgba(0, 0, 0, 0.38));
+}
+
+.dsa-gm-frame {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.dsa-gm-frame__cap {
+  flex: 0 0 auto;
+  line-height: 0;
+}
+
+.dsa-gm-frame__cap-img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Mittelbereich: image29 (note-gm-meister-bg) streckt sich mit dem Text (Breite/Höhe = Inhalt) */
+.dsa-gm-frame__mid {
+  flex: 0 1 auto;
+  box-sizing: border-box;
+  background-image: url(/dsa/note-gm-meister-bg.png);
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 100% 100%;
+  padding: 0 3mm;
+}
+
+.dsa-note {
+  clip-path: url(#dsa-note-torn-clip);
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 0;
+  height: auto;
+  overflow: visible;
+  padding: 5.5mm 6mm 5.5mm;
+  font-family: var(--font-gentium);
+  font-size: var(--fs-text);
+  line-height: 1.45;
+}
+
+.dsa-note__title {
+  margin: 0 0 0.5em;
+  font-family: var(--font-gentium);
+  font-size: var(--fs-unterkapitel);
+  font-weight: 700;
+  line-height: 1.22;
+  letter-spacing: 0.01em;
+}
+
+.dsa-note__body > :first-child {
+  margin-top: 0;
+}
+
+.dsa-note__body > :last-child {
+  margin-bottom: 0;
+}
+
+/* Hell: Textur streckt sich mit dem Kasten (100% — kein festes Pergament-Format) */
+.dsa-note--read-aloud {
+  color: #0f0c08;
+  background-image:
+    radial-gradient(ellipse 75% 55% at 50% 45%, rgba(255, 252, 245, 0.42) 0%, transparent 62%),
+    url(/dsa/note-read-aloud-parchment.png);
+  background-size: 100% 100%, 100% 100%;
+  background-position: center center;
+  background-repeat: no-repeat;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35),
+    inset 0 0 50px rgba(120, 90, 50, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.dsa-note--read-aloud .dsa-note__title {
+  color: #000;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.dsa-note--read-aloud .dsa-note__body {
+  font-style: italic;
+  font-weight: 400;
+}
+
+.dsa-note--read-aloud .dsa-note__body p {
+  font-style: italic;
+}
+
+.dsa-note--read-aloud .dsa-note__body strong {
+  font-style: italic;
+  font-weight: 700;
+}
+
+/* Dunkel: Vollflächig nur ohne Rahmen-Makro; mit Rahmen → .dsa-note--gm-framed */
+.dsa-note--gm {
+  color: #faf6f0;
+  background-image:
+    linear-gradient(185deg, rgba(45, 38, 34, 0.88) 0%, rgba(32, 28, 26, 0.94) 100%),
+    url(/dsa/note-gm-parchment.png);
+  background-size: 100% 100%, 100% 100%;
+  background-position: center center;
+  background-repeat: no-repeat;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.07),
+    inset 0 -3px 12px rgba(0, 0, 0, 0.35);
+}
+
+.dsa-note--gm-framed {
+  clip-path: none;
+  background: transparent;
+  box-shadow: none;
+  padding: 1.5mm 3.5mm 2.5mm;
+}
+
+.dsa-note--gm .dsa-note__title {
+  color: #fffefb;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+
+.dsa-note--gm .dsa-note__body {
+  color: #f2ebe3;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+.dsa-note--gm .dsa-note__body a {
+  color: #ffd9a0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.dsa-note--read-aloud .dsa-note__body a {
+  color: #4a3010;
+}
+
+/* Makro {{npcBlock}}: exakte Pixel-Vorlage media/foo.png → public/dsa/npc-block-template.png */
+.dsa-npc-wrap {
+  margin: 1em 0 1.1em;
+  padding: 0;
+  background: transparent;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.dsa-npc {
+  position: relative;
+  box-sizing: border-box;
+  min-width: 0;
+  font-family: var(--font-gentium);
+  font-size: var(--fs-text);
+  line-height: 1.38;
+  color: #0f0b07;
+}
+
+/* Prozentbezug = volle Rahmenfläche (wie npc-block-template); Portrait: Zentrum des Kreises */
+.dsa-npc__frame {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: max-content;
+  width: 100%;
+  max-width: 100%;
+  isolation: isolate;
+  filter: drop-shadow(2px 6px 14px rgba(20, 14, 8, 0.38));
+  --npc-txt-l: 6.5%;
+  --npc-txt-r: 31%;
+  --npc-txt-t: 10.5%;
+  --npc-txt-b: 15.5%;
+  /* Mittelpunkt Porträtkreis (% des Rahmens) — an goldener Vorlage ausgerichtet */
+  --npc-p-cx: 82.5%;
+  --npc-p-cy: 16%;
+  --npc-p-w: 25%;
+  /* Feinjustage nach Vorlage: z. B. 1mm / -0.5mm */
+  --npc-p-nudge-x: 0mm;
+  --npc-p-nudge-y: 0mm;
+}
+
+/* Inhalt bestimmt die Zeilenhöhe; Vorlage füllt dieselbe Zelle und wächst mit (object-fit: fill) */
+.dsa-npc__inner {
+  grid-column: 1;
+  grid-row: 1;
+  z-index: 3;
+  align-self: start;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding-top: var(--npc-txt-t);
+  padding-right: var(--npc-txt-r);
+  padding-bottom: var(--npc-txt-b);
+  padding-left: var(--npc-txt-l);
+}
+
+.dsa-npc__template {
+  grid-column: 1;
+  grid-row: 1;
+  /* Über Portrait: Zierrahmen/Kreis aus PNG; Porträt-Loch transparent → Bild darunter sichtbar */
+  z-index: 2;
+  align-self: stretch;
+  justify-self: stretch;
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: fill;
+  object-position: center top;
+  pointer-events: none;
+  user-select: none;
+}
+
+.dsa-npc__content {
+  position: relative;
+  z-index: 0;
+  overflow: visible;
+  box-sizing: border-box;
+  line-height: 1.38;
+  min-width: 0;
+}
+
+.dsa-npc__header {
+  margin: 0 0 3mm;
+  padding: 0;
+}
+
+.dsa-npc__title-block {
+  min-width: 0;
+}
+
+.dsa-npc__name {
+  margin: 0 0 0.28em;
+  font-family: var(--font-gentium);
+  font-size: calc(var(--fs-abschnitt) * 1.05);
+  font-weight: 700;
+  line-height: 1.12;
+  color: #000;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.dsa-npc__meta {
+  margin: 0.12em 0 0;
+  font-size: var(--fs-text);
+}
+
+.dsa-npc__meta strong {
+  font-weight: 700;
+}
+
+/* Unter der Vorlage (z-index): Zentrum = goldener Kreis (Loch in npc-block-template.png) */
+.dsa-npc__portrait {
+  position: absolute;
+  z-index: 1;
+  left: var(--npc-p-cx);
+  top: var(--npc-p-cy);
+  transform: translate(
+    calc(-50% + var(--npc-p-nudge-x)),
+    calc(-50% + var(--npc-p-nudge-y))
+  );
+  width: var(--npc-p-w);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  overflow: hidden;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.dsa-npc__portrait-img,
+.dsa-npc__portrait-placeholder {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center center;
+}
+
+.dsa-npc__portrait-placeholder {
+  background: linear-gradient(165deg, #e8e2d8 0%, #d4ccc0 100%);
+}
+
+/* Kein display:contents — in mehrspaltigem .page-body können Grid-Kinder sonst verschwinden */
+.dsa-npc__stat-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.42em;
+  margin: 0 0 0.55em;
+  font-size: 1em;
+}
+
+.dsa-npc__stat-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.28em 0.5em;
+  margin: 0;
+}
+
+.dsa-npc__stat-cell {
+  font-size: 0.98em;
+  letter-spacing: 0.01em;
+}
+
+.dsa-npc__stat-cell strong {
+  font-weight: 700;
+  margin-right: 0.15em;
+}
+
+.dsa-npc__stat-cell--empty {
+  min-height: 1em;
+}
+
+/* INI + Wert (z. B. 10+1W6) in einer Zeile: zwei Spalten des 4er-Rasters */
+.dsa-npc__stat-cell--span-2 {
+  grid-column: span 2;
+  white-space: nowrap;
+}
+
+.dsa-npc__combat,
+.dsa-npc__extras {
+  margin-top: 0.45em;
+  padding-top: 0.35em;
+  border-top: 1px solid rgba(60, 45, 28, 0.12);
+}
+
+.dsa-npc__line {
+  margin: 0.28em 0 0;
+  font-size: var(--fs-text);
+  text-align: left;
+}
+
+.dsa-npc__line strong {
+  font-weight: 700;
+}
+
+.dsa-npc__line:first-child {
+  margin-top: 0;
+}
+
+/* Impressum-Inhalt (HTML aus impressum-config) */
+.impressum-sheet {
+  max-width: 145mm;
+  margin: 0 auto;
+  padding: 2mm 0 4mm 7mm;
+}
+
+.impressum-scriptorium-banner {
+  text-align: center;
+  margin: 0 0 0.5em;
+}
+
+.impressum-scriptorium-banner-img {
+  display: block;
+  max-width: min(100%, 130mm);
+  height: auto;
+  margin: 0 auto;
+}
+
+.page-body .impressum-main-title {
+  font-family: var(--font-andalus);
+  font-size: 22pt;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-align: center;
+  margin: 0.2em 0 0.35em;
+  line-height: 1.15;
+}
+
+.impressum-project-title {
+  font-family: var(--font-andalus);
+  font-size: 17pt;
+  text-align: center;
+  margin: 0 0 1em;
+  line-height: 1.2;
+}
+
+.impressum-field {
+  text-align: center;
+  margin: 0.75em 0;
+}
+
+.impressum-field-label {
+  font-family: var(--font-gentium);
+  font-size: var(--fs-text);
+  font-weight: 700;
+}
+
+.impressum-field-value {
+  font-family: var(--font-gentium);
+  font-size: var(--fs-text);
+  margin-top: 0.2em;
+}
+
+.impressum-disclaimer {
+  text-align: center;
+  margin-top: 1.1em;
+  padding-top: 0.85em;
+  border-top: 1px solid rgba(0, 0, 0, 0.18);
+}
+
+.page-body .impressum-disclaimer-heading {
+  font-family: var(--font-gentium);
+  font-size: var(--fs-abschnitt);
+  font-weight: 700;
+  margin: 0 0 0.4em;
+  text-align: center;
+}
+
+.impressum-disclaimer-text {
+  font-family: var(--font-gentium);
+  font-size: var(--fs-text);
+  margin: 0.45em 0;
+  text-align: center;
+  hyphens: none;
+}
+
+.impressum-footer {
+  text-align: center;
+  margin-top: 1.2em;
+  font-family: var(--font-gentium);
+  font-size: var(--fs-text);
+  line-height: 1.45;
+}
+
+.impressum-footer-link {
+  color: #1565c0;
+  text-decoration: underline;
+}
+
+@media print {
+  html,
+  body,
+  #app {
+    height: auto;
+    overflow: visible;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  .layout {
+    display: block;
+    padding: 0;
+    height: auto;
+    max-height: none;
+  }
+
+  .editor {
+    display: none;
+  }
+
+  .preview {
+    display: block;
+    overflow: visible;
+  }
+
+  .a4-page {
+    margin: 0;
+    box-shadow: none;
+    page-break-after: always;
+    break-after: page;
+  }
+
+  .a4-page:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+
+  .dsa-note--read-aloud,
+  .dsa-note--gm,
+  .dsa-gm-frame,
+  .dsa-gm-frame__mid,
+  .dsa-gm-frame__cap-img,
+  .dsa-npc__template,
+  .dsa-npc__frame,
+  .a4-page.page-bg-einband::before,
+  .a4-page.page-bg-final::before {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

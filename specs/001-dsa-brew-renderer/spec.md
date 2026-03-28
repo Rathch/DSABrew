@@ -91,6 +91,13 @@ The user needs standard book navigation aids: page numbers, footnotes, and a tab
 - Q: Empty / whitespace-only input output? → A: produces exactly one empty rendered page
 - Q: Large document performance/stability rule? → A: Option C (<= 15s, up to ~200 pages / ~100k characters, no crash, output structure correct)
 
+### Session 2026-03-27
+
+- Q: Page-break alias besides `\page`? → A: `{{page}}` is equivalent to `\page`.
+- Q: Must every content page repeat `\map{content-even}` / `\map{content-odd}`? → A: No; if `\map` is omitted, the two content textures alternate from the **displayed** page number (odd → `content-even` / image12, even → `content-odd` / image17; see FR-017).
+- Q: Target document column layout? → A: Body text is two columns in preview and print; TOC/headings/warnings/footnotes span full width.
+- Q: Editor vs preview scrolling? → A: Preview scrolls when the document is tall; the text input scrolls only when its content exceeds the allocated input height.
+
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
@@ -109,12 +116,19 @@ The user needs standard book navigation aids: page numbers, footnotes, and a tab
 - **FR-010**: System MUST implement footnote macro `{{footnote LABEL | CONTENT}}` where `LABEL` is the visible reference label and `CONTENT` is the footnote text; footnotes MUST be collected per page and rendered as a footnote list at the bottom of the page containing the reference.
 - **FR-011**: System MUST implement TOC macro `{{tocDepthH3}}` to generate a table of contents derived from document headings; it MUST include headings up to depth level H3 and insert the TOC at the macro location.
 - **FR-012**: System MUST remain stable and produce correct rendered output for large documents (up to ~200 pages / ~100k characters) within 15 seconds of the preview/render action (no crash/hang).
-- **FR-013**: When creating a new document, the system MUST initialize it with exactly 4 pages by default: (1) a cover page (Einband), (2) and (3) two content pages, and (4) a final/back page.
-- **FR-013a**: The default new-document backgrounds MUST be applied as follows (local packaged assets):
+- **FR-013**: When creating a new document, the system MUST initialize it with exactly **5** pages by default: (1) cover (Einband), (2) **Impressum** (legal/credits, immediately after Einband), (3) and (4) two content pages, (5) final/back page.
+- **FR-013a**: The default new-document backgrounds MUST be applied as follows (local packaged assets where noted):
   - Page 1 (cover/Einband): composed using `media/image13.png` and `media/image14.png`.
-  - Page 2 (even content page): `media/image12.jpeg`.
-  - Page 3 (odd content page): `media/image17.jpeg`.
-  - Page 4 (final/back page): `media/image32.png`.
+  - Page 2 (Impressum): same **content page** background as other inner pages (even/odd rule); Impressum text via `{{impressumPage}}` / `{{impressumField …}}` (see FR-019).
+  - Page 3 (even content page): `media/image12.jpeg`.
+  - Page 4 (odd content page): `media/image17.jpeg`.
+  - Page 5 (final/back page): `media/image32.png`.
+- **FR-014**: The rendered page body text (preview + print) MUST use a **two-column** layout for body copy; structural blocks such as warnings, the table of contents, headings (H1–H4), and the per-page footnote list SHOULD span the full content width (not split across columns).
+- **FR-019**: The system MUST provide an **Impressum** page template placed **immediately after the Einband** in the default document. Impressum content MUST be **editable via macros** `{{impressumField key=value}}` (per-field overrides) and `{{impressumPage}}` (full block), with **defaults** in `web/src/impressum-config.ts` and optional programmatic merge via `renderDocument(..., { impressum: { … } })`. The Impressum page MUST use the **same background chrome** as ordinary content pages (automatic even/odd or explicit `\map{content-even}` / `\map{content-odd}`), not a separate Impressum-only background asset.
+- **FR-018**: The rendered document typography (preview + print) MUST follow `contracts/typography.md`: **Andalus** (system font stack) for chapter levels and Einband title styling; **Gentium** via *Gentium Book Plus* (web font) for body text and section levels; sizes and weights MUST match the documented mapping (Kapitel 23,5 pt, Unterkapitel 14 pt, Standard-Text 10 pt, Abschnitt Bold 13 pt, Unterabschnitt Bold 10 pt). The Einband title MUST use the same Andalus size as Kapitel with **silbrig** appearance (light neutral fill + subtle shadow) consistent with the reference cover.
+- **FR-015**: The interactive UI MUST keep the **preview/output pane** vertically scrollable within the viewport when the rendered document exceeds the available height; the **Markdown input** MUST use vertical scrolling **only when** the entered text exceeds the height allocated to the input control (no spurious page-level scroll for the editor when the text fits).
+- **FR-016**: The system MUST treat `{{page}}` as a **page break** equivalent to `\page` (same splitting semantics).
+- **FR-017**: For any rendered page **without** an explicit `\map{...}` on that page, the system MUST apply the default content background automatically: **odd** displayed page numbers use the `content-even` asset (`image12.jpeg`), **even** displayed page numbers use the `content-odd` asset (`image17.jpeg`), so the alternation matches the Scriptorium default sequence after the Einband (see `contracts/macros.md`). Explicit `\map{...}` on a page overrides this default for that page.
 
 ### Key Entities *(include if feature involves data)*
 
