@@ -4,6 +4,7 @@ import { attachMarkdownToolbar } from "./markdown-toolbar";
 import { exportPreviewToPdf } from "./pdf-export";
 import { renderDocument } from "./renderer";
 import { setupEditorPreviewScrollSync } from "./scroll-sync";
+import { DATENSCHUTZ_BODY_HTML } from "./datenschutz-content";
 
 document.documentElement.style.setProperty(
   "--dsa-list-bullet-url",
@@ -49,6 +50,33 @@ if (!app) {
   throw new Error("Missing #app root element");
 }
 
+const BODY_SCROLLABLE_CLASS = "dsabrew-body--scrollable";
+const STRIP_VISIBLE_CLASS = "dsabrew-privacy-strip-visible";
+const LS_PRIVACY_STRIP_DISMISSED = "dsabrew-privacy-strip-dismissed";
+
+/** Start-/Rechtsseiten & Fehler: body scrollt; Editor-Ansicht: overflow hidden wie bisher */
+function setPublicPageScroll(enable: boolean): void {
+  document.body.classList.toggle(BODY_SCROLLABLE_CLASS, enable);
+}
+
+function initPrivacyStrip(): void {
+  const strip = document.getElementById("dsabrew-privacy-strip");
+  const btn = document.getElementById("privacy-strip-dismiss");
+  if (!strip || !btn) {
+    return;
+  }
+  if (localStorage.getItem(LS_PRIVACY_STRIP_DISMISSED) === "1") {
+    return;
+  }
+  strip.removeAttribute("hidden");
+  document.body.classList.add(STRIP_VISIBLE_CLASS);
+  btn.addEventListener("click", () => {
+    localStorage.setItem(LS_PRIVACY_STRIP_DISMISSED, "1");
+    strip.setAttribute("hidden", "");
+    document.body.classList.remove(STRIP_VISIBLE_CLASS);
+  });
+}
+
 function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
@@ -65,19 +93,47 @@ function scrollPreviewToElementById(
   el.scrollIntoView({ behavior, block: "start" });
 }
 
-function buildLandingLayout(): string {
+const LINK_SCRIPTORIUM = "https://www.ulisses-ebooks.de/cc/7/scriptoriumaventuris";
+const LINK_ELF = "https://elf.ulisses-spiele.de/";
+const LINK_GPL = "https://www.gnu.org/licenses/gpl-3.0.html";
+const LINK_GITHUB = "https://github.com/Rathch/DSABrew";
+
+function landingFooterNav(extraClass: string): string {
   return `
-  <div class="landing">
+    <nav class="landing-footer${extraClass}" aria-label="Rechtliches und externe Links">
+      <ul class="landing-footer__list">
+        <li><a href="/impressum">Impressum</a></li>
+        <li><a href="/datenschutz">Datenschutz</a></li>
+        <li><a href="${LINK_SCRIPTORIUM}" rel="noopener noreferrer">Scriptorium Aventuris</a></li>
+        <li><a href="${LINK_ELF}" rel="noopener noreferrer">ELF (Ulisses)</a></li>
+        <li><a href="${LINK_GPL}" rel="noopener noreferrer">GNU GPLv3</a></li>
+        <li><a href="${LINK_GITHUB}" rel="noopener noreferrer">GitHub</a></li>
+      </ul>
+    </nav>`;
+}
+
+function buildLegalPageLayout(kind: "impressum" | "datenschutz"): string {
+  const title = kind === "impressum" ? "Impressum" : "Datenschutz";
+  const body =
+    kind === "impressum"
+      ? `<div class="landing-legal-body">
+      <address class="landing-impressum">
+        <p class="landing-impressum__name">Christian Rath-Ulrich</p>
+        <p class="landing-impressum__addr">Ernst-Mühlendyckstr 2<br />51143 Köln</p>
+        <p class="landing-impressum__contact">
+          <a href="mailto:kontakt@rath-ulrich.de">kontakt@rath-ulrich.de</a>
+        </p>
+      </address>
+    </div>`
+      : DATENSCHUTZ_BODY_HTML;
+  return `
+  <div class="landing landing--legal">
     <header class="landing__header">
-      <h1 class="landing__title">DSABrew</h1>
-      <p class="landing__lead">Markdown-Dokumente mit DSA-Layout — ohne Login. Lege ein neues Dokument an (öffnet in einem neuen Tab).</p>
+      <h1 class="landing__title">${title}</h1>
     </header>
-    <div class="hosted-toolbar landing-toolbar" role="toolbar" aria-label="Start">
-      <button type="button" id="hosted-new-btn" class="hosted-toolbar__btn hosted-toolbar__btn--primary">
-        <span class="hosted-toolbar__plus" aria-hidden="true">+</span> Neues Dokument
-      </button>
-    </div>
-    <p class="landing__hint">API-Server: <code>cd server && npm run dev</code> · Web: <code>cd web && npm run dev</code></p>
+    ${body}
+    <p class="landing-back"><a href="/">← Neues Dokument</a></p>
+    ${landingFooterNav(" landing-footer--inline")}
   </div>
 `;
 }
@@ -156,6 +212,9 @@ function buildDocumentLayout(options: { mode: "view" | "edit" }): string {
       <button id="pdf-btn" class="print-btn" type="button">PDF speichern</button>
     </section>
     <section class="preview" id="preview"></section>
+    <footer class="hosted-doc-footer" role="contentinfo">
+      ${landingFooterNav("")}
+    </footer>
   </main>
 `;
 }
@@ -327,6 +386,7 @@ function initEditorAndPreview(
     slugEdit?: string;
   }
 ): void {
+  setPublicPageScroll(false);
   app.innerHTML = buildDocumentLayout({ mode: options.mode });
 
   const input = document.querySelector<HTMLTextAreaElement>("#markdown-input");
@@ -587,9 +647,10 @@ function initEditorAndPreview(
   updatePreview(input.value);
 }
 
-function renderLanding(): void {
-  app.innerHTML = buildLandingLayout();
-  wireNewDocumentButton(document.querySelector<HTMLButtonElement>("#hosted-new-btn"));
+function renderLegalPage(kind: "impressum" | "datenschutz"): void {
+  document.title = kind === "impressum" ? "Impressum — DSABrew" : "Datenschutz — DSABrew";
+  setPublicPageScroll(true);
+  app.innerHTML = buildLegalPageLayout(kind);
 }
 
 let pathNorm = window.location.pathname;
@@ -598,18 +659,26 @@ if (pathNorm.length > 1 && pathNorm.endsWith("/")) {
 }
 const path = pathNorm || "/";
 
-if (path === "/new") {
+if (path === "/impressum") {
+  renderLegalPage("impressum");
+} else if (path === "/datenschutz") {
+  renderLegalPage("datenschutz");
+} else if (path === "/" || path === "/new") {
   void (async () => {
     try {
       const r = await fetch(apiUrl("/api/documents"), { method: "POST" });
       if (!r.ok) {
-        app.innerHTML = `<aside class="preview-error" role="alert"><strong>Neues Dokument fehlgeschlagen</strong><p>HTTP ${r.status}</p><p><a href="/">Zur Startseite</a></p></aside>`;
+        setPublicPageScroll(true);
+        document.title = "DSABrew";
+        app.innerHTML = `<aside class="preview-error" role="alert"><strong>Neues Dokument fehlgeschlagen</strong><p>HTTP ${r.status}</p><p><a href="/">Erneut versuchen</a></p></aside>`;
         return;
       }
       const j = (await r.json()) as { slugEdit: string };
       window.location.replace(`/d/${encodeURIComponent(j.slugEdit)}`);
     } catch {
-      app.innerHTML = `<aside class="preview-error" role="alert"><strong>API nicht erreichbar</strong><p><a href="/">Zur Startseite</a></p></aside>`;
+      setPublicPageScroll(true);
+      document.title = "DSABrew";
+      app.innerHTML = `<aside class="preview-error" role="alert"><strong>API nicht erreichbar</strong><p><a href="/">Erneut versuchen</a></p></aside>`;
     }
   })();
 } else {
@@ -621,11 +690,13 @@ if (path === "/new") {
       try {
         res = await fetch(apiUrl(`/api/documents/${encodeURIComponent(token)}`));
       } catch {
-        app.innerHTML = `<aside class="preview-error" role="alert"><strong>Netzwerkfehler</strong><p>API nicht erreichbar.</p></aside>`;
+        setPublicPageScroll(true);
+        app.innerHTML = `<aside class="preview-error" role="alert"><strong>Netzwerkfehler</strong><p>API nicht erreichbar.</p><p><a href="/">Neues Dokument</a></p></aside>`;
         return;
       }
       if (!res.ok) {
-        app.innerHTML = `<aside class="preview-error" role="alert"><strong>Dokument nicht verfügbar</strong><p>(${res.status})</p><p><a href="/">Zur Startseite</a></p></aside>`;
+        setPublicPageScroll(true);
+        app.innerHTML = `<aside class="preview-error" role="alert"><strong>Dokument nicht verfügbar</strong><p>(${res.status})</p><p><a href="/">Neues Dokument</a></p></aside>`;
         return;
       }
       const data = (await res.json()) as {
@@ -642,6 +713,10 @@ if (path === "/new") {
       });
     })();
   } else {
-    renderLanding();
+    document.title = "Seite nicht gefunden — DSABrew";
+    setPublicPageScroll(true);
+    app.innerHTML = `<aside class="preview-error" role="alert"><strong>Seite nicht gefunden</strong><p><a href="/">Neues Dokument anlegen</a></p></aside>`;
   }
 }
+
+initPrivacyStrip();

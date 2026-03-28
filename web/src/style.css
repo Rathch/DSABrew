@@ -28,8 +28,86 @@ body {
   overflow: hidden;
 }
 
+/* Startseite, Impressum, Datenschutz, Fehlerseiten: Seite darf mit dem Inhalt scrollen */
+body.dsabrew-body--scrollable {
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 100%;
+}
+
+body.dsabrew-body--scrollable #app {
+  min-height: 100%;
+  height: auto;
+}
+
+/* Nur bei scrollbaren Seiten: Platz, damit der letzte Inhalt nicht unter dem Hinweis liegt */
+body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
+  padding-bottom: 4.5rem;
+  box-sizing: border-box;
+}
+
+@media (min-width: 600px) {
+  body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
+    padding-bottom: 3.75rem;
+  }
+}
+
 #app {
   min-height: 0;
+}
+
+/* Hinweis: keine Cookies / kein Tracking (kein Consent nötig) */
+.privacy-strip {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  padding: 0.65rem 1rem;
+  padding-bottom: max(0.65rem, env(safe-area-inset-bottom));
+  background: rgba(30, 40, 55, 0.94);
+  color: #f0f4f8;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.18);
+  box-sizing: border-box;
+}
+
+.privacy-strip__inner {
+  max-width: 52rem;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem 1rem;
+}
+
+.privacy-strip__text {
+  margin: 0;
+  flex: 1 1 16rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.privacy-strip__text a {
+  color: #9ecbff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.privacy-strip__btn {
+  flex: 0 0 auto;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.privacy-strip__btn:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .layout {
@@ -1967,6 +2045,14 @@ body {
     display: none !important;
   }
 
+  .hosted-doc-footer {
+    display: none !important;
+  }
+
+  .privacy-strip {
+    display: none !important;
+  }
+
   /* Bildschirm-Zoom zurücksetzen — festes A4 für Druck/PDF */
   .preview .a4-page {
     zoom: 1;
@@ -2030,18 +2116,128 @@ body {
   opacity: 0.92;
 }
 
-.landing__hint {
-  margin: 1.25rem 0 0;
-  font-size: 0.85rem;
-  opacity: 0.8;
-}
-
-.landing__hint code {
-  font-size: 0.8em;
-}
-
 .landing-toolbar {
   margin-top: 1rem;
+}
+
+.landing-footer {
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.landing-footer__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.landing-footer a {
+  color: #1565c0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.landing-footer a:hover {
+  color: #0d47a1;
+}
+
+.landing--legal .landing__lead--legal {
+  opacity: 0.85;
+}
+
+.landing-legal-body {
+  margin: 0 0 1rem;
+}
+
+.landing-impressum {
+  margin: 0;
+  font-style: normal;
+  line-height: 1.55;
+  font-size: 0.98rem;
+}
+
+.landing-impressum__name {
+  margin: 0 0 0.75rem;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.landing-impressum__addr,
+.landing-impressum__contact {
+  margin: 0 0 0.5rem;
+}
+
+.landing-impressum__contact a {
+  color: #1565c0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.landing-impressum--inline {
+  margin: 0.5rem 0 1rem;
+}
+
+.landing-datenschutz__note {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+.landing-datenschutz__h2 {
+  margin: 1.35rem 0 0.45rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.landing-datenschutz__h2:first-of-type {
+  margin-top: 0.25rem;
+}
+
+.landing-datenschutz p {
+  margin: 0 0 0.65rem;
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.landing-datenschutz ul {
+  margin: 0 0 0.85rem;
+  padding-left: 1.35rem;
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.landing-datenschutz li {
+  margin-bottom: 0.35rem;
+}
+
+.landing-datenschutz a {
+  color: #1565c0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.landing-back {
+  margin: 0 0 1.25rem;
+  font-size: 0.95rem;
+}
+
+.landing-back a {
+  color: #1565c0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.landing-footer--inline {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
 }
 
 .hosted-banner {
@@ -2237,10 +2433,23 @@ body {
   }
 }
 
-/* Banner in Zeile 1; Editor + Vorschau in Zeile 2 gleich hoch, restliche Viewport-Höhe */
+/* Banner in Zeile 1; Editor + Vorschau in Zeile 2; Fußlinks in Zeile 3 */
 .layout.layout--hosted {
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
   align-items: stretch;
+}
+
+.hosted-doc-footer {
+  grid-column: 1 / -1;
+  min-height: 0;
+  padding-top: 0.25rem;
+  border-top: 1px solid rgba(40, 60, 90, 0.18);
+}
+
+.hosted-doc-footer .landing-footer {
+  margin-top: 0;
+  padding-top: 0.65rem;
+  border-top: none;
 }
 
 .layout.layout--hosted > .editor,
