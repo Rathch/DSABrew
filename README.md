@@ -1,6 +1,6 @@
 # DSABrew
 
-DSABrew ist ein Web-Tool, das Markdown in ein mehrseitiges A4-Layout rendert und den Export als PDF ueber den Browserdruck ermoeglicht.
+DSABrew ist ein Web-Tool, das Markdown in ein mehrseitiges A4-Layout rendert und den Export als **herunterladbare PDF-Datei** aus der Vorschau ermoeglicht (eine PDF-Seite pro Vorschau-Seite). Optional: weiterhin Drucken ueber den Browser (`Strg+P`) mit Print-CSS.
 
 ## Funktionen
 

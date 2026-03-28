@@ -51,4 +51,4 @@ Then open the shown local URL in your browser (typically `http://localhost:5173`
 
 ## Export to PDF
 
-Use the app’s print/export button (or browser print), then “Save as PDF”.
+Use **PDF speichern** in the editor toolbar: the app builds a multi-page A4 PDF (one page per preview page) and triggers a download. The PDF is image-based (matches the on-screen preview; text may not be selectable). You can still use the browser’s print dialog (`Ctrl+P` / “Print”) if you prefer system printing.

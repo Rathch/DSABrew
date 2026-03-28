@@ -13,12 +13,12 @@ The user writes RPG content in Markdown, includes DSA-specific layout macros, an
 
 **Why this priority**: This is the core promise of the tool and enables the user to create printable documents.
 
-**Independent Test**: Test by entering a sample Markdown document with multiple `\page` blocks and known background macros, then verify the preview shows multiple A4 pages and `window.print()` produces a PDF with correct page boundaries.
+**Independent Test**: Test by entering a sample Markdown document with multiple `\page` blocks and known background macros, then verify the preview shows multiple A4 pages and **PDF speichern** downloads a multi-page PDF with one sheet per rendered page (matching `\page` boundaries).
 
 **Acceptance Scenarios**:
 
 1. **Given** an empty editor and a sample Markdown containing `\page`, Markdown headings (e.g., `#`, `##`, `###`), and background macros, **When** the user saves/updates the preview, **Then** the preview displays multiple page sections corresponding to the `\page` blocks.
-2. **Given** a rendered multi-page preview, **When** the user triggers print/export from the page, **Then** the printed output contains distinct pages at the expected `\page` boundaries (including empty pages created by consecutive `\page` blocks).
+2. **Given** a rendered multi-page preview, **When** the user triggers PDF export from the app, **Then** the downloaded PDF contains distinct pages at the expected `\page` boundaries (including empty pages created by consecutive `\page` blocks).
 
 ---
 
@@ -111,7 +111,7 @@ The user needs standard book navigation aids: page numbers, footnotes, and a tab
 - **FR-006**: System MUST handle unknown macro keys safely by omitting the background and showing a visible warning/placeholder marker for the unknown background key, without breaking page rendering.
 - **FR-006a**: System MUST handle malformed macro invocations safely by ignoring the malformed macro and showing a visible warning/placeholder marker, without breaking page rendering.
 - **FR-007**: System MUST treat Markdown as untrusted input, prevent HTML/script execution, and strip raw HTML elements/blocks from rendering (they must never be executed and must not be rendered as HTML).
-- **FR-008**: Users MUST be able to export the rendered result to PDF via browser print (i.e., `window.print()` produces a stable multi-page PDF).
+- **FR-008**: Users MUST be able to export the rendered result to a **downloaded PDF file** generated in the app (one A4 page per rendered `.a4-page`, matching the visual preview). Export MAY rasterize each page (image-based PDF); text in the PDF need not be selectable. Optional: users MAY still use the browser’s own print function (`Ctrl+P` / print menu) with the existing print stylesheet for vector printing where the browser supports it.
 - **FR-009**: System MUST implement page number macro `{{pageNumber N}}` where `N` defines the starting page number for the first rendered page of the document and increments by 1 for each subsequent rendered page.
 - **FR-010**: System MUST implement footnote macro `{{footnote LABEL | CONTENT}}` where `LABEL` is the visible reference label and `CONTENT` is the footnote text; footnotes MUST be collected per page and rendered as a footnote list at the bottom of the page containing the reference.
 - **FR-011**: System MUST implement TOC macro `{{tocDepthH3}}` to generate a table of contents derived from document headings; it MUST include headings up to depth level H3 and insert the TOC at the macro location.
@@ -142,18 +142,18 @@ The user needs standard book navigation aids: page numbers, footnotes, and a tab
 
 - **SC-001**: Users can produce a two-page document preview from a typical input (up to ~5,000 characters) within 2 seconds of editing.
 - **SC-002**: At least 95% of supported macros resolve correctly to the expected page backgrounds on a representative sample document set.
-- **SC-003**: Printing/export via browser print yields a PDF with the number of pages matching the number of `\page` blocks (±0 pages) for the representative sample.
+- **SC-003**: PDF export from the app yields a file whose number of pages matches the number of rendered pages from `\page` / `{{page}}` semantics (±0 pages) for the representative sample.
 - **SC-004**: For malicious input containing scripts and raw HTML, no script execution is observed, and unsafe HTML is removed/stripped (it must not be executed and must not appear as rendered HTML in the preview) (pass/fail based on test).
 - **SC-005**: For a representative multi-page document using `{{pageNumber N}}`, the displayed page numbers match the formula `displayedPageNumber = N + (pageIndex - 1)` for all rendered pages.
 - **SC-006**: For a representative document containing at least 3 footnotes across multiple pages, every footnote reference shows the specified `LABEL` and every footnote list contains the corresponding `CONTENT` exactly once on the correct page.
 - **SC-007**: For a representative document containing headings across multiple levels, the TOC generated by `{{tocDepthH3}}` includes all and only headings eligible for depth H3 in correct document order.
-- **SC-008**: For empty or whitespace-only input, the rendered output contains exactly one page and printing/export yields a PDF with exactly one page.
+- **SC-008**: For empty or whitespace-only input, the rendered output contains exactly one page and PDF export yields a file with exactly one page.
 - **SC-009**: For a representative large document (up to ~200 pages / ~100k characters), rendering completes within 15 seconds and produces a correct page structure without crashes/hangs.
 
 ## Assumptions
 
 - Users run the tool in a modern web browser.
 - All required background assets are available locally within the tool’s package (no runtime dependency on external URLs for core backgrounds).
-- PDF export is implemented via the browser’s standard print dialog, so users can save to PDF using the OS/browser UI.
+- Primary PDF export is implemented in-app (html2canvas + jsPDF): users download a `.pdf` file that mirrors the preview. Browser print remains available as an optional path for users who prefer the system print dialog.
 - The initial macro set is limited to the documented subset; extensibility beyond that subset is handled by adding entries to the supported macro mapping.
 - Footnote rendering is per-page: each page contains a footnote list for references that appear on that page.

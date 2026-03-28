@@ -65,6 +65,12 @@
 **Rationale**: Matches “scriptorium” print look without a complex layout engine for MVP.
 **Alternatives considered**: CSS Grid per page (heavier); single column (rejected by product).
 
+### Decision: PDF export (in-app download)
+
+**Chosen**: **html2canvas** + **jsPDF** in the browser: each `.a4-page` is captured to a canvas and embedded as one A4 page in a downloaded `.pdf` (letterboxed to preserve aspect ratio).
+**Rationale**: Delivers a real PDF file without a server; matches on-screen preview (including backgrounds and web fonts). Trade-off: raster PDF (text not selectable); some CSS (e.g. complex clip-paths) may differ slightly from vector print.
+**Alternatives considered**: Browser-only `window.print()` → “Save as PDF” (no automatic file download); headless Chrome/Puppeteer (requires backend or CLI); full vector rebuild (too heavy for MVP).
+
 ### Decision: Vite major vs Node LTS
 
 **Chosen**: Pin **Vite 5** so developers on **Node 18** can run the dev server without requiring Node 20+ (Vite 7+).

@@ -23,8 +23,8 @@
 
 ## Phase: Integration
 
-- [X] **T010** Editor + Live-Preview + Druck/PDF (`window.print()`)
-- [X] **T011** Print-CSS: Seitenumbrüche, Vorschau ≈ Druck
+- [X] **T010** Editor + Live-Preview + PDF-Download (`html2canvas` + `jspdf`, eine Seite pro `.a4-page`)
+- [X] **T011** Print-CSS (optional `Strg+P`): Seitenumbrüche; PDF-Export spiegelt die Vorschau
 
 ## Phase: Polish
 

@@ -5,14 +5,14 @@
 
 ## Summary
 
-Build a web-based Markdown editor + preview that renders DSA-styled, multi-page A4 output with explicit page semantics (`\page` and **`{{page}}`** alias), safe macro expansion, and print-to-PDF via the browser. Implement page numbers (`{{pageNumber N}}`), per-page footnotes (`{{footnote LABEL | CONTENT}}`), and an auto-generated TOC from Markdown headings (`{{tocDepthH3}}`). A new document initializes with 5 pages (cover, Impressum, two content pages, final page) and default backgrounds from packaged assets; **content pages without `\map`** use **automatic even/odd** backgrounds. The preview shows **two-column** body text with full-width headings/TOC/footnotes; the **preview pane scrolls** in the viewport, while the **editor textarea scrolls** only when its content exceeds its allocated height.
+Build a web-based Markdown editor + preview that renders DSA-styled, multi-page A4 output with explicit page semantics (`\page` and **`{{page}}`** alias), safe macro expansion, and **in-app PDF download** (html2canvas + jsPDF: one A4 page per preview page). Implement page numbers (`{{pageNumber N}}`), per-page footnotes (`{{footnote LABEL | CONTENT}}`), and an auto-generated TOC from Markdown headings (`{{tocDepthH3}}`). A new document initializes with 5 pages (cover, Impressum, two content pages, final page) and default backgrounds from packaged assets; **content pages without `\map`** use **automatic even/odd** backgrounds. The preview shows **two-column** body text with full-width headings/TOC/footnotes; the **preview pane scrolls** in the viewport, while the **editor textarea scrolls** only when its content exceeds its allocated height. Optional **browser print** (`@media print`) remains for users who prefer the system dialog.
 
 ## Technical Context
 
 **Language/Version**: TypeScript (ES2022)  
 **Primary Dependencies**: Vite 5.x (bundling/dev server; Node 18+ compatible), **markdown-it**  
 **Storage**: N/A (in-memory in the browser for MVP)  
-**Testing**: Manual print validation required; minimal automated tests optional  
+**Testing**: Manual PDF-export validation recommended; minimal automated tests optional  
 **Target Platform**: Modern desktop browsers (Chrome/Edge/Firefox)  
 **Project Type**: Web application (single repository)  
 **Performance Goals**: Typical documents render quickly; large documents (up to ~200 pages / ~100k chars) render within 15s without crash/hang  
@@ -25,8 +25,8 @@ Build a web-based Markdown editor + preview that renders DSA-styled, multi-page 
 
 - **Macro-First Extensibility**: All non-Markdown behavior is explicit macros with documented semantics.
 - **Rendering Determinism**: Same input + assets ⇒ stable output structure/pagination behavior.
-- **Print Fidelity & Page Semantics**: `\page` boundaries map to printed pages; backgrounds align to page coordinates for preview + `window.print()`.
-- **Separation of Concerns**: Renderer stays pure; UI handles input and print.
+- **Print/PDF Fidelity & Page Semantics**: `\page` boundaries map to preview pages and to exported PDF sheets; backgrounds align to page coordinates for preview + PDF raster export (+ optional `window.print()`).
+- **Separation of Concerns**: Renderer stays pure; UI handles input, preview, and PDF export.
 - **Security & Input Safety**: Strip raw HTML; prevent script execution; macros resolve only via internal asset map.
 - **Commit Governance**: Commit messages follow Conventional Commits.
 

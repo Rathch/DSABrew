@@ -17,9 +17,10 @@
 - [x] Unknown macro keys produce a visible warning/placeholder marker and omit the background.
 - [x] Malformed macro invocations are ignored and produce a visible warning/placeholder marker.
 
-## Print & Isolation
+## Print & PDF export
 
-- [x] The printed output (`window.print()`) matches the preview page structure (no hidden content that prints differently).
+- [x] In-app PDF export rasterizes the visible preview (no separate hidden pipeline); exported pages correspond to `.a4-page` elements.
+- [x] Optional browser print (`window.print()` + print CSS) remains aligned with the same page structure where supported.
 - [x] CSS used for layout does not allow user content to escape page bounds to overlap headers/footers unexpectedly.
 
 ## Manual Test Inputs (recommended)
