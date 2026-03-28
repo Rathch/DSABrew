@@ -243,6 +243,12 @@ const ACTIONS: {
     title: "Seitenumbruch (Alias)",
     run: (ta) => insertAtCursor(ta, "\n{{page}}\n")
   },
+  {
+    id: "pageSingle",
+    label: "1 Spalte",
+    title: "Seite ohne Zweispaltigkeit (\\pageSingle / {{pageSingle}}) — folgende Seite einspaltig",
+    run: (ta) => insertAtCursor(ta, "\n\\pageSingle\n")
+  },
   { id: "sep4", label: "|", title: "", run: () => {} },
   {
     id: "readAloudNote",

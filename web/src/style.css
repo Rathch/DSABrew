@@ -301,6 +301,16 @@ body {
   color: #1a1a1a;
 }
 
+/* Nach \\pageSingle / {{pageSingle}}: eine Spalte, volle Inhaltsbreite (Tabellen, Kästen, Überschriften) */
+.a4-page.a4-page--single-column .page-body {
+  column-count: 1;
+}
+
+/* NSC-Kasten auf einspaltiger Seite: nicht über volle Breite — entspricht etwa einer Spalte bei Zweispaltigkeit */
+.a4-page.a4-page--single-column .page-body .dsa-npc-wrap {
+  max-width: min(100%, calc(50% - 2.5mm));
+}
+
 .page-body h1 {
   font-family: var(--font-andalus);
   font-size: var(--fs-kapitel);

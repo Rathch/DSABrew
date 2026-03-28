@@ -42,6 +42,19 @@ describe("renderer functional", () => {
     expect(result.pages.length).toBe(2);
   });
 
+  it("sets singleColumn on the page after pageSingle", () => {
+    const r = renderDocument("Erste\n\\pageSingle\nZweite");
+    expect(r.pages.length).toBe(2);
+    expect(r.pages[0].singleColumn).toBe(false);
+    expect(r.pages[1].singleColumn).toBe(true);
+  });
+
+  it("treats {{pageSingle}} like pageSingle break", () => {
+    const r = renderDocument("a\n{{pageSingle}}\nb");
+    expect(r.pages.length).toBe(2);
+    expect(r.pages[1].singleColumn).toBe(true);
+  });
+
 
 
   it("resolves cover alias to einband chrome", () => {
@@ -91,6 +104,11 @@ mu=10
     const joined = r.pages.map((p) => p.renderedHtml).join("\n");
     expect(joined).toContain("dsa-npc-wrap");
     expect(joined).not.toContain("{{npcBlock");
+  });
+
+  it("default demo: enthält einspaltige Seite (pageSingle)", () => {
+    const r = renderDocument(DEFAULT_MARKDOWN_DEMO);
+    expect(r.pages.some((p) => p.singleColumn === true)).toBe(true);
   });
 
   it("renders easier macro with dsa-diff and bundled icon", () => {

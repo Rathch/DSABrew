@@ -51,6 +51,7 @@ function updatePreview(markdown: string): void {
     preview.innerHTML = result.pages
       .map((page) => {
         const chrome = page.pageChromeClasses ? ` ${page.pageChromeClasses}` : "";
+        const singleCol = page.singleColumn ? " a4-page--single-column" : "";
         const footerClass = page.bookFooter ? " a4-page--with-book-footer" : "";
         const footerParity =
           page.bookFooter != null
@@ -71,7 +72,7 @@ function updatePreview(markdown: string): void {
             ? ""
             : `<div class="page-number page-number--${page.displayPageNumber % 2 === 0 ? "even" : "odd"}">${String(page.displayPageNumber).padStart(2, "0")}</div>`;
         return `
-      <article class="a4-page${chrome}${footerClass}">
+      <article class="a4-page${chrome}${singleCol}${footerClass}">
         <div class="page-body">${page.renderedHtml}</div>
         ${footerHtml}
       </article>

@@ -80,6 +80,8 @@ export interface RenderedPage {
   rautenKey: string | null;
   /** Extra CSS class names for page chrome (backgrounds), space-separated. */
   pageChromeClasses: string;
+  /** `true` nach `\\pageSingle` / `{{pageSingle}}` — einspaltiges Layout (`.a4-page--single-column`). */
+  singleColumn?: boolean;
   /** Gesetzt auf allen Seiten **nach** der letzten `{{impressumPage}}`-Seite (sonst `undefined` → klassische Ecke). */
   bookFooter?: BookFooterStrip;
 }
@@ -92,8 +94,10 @@ export interface RenderDocumentOptions {
   impressum?: Partial<ImpressumData>;
 }
 
-const PAGE_SPLIT = /\n\s*\\page\s*\n/g;
+/** Seitenumbruch; optional `Single` → folgende Seite einspaltig (`\\pageSingle`). */
+const PAGE_OR_SINGLE_BREAK = /(?:^|\n)\s*\\page(Single)?\s*\n/g;
 const PAGE_ALIAS = /\{\{page\}\}/g;
+const PAGE_SINGLE_ALIAS = /\{\{\s*pageSingle\s*\}\}/gi;
 const PAGE_NUMBER = /\{\{pageNumber\s+(\d+)\}\}/g;
 const FOOTNOTE_MACRO = /\{\{footnote\s+([^|]+?)\s*\|\s*([^}]+)\}\}/g;
 /** Pergament-Vorlesetext (hell); Aliase: `vorlesenNote`. Titel | Fließtext (Markdown im Inhalt). */
@@ -230,16 +234,42 @@ export function buildPageChromeClasses(
   return parts.join(" ").trim();
 }
 
-function splitPages(input: string): string[] {
+interface PageSegment {
+  raw: string;
+  /** Inhalt dieser Seite erscheint einspaltig (nach vorangehendem `\\pageSingle`). */
+  singleColumn: boolean;
+}
+
+function splitPages(input: string): PageSegment[] {
   const normalized = input.replace(/\r\n/g, "\n").trim();
   if (!normalized) {
-    return [""];
+    return [{ raw: "", singleColumn: false }];
   }
-  return normalized.split(PAGE_SPLIT);
+  const segments: PageSegment[] = [];
+  PAGE_OR_SINGLE_BREAK.lastIndex = 0;
+  let lastIndex = 0;
+  let nextSegmentSingle = false;
+  let m: RegExpExecArray | null;
+  while ((m = PAGE_OR_SINGLE_BREAK.exec(normalized)) !== null) {
+    segments.push({
+      raw: normalized.slice(lastIndex, m.index),
+      singleColumn: nextSegmentSingle
+    });
+    nextSegmentSingle = m[1] === "Single";
+    lastIndex = PAGE_OR_SINGLE_BREAK.lastIndex;
+  }
+  segments.push({
+    raw: normalized.slice(lastIndex),
+    singleColumn: nextSegmentSingle
+  });
+  PAGE_OR_SINGLE_BREAK.lastIndex = 0;
+  return segments;
 }
 
 function normalizePageBreakMacros(input: string): string {
-  return input.replace(PAGE_ALIAS, "\n\\page\n");
+  return input
+    .replace(PAGE_ALIAS, "\n\\page\n")
+    .replace(PAGE_SINGLE_ALIAS, "\n\\pageSingle\n");
 }
 
 function parsePageNumberStart(input: string): { start: number; cleaned: string } {
@@ -1030,11 +1060,11 @@ interface TocHeadingItem {
  * Überspringt Fenced Code, {{npcBlock}}-, {{roulbox …}}-, {{easier|}}/{{harder|}}-Körper, damit keine falschen Treffer.
  * Slug/ID pro Seite wie beim Heading-Anchor-Plugin (p{Seite}-{slug}).
  */
-function collectDocumentHeadingsForToc(pageSources: string[], pageNumberStart: number): TocHeadingItem[] {
+function collectDocumentHeadingsForToc(pageSources: PageSegment[], pageNumberStart: number): TocHeadingItem[] {
   const items: TocHeadingItem[] = [];
   const headingLineRe = /^\s{0,3}(#{1,3})\s+(.+?)\s*$/;
   for (let pageIndex = 0; pageIndex < pageSources.length; pageIndex++) {
-    const source = pageSources[pageIndex];
+    const source = pageSources[pageIndex].raw;
     const displayPage = pageNumberStart + pageIndex;
     const usedSlugs = new Set<string>();
     const lines = source.replace(/\r\n/g, "\n").split("\n");
@@ -1175,7 +1205,8 @@ export function renderDocument(markdown: string, options?: RenderDocumentOptions
   const plainFirstH1 = firstH1TocItem ? htmlToPlainFooterTitle(firstH1TocItem.titleHtml) : "";
   const runningFooterTitle = plainFirstH1.length > 0 ? plainFirstH1 : runningTitle;
 
-  const renderedPages: RenderedPage[] = pages.map((rawPage, index) => {
+  const renderedPages: RenderedPage[] = pages.map((segment, index) => {
+    const rawPage = segment.raw;
     const displayPageNumber = pageNumberData.start + index;
     anchorPageDisplayNumber = displayPageNumber;
 
@@ -1271,6 +1302,7 @@ export function renderDocument(markdown: string, options?: RenderDocumentOptions
         bgData.rautenKey,
         effectiveMapKey === "einband" ? bgData.einbandTone : undefined
       ),
+      singleColumn: segment.singleColumn,
       bookFooter
     };
   });

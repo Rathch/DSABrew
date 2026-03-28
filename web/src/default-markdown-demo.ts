@@ -182,6 +182,58 @@ sonderfertigkeiten=Lorem I, Ipsum II
 talente=Schwimmen 3, Klettern 2
 {{/npcBlock}}
 
+\\pageSingle
+\\map{content-even}
+# Einspaltige Referenz (\\pageSingle)
+
+Absatz mit **Fett**, *kursiv* und Fußnote {{footnote EINSP-DEMO | Hinweis nur auf dieser einspaltigen Demo-Seite. }}
+
+## Tabelle (volle Textbreite)
+
+| Leistung | Preis |
+| --- | --- |
+| Mahlzeit | 2 Silber |
+| **Übernachten** | |
+
+---
+
+{{readAloudNote Vorlesen (einspaltig): |
+Kurzer *Vorlesetext* — eine Spalte, volle Breite.
+}}
+
+{{gmNote SL (einspaltig): |
+*Geheim:* Nur für die Spielleitung.
+}}
+
+{{roulbox Regel | Optional |
+**Zwischenüberschrift** — Fließtext.
+
+- Aufzählung eins
+- Aufzählung zwei
+}}
+
+{{easier |
+*Leichter Hinweis* auf einspaltiger Seite.
+}}
+
+{{harder |
+*Schwerer Hinweis* auf einspaltiger Seite.
+}}
+
+Schach im Text: {{ chess | knight }} und Rauten {{ difficulty | Kampf: | rot 2 }}.
+
+### NSC (absichtlich schmaler als volle Breite)
+
+{{npcBlock
+name=Schmaler Demo-NSC
+portrait=/dsa/portrait.png
+groesse=1,75 Schritt
+gewicht=70 Stein
+mu=11 kl=11 in=11 ch=10 ff=10 ge=10 ko=11 kk=10
+lep=35 ini=12+1W6 aw=8 rs=2 sk=0 zk=0 gs=10
+angriff1=AT 12 TP 1W6+2
+{{/npcBlock}}
+
 \\page
 \\map{final}
 # RÜCKSEITE (Abschluss)

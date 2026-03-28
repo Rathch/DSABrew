@@ -20,6 +20,19 @@ This document defines the macro surface that extends plain Markdown.
 - **Semantically equivalent** to `\page`: inserts a page break using the same splitting rules.
 - Whitespace may surround the token; implementation normalizes it to the same internal page split as `\page`.
 
+## Macro: `\pageSingle`
+
+**Type**: Structural
+
+- Like `\page`, starts a **new** A4 page, but the **following** page’s body uses **one column** (`column-count: 1`) instead of the default two-column layout.
+- The **preceding** page’s column layout is unchanged.
+
+## Macro: `{{pageSingle}}`
+
+**Type**: Structural (alias)
+
+- **Semantically equivalent** to `\pageSingle` (same split + single-column flag for the next page).
+
 ## Macro: `{{impressumField key=value}}`
 
 **Type**: Impressum data override
@@ -190,8 +203,9 @@ Headings are expressed using plain Markdown headings:
 
 ## Layout (preview + print)
 
-- **Body text**: two columns (`column-count: 2`) for the main flow inside each page body.
-- **Markdown tables** (`table.dsa-md-table`): same as body flow — **one column** wide (no `column-span`), `width: 100%` refers to the column.
+- **Body text**: two columns (`column-count: 2`) for the main flow inside each page body (default).
+- **Single-column page** (`\pageSingle` / `{{pageSingle}}`): the **following** page uses `column-count: 1` on `.page-body` (class `a4-page--single-column` on the page root). Tables, read-aloud / GM / roulbox / diff blocks use the **full** content width of that page. **NPC blocks** on such pages are **not** stretched to full width: `.dsa-npc-wrap` has a `max-width` roughly matching one column of the two-column layout.
+- **Markdown tables** (`table.dsa-md-table`): on two-column pages, **one column** wide (no `column-span`); on a single-column page, `width: 100%` is the full page body width.
 - **Full-width blocks**: warnings, TOC (`nav.toc`), headings H1–H3, the read-aloud / GM note wrappers (`.dsa-note-wrap`), NPC blocks (`.dsa-npc-wrap`), and the per-page footnote block SHOULD use full width (column-span), not split across columns.
 
 ## Safety Contract (non-negotiable)
