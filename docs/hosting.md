@@ -4,7 +4,7 @@ Dieses Dokument ergänzt `specs/001-dsa-brew-renderer/contracts/public-documents
 
 ## Architektur
 
-- **Frontend**: Vite-App in `web/` — **`/`** Startseite, **`/new`** legt per `POST` ein Dokument an und leitet zur Bearbeiten-URL weiter, **`/d/:token`** Editor+Vorschau. Der `token` ist der **View-** oder **Edit-Slug** (nicht erratbar).
+- **Frontend**: Vite-App in `web/` — **`/`** und **`/new`** sind gleichwertig: per `POST /api/documents` neues Dokument anlegen und per Redirect zur **Bearbeiten-URL** (`/d/{edit-slug}`) weiterleiten; **`/d/:token`** Editor+Vorschau. Der `token` ist der **View-** oder **Edit-Slug** (nicht erratbar). Es gibt **keine** eigene Startseite — ein direkter Aufruf der Basis-URL legt also sofort ein neues Dokument an (sofern die API erreichbar ist).
 - **Backend**: Fastify + SQLite (`better-sqlite3`) in `server/`.
 - **Kanonischer Standard-Markdown** für TTL-Vergleiche wird aus `web/src/default-markdown-demo.ts` beim Serverstart geladen (Referenzinhalt für neue Dokumente).
 

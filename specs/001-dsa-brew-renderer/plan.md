@@ -7,14 +7,14 @@
 
 Build a web-based Markdown editor + preview that renders DSA-styled, multi-page A4 output with explicit page semantics (`\page` and **`{{page}}`** alias), safe macro expansion, and **in-app PDF download** (html2canvas + jsPDF: one A4 page per preview page). Implement page numbers (`{{pageNumber N}}`), per-page footnotes (`{{footnote LABEL | CONTENT}}`), and an auto-generated TOC from Markdown headings (`{{tocDepthH3}}`). A new document initializes with 5 pages (cover, Impressum, two content pages, final page) and default backgrounds from packaged assets; **content pages without `\map`** use **automatic even/odd** backgrounds. The preview shows **two-column** body text with full-width headings/TOC/footnotes; the **preview pane scrolls** in the viewport, while the **editor textarea scrolls** only when its content exceeds its allocated height. Optional **browser print** (`@media print`) remains for users who prefer the system dialog.
 
-**Öffentlicher Betrieb (FR-020ff.):** Referenzimplementierung mit **`server/`** (Fastify + SQLite), Web-Routen **`/`**, **`/new`** (neues Tab → Anlage → Redirect Bearbeiten), **`/d/:token`**, **Teilen**-Buttons (View-/Edit-URL kopieren; Edit-Token nicht in `GET` bei View-Kontext). Keine eingebaute **Offline-Demo** mit vorgefülltem Markdown auf `/`.
+**Öffentlicher Betrieb (FR-020ff.):** Referenzimplementierung mit **`server/`** (Fastify + SQLite), Web-Routen **`/`** und **`/new`** (gleichwertig: Anlage → Redirect Bearbeiten), **`/new`** zusätzlich für **„+ Neues Dokument“** im neuen Tab, **`/d/:token`**, **Teilen**-Buttons (View-/Edit-URL kopieren; Edit-Token nicht in `GET` bei View-Kontext). Keine **Landing-Startseite** und keine eingebaute **Offline-Demo** mit vorgefülltem Markdown.
 
 ## Technical Context
 
 **Language/Version**: TypeScript (ES2022)  
 **Primary Dependencies**: Vite 5.x (bundling/dev server; Node 18+ compatible), **markdown-it**  
 **Storage (primary product)**: SQLite via **`server/`** (`better-sqlite3`); alternative **PHP**/**file-per-doc** möglich (siehe `research.md`).  
-**Storage (browser)**: Kein persistenter Local-Storage-Modus ohne API — die Startseite lädt kein Demo-Markdown.  
+**Storage (browser)**: Kein persistenter Local-Storage-Modus ohne API — die Root-Route **`/`** löst keine Demo aus, sondern (mit API) sofort **`POST /api/documents`** und Redirect.  
 **Testing**: Manual PDF-export validation recommended; minimal automated tests optional; API/rate-limit tests when hosting backend lands  
 **Target Platform**: Modern desktop browsers (Chrome/Edge/Firefox)  
 **Project Type**: Web application + **REST API** in einem Repo; Reverse Proxy für HTTPS in Produktion  
@@ -94,7 +94,7 @@ media/                  # source/template images currently tracked in repo
 
 ### Phase B — Frontend-Anbindung (Vite-App)
 
-1. Routen **`/`** (Start), **`/new`** (Anlage im neuen Tab → Redirect `/d/{edit}`), **`/d/:token`** — View vs. Edit per API; Editor read-only oder Autosave-`PUT`.
+1. Routen **`/`** und **`/new`** (beide: Anlage + Redirect `/d/{edit}`; **`/new`** typisch aus Toolbar im neuen Tab), **`/d/:token`** — View vs. Edit per API; Editor read-only oder Autosave-`PUT`.
 2. Kein Pflicht-„Speichern“-Button; Status „Gespeichert“ optional.
 3. **„+ Neues Dokument“** öffnet **`/new`** in **neuem Tab**; **Teilen** kopiert View- bzw. Edit-URL (Edit nur im Bearbeiten-Kontext).
 

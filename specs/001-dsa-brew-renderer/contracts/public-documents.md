@@ -33,8 +33,8 @@ Die Anwendung soll **öffentlich** betrieben werden können. **Webseitenbesucher
 
 ### Neues Dokument
 
-- Besucher kann **„+ Neues Dokument“** auslösen → öffnet einen **neuen Browser-Tab** mit Route **`/new`** (oder gleichwertig): dort wird `POST /api/documents` ausgeführt, der Server erzeugt Slugs (view + edit) und legt **Inhalt = kanonisches Standarddokument** an (mit `web/src/default-markdown-demo.ts` abgeglichen).
-- Anschließend **Redirect** im neuen Tab zu **`/d/{edit-slug}`** (Bearbeiten).
+- **Basis-URL `/`** und Route **`/new`** sind **gleichwertig**: `POST /api/documents`, Server erzeugt Slugs (view + edit) und legt **Inhalt = kanonisches Standarddokument** an (mit `web/src/default-markdown-demo.ts` abgeglichen), anschließend **Redirect** zu **`/d/{edit-slug}`** (Bearbeiten) — typisch per `location.replace` im **aktuellen** Tab bei `/`, derselbe Ablauf bei **`/new`**.
+- **„+ Neues Dokument“** in der Oberfläche öffnet einen **neuen Browser-Tab** mit **`/new`**, damit das aktuelle Dokument im bestehenden Tab erhalten bleibt (siehe `spec.md` FR-024).
 
 ### Teilen (Ansicht vs. Bearbeiten)
 
@@ -43,9 +43,10 @@ Die Anwendung soll **öffentlich** betrieben werden können. **Webseitenbesucher
 
 ### Routen (Web-Client)
 
-- **`/`** — Startseite (ohne Editor-Demo; nur Einstieg, z. B. „+ Neues Dokument“).
-- **`/new`** — Erzeugung eines Dokuments und Weiterleitung zur Bearbeiten-URL (typisch in neuem Tab geöffnet).
+- **`/`** — wie **`/new`**: Dokument anlegen und zur Bearbeiten-URL weiterleiten (keine separate Landing-Page).
+- **`/new`** — gleiche Anlage+Redirect-Logik wie **`/`**; typisch für **„+ Neues Dokument“** im **neuen Tab**.
 - **`/d/{token}`** — Editor + Vorschau; `token` ist View- oder Edit-Slug.
+- Sonstige Pfade (außer z. B. **`/impressum`**, **`/datenschutz`**) — kurze **404**-Hinweisdarstellung mit Verweis auf **`/`** (neues Dokument).
 
 ### Aufräumen: Standard nach 24 h
 

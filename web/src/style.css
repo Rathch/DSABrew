@@ -28,7 +28,7 @@ body {
   overflow: hidden;
 }
 
-/* Startseite, Impressum, Datenschutz, Fehlerseiten: Seite darf mit dem Inhalt scrollen */
+/* Öffentliche Seiten (Impressum, Datenschutz), Fehler-/404-Ansichten: Seite darf mit dem Inhalt scrollen */
 body.dsabrew-body--scrollable {
   overflow-y: auto;
   overflow-x: hidden;
@@ -2093,7 +2093,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   }
 }
 
-/* Gehostete App: Startseite, /d/:token */
+/* Gehostete App: Impressum/Datenschutz, /d/:token */
 .landing {
   max-width: 40rem;
   margin: 0 auto;
@@ -2238,6 +2238,55 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 .landing-footer--inline {
   margin-top: 1.5rem;
   padding-top: 1rem;
+}
+
+/* Ulisses / DSA Markenhinweis + Fan-Produkt-Logo (App-Chrome, unter der Link-Leiste) */
+.fan-product-notice {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  max-width: 42rem;
+}
+
+.fan-product-notice__logo-wrap {
+  margin: 0 0 0.65rem;
+}
+
+.fan-product-notice__logo {
+  display: block;
+  width: auto;
+  max-width: min(220px, 100%);
+  height: auto;
+  max-height: 5.5rem;
+}
+
+.fan-product-notice__text {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: rgba(0, 0, 0, 0.72);
+}
+
+.fan-product-notice__inspiration {
+  margin: 0.75rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.fan-product-notice__inspiration a {
+  color: #1565c0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.fan-product-notice__inspiration a:hover {
+  color: #0d47a1;
+}
+
+.hosted-doc-footer .fan-product-notice {
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
 }
 
 .hosted-banner {

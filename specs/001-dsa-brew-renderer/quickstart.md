@@ -5,7 +5,7 @@
 
 ## Goal
 
-Mit **laufender API** (`server/`) und **Web-App** (`web/`) Dokumente anlegen, unter **`/d/:token`** bearbeiten oder nur lesen, Links **teilen** (Nur Ansicht / Bearbeiten) und als PDF exportieren. Es gibt **keine** eingebaute Offline-Demo mit vorgefülltem Markdown auf der Startseite — neues Arbeiten beginnt über **„+ Neues Dokument“** (neuer Tab → `/new` → Bearbeiten-URL).
+Mit **laufender API** (`server/`) und **Web-App** (`web/`) Dokumente anlegen, unter **`/d/:token`** bearbeiten oder nur lesen, Links **teilen** (Nur Ansicht / Bearbeiten) und als PDF exportieren. Es gibt **keine** eingebaute Offline-Demo und **keine** separate Startseite: Aufruf von **`/`** oder **`/new`** löst `POST /api/documents` aus und leitet zur **Bearbeiten-URL** weiter. Zusätzlich: **„+ Neues Dokument“** in der Toolbar öffnet **`/new`** in einem **neuen Tab** (weiteres Dokument, aktueller Tab bleibt unverändert).
 
 ## Prerequisites
 
@@ -25,7 +25,7 @@ cd server && npm install && npm run dev
 cd web && npm install && npm run dev
 ```
 
-Browser: **`http://localhost:5173/`** — Startseite; **„+ Neues Dokument“** öffnet **`/new`** in einem **neuen Tab**, legt ein Dokument an und leitet zur **Bearbeiten**-URL weiter. Vite leitet **`/api`** an Port **3001** weiter (Proxy).
+Browser: **`http://localhost:5173/`** — legt wie **`/new`** ein Dokument an und leitet zur **Bearbeiten-URL** weiter (ersetzt die URL im aktuellen Tab). **„+ Neues Dokument“** öffnet **`/new`** in einem **neuen Tab**. Vite leitet **`/api`** an Port **3001** weiter (Proxy). Unbekannte Pfade (außer `/impressum`, `/datenschutz`) zeigen eine kurze Fehlermeldung mit Link zurück zu **`/`**.
 
 ## UI (Dokument)
 

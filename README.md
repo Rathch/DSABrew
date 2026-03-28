@@ -1,6 +1,6 @@
 # DSABrew
 
-DSABrew ist ein Web-Tool, das Markdown in ein mehrseitiges A4-Layout rendert und den Export als **herunterladbare PDF-Datei** aus der Vorschau ermoeglicht (eine PDF-Seite pro Vorschau-Seite). Oeffentlicher Betrieb nutzt die **API** unter `server/` (Dokumente unter `/d/:token`, neues Dokument z. B. ueber `/new` im neuen Tab). Optional: Drucken ueber den Browser (`Strg+P`) mit Print-CSS.
+DSABrew ist ein Web-Tool, das Markdown in ein mehrseitiges A4-Layout rendert und den Export als **herunterladbare PDF-Datei** aus der Vorschau ermoeglicht (eine PDF-Seite pro Vorschau-Seite). Oeffentlicher Betrieb nutzt die **API** unter `server/` (Dokumente unter `/d/:token`). Die **Basis-URL** **`/`** legt wie **`/new`** sofort ein neues Dokument an und leitet zur Bearbeiten-URL weiter; **„+ Neues Dokument“** oeffnet **`/new`** in einem **neuen Tab**. Optional: Drucken ueber den Browser (`Strg+P`) mit Print-CSS.
 
 ## Funktionen
 
@@ -44,9 +44,9 @@ Voraussetzungen:
 - Node.js **18 oder neuer** (siehe `web/package.json` → `engines`)
 - npm
 
-**Web + API** (empfohlen): Zwei Terminals — (1) `cd server && npm install && npm run dev` (Port 3001), (2) `cd web && npm install && npm run dev` (Vite, typisch 5173). Im Browser `http://localhost:5173/` — **„+ Neues Dokument“** oeffnet `/new` in einem **neuen Tab** und legt ein Dokument an. Details: `docs/hosting.md`, `specs/.../quickstart.md`.
+**Web + API** (empfohlen): Zwei Terminals — (1) `cd server && npm install && npm run dev` (Port 3001), (2) `cd web && npm install && npm run dev` (Vite, typisch 5173). Im Browser `http://localhost:5173/` — sofortige Anlage eines Dokuments und Weiterleitung zur Bearbeiten-URL; **„+ Neues Dokument“** oeffnet `/new` in einem **neuen Tab**. Details: `docs/hosting.md`, `specs/.../quickstart.md`.
 
-Nur **Web** ohne API: `cd web`, `npm install`, `npm run dev` — die Startseite laesst sich oeffnen, Dokumente erfordern aber den API-Prozess.
+Nur **Web** ohne API: `cd web`, `npm install`, `npm run dev` — ohne laufende API schlaegt die Anlage unter **`/`** fehl (Fehlermeldung mit **Erneut versuchen**); vollstaendige Nutzung erfordert den API-Prozess.
 
 `npm install` unter `web` startet `postinstall` (Assets u. a. `image16.png` aus `media/image16.tiff` mit **sharp**).
 

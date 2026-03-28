@@ -5,6 +5,7 @@ import { exportPreviewToPdf } from "./pdf-export";
 import { renderDocument } from "./renderer";
 import { setupEditorPreviewScrollSync } from "./scroll-sync";
 import { DATENSCHUTZ_BODY_HTML } from "./datenschutz-content";
+import { fanProductNoticeHtml } from "./fan-product-notice";
 
 document.documentElement.style.setProperty(
   "--dsa-list-bullet-url",
@@ -112,6 +113,11 @@ function landingFooterNav(extraClass: string): string {
     </nav>`;
 }
 
+/** Fußzeile: Nav-Links + Markenhinweis / Fan-Produkt (siehe `fan-product-notice.ts`). */
+function siteChromeFooter(navExtraClass: string): string {
+  return `${landingFooterNav(navExtraClass)}${fanProductNoticeHtml()}`;
+}
+
 function buildLegalPageLayout(kind: "impressum" | "datenschutz"): string {
   const title = kind === "impressum" ? "Impressum" : "Datenschutz";
   const body =
@@ -133,7 +139,7 @@ function buildLegalPageLayout(kind: "impressum" | "datenschutz"): string {
     </header>
     ${body}
     <p class="landing-back"><a href="/">← Neues Dokument</a></p>
-    ${landingFooterNav(" landing-footer--inline")}
+    ${siteChromeFooter(" landing-footer--inline")}
   </div>
 `;
 }
@@ -213,7 +219,7 @@ function buildDocumentLayout(options: { mode: "view" | "edit" }): string {
     </section>
     <section class="preview" id="preview"></section>
     <footer class="hosted-doc-footer" role="contentinfo">
-      ${landingFooterNav("")}
+      ${siteChromeFooter("")}
     </footer>
   </main>
 `;
