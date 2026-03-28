@@ -15,6 +15,7 @@ const copies = [
   ["media/image24.png", "note-read-aloud-parchment.png"],
   ["media/image27.png", "note-gm-parchment.png"],
   ["media/image29.png", "note-gm-meister-bg.png"],
+  ["media/image31.png", "note-gm-meister-trennlinie.png"],
   ["media/image30.png", "npc-parchment-texture.png"]
 ];
 

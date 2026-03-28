@@ -5,7 +5,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import sharp from "sharp";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const webRoot = join(__dirname, "..");
@@ -30,6 +29,14 @@ async function main() {
   }
   if (!existsSync(templatePath)) {
     console.warn("punch-npc-portrait-hole: npc-block-template.png fehlt (zuerst copy-parchment-assets)");
+    return;
+  }
+
+  let sharp;
+  try {
+    ({ default: sharp } = await import("sharp"));
+  } catch (e) {
+    console.warn("punch-npc-portrait-hole: sharp nicht verfügbar — überspringe Porträt-Loch.", e.message || e);
     return;
   }
 

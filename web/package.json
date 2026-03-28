@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "prepare-assets": "node scripts/export-banner.mjs && node scripts/copy-parchment-assets.mjs && node scripts/punch-npc-portrait-hole.mjs && node scripts/slice-gm-frame.mjs",
+    "prepare-assets": "node scripts/export-banner.mjs && node scripts/copy-parchment-assets.mjs && node scripts/slice-gm-frame.mjs && node scripts/punch-npc-portrait-hole.mjs",
+    "import-gm-frame": "node scripts/import-gm-meister-frame.mjs",
     "predev": "npm run prepare-assets",
     "prebuild": "npm run prepare-assets",
     "postinstall": "npm run prepare-assets"

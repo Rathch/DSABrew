@@ -228,7 +228,7 @@ const ACTIONS: {
   {
     id: "hr",
     label: "—",
-    title: "Horizontale Linie",
+    title: "Trennlinie (---) — Scriptorium-Grafik in der Vorschau",
     run: (ta) => insertAtCursor(ta, "\n\n---\n\n")
   },
   {

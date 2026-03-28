@@ -275,7 +275,7 @@ body {
   z-index: 1;
 }
 
-/* Zieldokument: Fließtext zweispaltig + Typografie (Gentium 10 / Überschriften laut typography.md) */
+/* Zieldokument: Fließtext zweispaltig; kein column-span — alles (Überschriften, hr, Kästen) bleibt in einer Spalte */
 .page-body {
   box-sizing: border-box;
   padding: 20mm 15mm 20mm;
@@ -324,17 +324,28 @@ body {
 
 .page-body h5,
 .page-body h6 {
-  column-span: all;
   font-family: var(--font-gentium);
   font-size: var(--fs-text);
   font-weight: 700;
   margin: 0.45em 0 0.2em;
 }
 
-/* Blöcke, die nicht zwischen Spalten zerrissen werden sollen */
-.page-body .warnings,
-.page-body .toc {
-  column-span: all;
+/* `---` / Trennlinien-Button: <hr> als Scriptorium-Grafik (media/image31 → note-gm-meister-trennlinie.png).
+ * Volle Spaltenbreite: background-size 100% auto (nicht contain — sonst winzig zentriert).
+ * aspect-ratio = Bildbreite/Bildhöhe (PNG image31: 800×48); bei anderem Export anpassen. */
+.page-body hr {
+  display: block;
+  border: none;
+  margin: 0.55em 0;
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 800 / 48;
+  background-image: url(/dsa/note-gm-meister-trennlinie.png);
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 100% auto;
+  color: transparent;
+  overflow: hidden;
 }
 
 /* Vorlese-/Meister-Notizen + NSC: eine Spalte der Zweispaltigkeit, nicht volle Seitenbreite */
@@ -345,15 +356,7 @@ body {
 }
 
 .page-body .footnotes {
-  column-span: all;
   margin-top: 1em;
-}
-
-.page-body h1,
-.page-body h2,
-.page-body h3,
-.page-body h4 {
-  column-span: all;
 }
 
 /* Einband dunkel: Titel silbrig; Fließtext hell (Komplement zum Hintergrund) */
@@ -609,12 +612,24 @@ body {
   display: block;
   width: 100%;
   height: auto;
+  vertical-align: top;
+}
+
+/* Naht zwischen oberer Leiste und Mittel-Hintergrund ohne hellen Spalt */
+.dsa-gm-frame__cap + .dsa-gm-frame__mid {
+  margin-top: -2px;
+}
+
+.dsa-gm-frame__mid + .dsa-gm-frame__cap {
+  margin-top: -2px;
 }
 
 /* Mittelbereich: image29 (note-gm-meister-bg) streckt sich mit dem Text (Breite/Höhe = Inhalt) */
 .dsa-gm-frame__mid {
   flex: 0 1 auto;
   box-sizing: border-box;
+  position: relative;
+  z-index: 0;
   background-image: url(/dsa/note-gm-meister-bg.png);
   background-repeat: no-repeat;
   background-position: center center;
@@ -1064,6 +1079,7 @@ body {
   .dsa-gm-frame,
   .dsa-gm-frame__mid,
   .dsa-gm-frame__cap-img,
+  .page-body hr,
   .dsa-npc__template,
   .dsa-npc__frame,
   .a4-page.page-bg-einband::before,
