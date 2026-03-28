@@ -40,7 +40,7 @@ export const DEFAULT_MARKDOWN_DEMO = `# Abenteuerliche Beschreibung
 \\map{einband}
 {{pageNumber 1}}
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. **Fett**, *kursiv*, [externer Link](https://example.com). Kurzer Einbandtext.
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. **Fett**, *kursiv*, [externer Link](https://example.com). Kurzer Einbandtext. noch etwas länger
 
 \\page
 ${IMPRESSUM_PAGE_BLOCK}
@@ -211,7 +211,7 @@ Kurzer *Vorlesetext* — eine Spalte, volle Breite.
 - Aufzählung eins
 - Aufzählung zwei
 }}
-
+\\pageSingle
 {{easier |
 *Leichter Hinweis* auf einspaltiger Seite.
 }}
