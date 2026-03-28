@@ -9,6 +9,9 @@
   --fs-unterabschnitt: 10pt;
   --fs-text: 10pt;
   --einband-title: #c8ccd4;
+  /* Abstand letzte Textzeile → Fußleiste (.book-footer-strip) */
+  --page-footer-gap-above-strip: 5mm;
+  --book-footer-strip-clearance: 5mm;
 }
 
 html,
@@ -915,8 +918,33 @@ body {
 }
 
 /* Scriptorium-artige Fußzeile: Laufender Titel + Seitenzahl (nach Impressum) */
-.a4-page--with-book-footer .page-body {
-  padding-bottom: calc(20mm + 14mm);
+/* Flex: .page-body streckt auf Seitenhöhe (Fußleiste ist position:absolute). */
+.a4-page.a4-page--with-book-footer {
+  display: flex;
+  flex-direction: column;
+  min-height: 297mm;
+}
+
+.a4-page.a4-page--with-book-footer .page-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  box-sizing: border-box;
+  padding-top: 20mm;
+  padding-left: 15mm;
+  padding-right: 15mm;
+  padding-bottom: calc(var(--page-footer-gap-above-strip) + var(--book-footer-strip-clearance));
+}
+
+/*
+ * Fußnoten liegen sonst oft nur in Spalte 2 — column-fill:balance gleicht die Spaltenhöhen an
+ * und erzeugt eine große Leerfläche unter der kürzeren Spalte. column-span:all setzt den Block
+ * unter den Zweispalter (volle Breite), der Abstand zur Fußzeile kommt fast nur noch aus padding-bottom.
+ */
+.a4-page--with-book-footer .page-body footer.footnotes {
+  column-span: all;
+  -webkit-column-span: all;
+  margin-top: 0.75em;
 }
 
 .book-footer-strip {
