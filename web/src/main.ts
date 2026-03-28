@@ -3,6 +3,7 @@ import listBulletUrl from "@media/image1.png?url";
 import { attachMarkdownToolbar } from "./markdown-toolbar";
 import { exportPreviewToPdf } from "./pdf-export";
 import { renderDocument } from "./renderer";
+import { setupEditorPreviewScrollSync } from "./scroll-sync";
 
 document.documentElement.style.setProperty(
   "--dsa-list-bullet-url",
@@ -136,7 +137,22 @@ function buildDocumentLayout(options: { mode: "view" | "edit" }): string {
       <h2 class="editor__visually-hidden">Markdown</h2>
       <p id="save-status" class="editor__flash" aria-live="polite"></p>
       <div id="md-toolbar" class="md-toolbar-wrap"></div>
-      <textarea id="markdown-input" spellcheck="false"></textarea>
+      <div class="editor__sync-bar" id="editor-sync-bar" hidden>
+        <label class="editor__sync-label">
+          <input type="checkbox" id="scroll-link-toggle" checked />
+          Scroll koppeln
+        </label>
+      </div>
+      <div class="editor__input-row">
+        <div class="editor__viewport-gutter" id="editor-viewport-gutter" hidden aria-hidden="true">
+          <div class="editor__viewport-gutter-inner" id="editor-viewport-gutter-inner">
+            <div class="editor__viewport-gutter-track" id="editor-viewport-gutter-track">
+              <div class="editor__viewport-gutter-range" id="editor-viewport-gutter-range"></div>
+            </div>
+          </div>
+        </div>
+        <textarea id="markdown-input" spellcheck="false"></textarea>
+      </div>
       <button id="pdf-btn" class="print-btn" type="button">PDF speichern</button>
     </section>
     <section class="preview" id="preview"></section>
@@ -253,6 +269,10 @@ function wireHostedViewControls(layout: HTMLElement, docMode: "view" | "edit"): 
     return 2;
   }
 
+  function notifyLayoutChanged(): void {
+    layout.dispatchEvent(new CustomEvent("dsabrew-layout-changed"));
+  }
+
   function applyViewPref(v: HostedViewPref): void {
     if (v === "layout") {
       layout.classList.remove("layout--view-single", "layout--focus-editor", "layout--focus-preview");
@@ -273,17 +293,21 @@ function wireHostedViewControls(layout: HTMLElement, docMode: "view" | "edit"): 
     if (!mq.matches) {
       layout.classList.remove("layout--view-single", "layout--focus-editor", "layout--focus-preview");
       setSegActive(viewToIndex(v));
+      notifyLayoutChanged();
       return;
     }
     applyViewPref(v);
+    notifyLayoutChanged();
   }
 
   function persistAndApply(v: HostedViewPref): void {
     localStorage.setItem(LS_HOSTED_VIEW, v);
     if (!mq.matches) {
+      notifyLayoutChanged();
       return;
     }
     applyViewPref(v);
+    notifyLayoutChanged();
   }
 
   btnLayout.addEventListener("click", () => persistAndApply("layout"));
@@ -331,6 +355,35 @@ function initEditorAndPreview(
   const layoutHost = document.querySelector<HTMLElement>("main.layout.layout--hosted");
   if (layoutHost) {
     wireHostedViewControls(layoutHost, options.mode);
+  }
+
+  const syncBar = document.querySelector<HTMLElement>("#editor-sync-bar");
+  const scrollToggle = document.querySelector<HTMLInputElement>("#scroll-link-toggle");
+  const gutter = document.querySelector<HTMLElement>("#editor-viewport-gutter");
+  const gutterInner = document.querySelector<HTMLElement>("#editor-viewport-gutter-inner");
+  const gutterTrack = document.querySelector<HTMLElement>("#editor-viewport-gutter-track");
+  const gutterRange = document.querySelector<HTMLElement>("#editor-viewport-gutter-range");
+  if (
+    layoutHost &&
+    syncBar &&
+    scrollToggle &&
+    gutter &&
+    gutterInner &&
+    gutterTrack &&
+    gutterRange
+  ) {
+    setupEditorPreviewScrollSync({
+      layout: layoutHost,
+      preview,
+      textarea: input,
+      toggle: scrollToggle,
+      syncBar,
+      gutter,
+      gutterInner,
+      gutterTrack,
+      gutterRange,
+      isSplitLayout: () => !layoutHost.classList.contains("layout--view-single")
+    });
   }
 
   let firstPreviewDone = false;

@@ -356,6 +356,64 @@ body {
   align-self: flex-start;
 }
 
+/* Zwei Spalten: Scroll-Kopplung + Minimap (Vorschau-Sichtbereich ≈ grüner Streifen, proportional) */
+.editor__sync-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+}
+
+.editor__sync-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.editor__input-row {
+  display: flex;
+  flex-direction: row;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.editor__viewport-gutter {
+  flex: 0 0 14px;
+  width: 14px;
+  min-width: 14px;
+  position: relative;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.editor__viewport-gutter-inner {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  will-change: transform;
+}
+
+.editor__viewport-gutter-track {
+  position: relative;
+  width: 100%;
+}
+
+.editor__viewport-gutter-range {
+  position: absolute;
+  left: 1px;
+  right: 1px;
+  border-radius: 3px;
+  background: rgba(46, 160, 67, 0.42);
+  box-shadow: inset 0 0 0 1px rgba(27, 95, 40, 0.35);
+  pointer-events: none;
+}
+
 .preview {
   display: flex;
   flex-direction: column;
@@ -850,6 +908,29 @@ body {
   max-height: 1em;
   object-fit: contain;
   flex-shrink: 0;
+}
+
+/* \\pageSingle: Rauten-Makro nicht über Spaltenbreite nach rechts ziehen — Label + Symbole gemeinsam zentriert */
+.a4-page.a4-page--single-column .page-body .dsa-difficulty-rating-line {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.35em 0.65em;
+}
+
+.a4-page.a4-page--single-column .page-body .dsa-difficulty-rating__label {
+  display: inline;
+  width: auto;
+  padding-right: 0;
+  text-align: center;
+}
+
+.a4-page.a4-page--single-column .page-body .dsa-difficulty-rating-line .dsa-difficulty-rating {
+  display: inline-flex;
+  width: auto;
+  text-align: center;
 }
 
 .page-body .footnotes {
