@@ -111,7 +111,7 @@ The user needs standard book navigation aids: page numbers, footnotes, and a tab
 - **FR-006**: System MUST handle unknown macro keys safely by omitting the background and showing a visible warning/placeholder marker for the unknown background key, without breaking page rendering.
 - **FR-006a**: System MUST handle malformed macro invocations safely by ignoring the malformed macro and showing a visible warning/placeholder marker, without breaking page rendering.
 - **FR-007**: System MUST treat Markdown as untrusted input, prevent HTML/script execution, and strip raw HTML elements/blocks from rendering (they must never be executed and must not be rendered as HTML).
-- **FR-008**: Users MUST be able to export the rendered result to a **downloaded PDF file** generated in the app (one A4 page per rendered `.a4-page`, matching the visual preview). Export MAY rasterize each page (image-based PDF); text in the PDF need not be selectable. Optional: users MAY still use the browser’s own print function (`Ctrl+P` / print menu) with the existing print stylesheet for vector printing where the browser supports it.
+- **FR-008**: Users MUST be able to export the rendered result to a **downloaded PDF file** generated in the app (one A4 page per rendered `.a4-page`, matching the visual preview). Export MAY rasterize each page (image-based PDF). The implementation MAY additionally emit **selectable text and link annotations** (tagged PDF) on top of the raster pages. Optional: users MAY still use the browser’s own print function (`Ctrl+P` / print menu) with the existing print stylesheet for vector printing where the browser supports it.
 - **FR-009**: System MUST implement page number macro `{{pageNumber N}}` where `N` defines the starting page number for the first rendered page of the document and increments by 1 for each subsequent rendered page.
 - **FR-010**: System MUST implement footnote macro `{{footnote LABEL | CONTENT}}` where `LABEL` is the visible reference label and `CONTENT` is the footnote text; footnotes MUST be collected per page and rendered as a footnote list at the bottom of the page containing the reference.
 - **FR-011**: System MUST implement TOC macro `{{tocDepthH3}}` to generate a table of contents derived from document headings; it MUST include headings up to depth level H3 and insert the TOC at the macro location.
@@ -130,11 +130,24 @@ The user needs standard book navigation aids: page numbers, footnotes, and a tab
 - **FR-016**: The system MUST treat `{{page}}` as a **page break** equivalent to `\page` (same splitting semantics).
 - **FR-017**: For any rendered page **without** an explicit `\map{...}` on that page, the system MUST apply the default content background automatically: **odd** displayed page numbers use the `content-even` asset (`image12.jpeg`), **even** displayed page numbers use the `content-odd` asset (`image17.jpeg`), so the alternation matches the Scriptorium default sequence after the Einband (see `contracts/macros.md`). Explicit `\map{...}` on a page overrides this default for that page.
 
+#### Public hosting (optional product extension; detail: `contracts/public-documents.md`)
+
+- **FR-020**: For a **public deployment**, the system MUST support **persistent, shareable document URLs** with **no login**. Each document MUST use **two unguessable URL tokens** (view vs. edit; see FR-025), exposed under a single path pattern (e.g. `/d/{token}`) where the server resolves the token to **read-only** or **edit** mode; **tenant** = document identity (tokens + stored content), not organizational accounts.
+- **FR-021**: Document changes MUST be persisted by **automatic save** (debounced + flush on leave); a manual **Save** control MUST NOT be the only way to persist (optional status indicator allowed).
+- **FR-022**: **Rate limiting** MUST apply to document **creation** and **write/autosave** endpoints (e.g. per IP; limits to be documented in implementation).
+- **FR-023**: Documents whose content remains **byte-for-byte or hash-equal** to the **canonical default template** after normalization MUST be **eligible for deletion after 24 hours**; once the content **diverges** from that template, the document MUST NOT be removed by this rule.
+- **FR-024**: **“New document”** MUST create a new slug pair (or equivalent), persist the **standard default Markdown** as the initial body, and land the user on the **edit** URL. Creation MUST be invokable so it opens in a **new browser tab** (e.g. dedicated route such as `/new` that creates the document and redirects to `/d/{edit-token}`), without replacing the current tab’s document.
+- **FR-025**: Each stored document MUST expose two **distinct unguessable URLs (or tokens)**: one **view-only** (read-only or no write API) and one **edit** (autosave allowed). Implementations MUST NOT derive the edit URL from the view URL without a secret.
+- **FR-028**: The hosted UI MUST offer **share** actions: users MUST be able to copy (or otherwise obtain) the **view** URL; users in **edit** context MUST be able to copy the **edit** URL. The document API MUST NOT return the **edit** token to clients that only hold the **view** token (see `contracts/public-documents.md`).
+- **FR-026**: Server-side persistence MUST use **SQLite** and/or **one Markdown file per document** under a configurable path; the backend MAY be implemented in **TypeScript (Node)** or **PHP**, subject to deployment constraints.
+- **FR-027**: Cleanup of FR-023 MUST be implemented by **a scheduled job (cron)** **or** an **equivalent** mechanism (e.g. lazy deletion on read, platform scheduler, in-process scheduler); the chosen approach MUST be documented in `research.md` or `plan.md`.
+
 ### Key Entities *(include if feature involves data)*
 
 - **Markdown document**: The raw user input string that may include macros and text.
 - **Rendered book**: A structured collection of pages derived from `\page` blocks and macro expansion.
 - **Macro definition and asset map**: The internal mapping of supported macro names/keys to local background assets.
+- **Hosted document (optional)**: A server-side record (or file) keyed by unguessable slug(s), storing Markdown, view/edit tokens, and timestamps for TTL rules.
 
 ## Success Criteria *(mandatory)*
 
@@ -153,6 +166,7 @@ The user needs standard book navigation aids: page numbers, footnotes, and a tab
 ## Assumptions
 
 - Users run the tool in a modern web browser.
+- **Public / hosted mode** is the primary product surface: the web client expects a running API for document lifecycle; there is **no separate offline “local demo”** that preloads sample Markdown without the server (development still uses local API + Vite).
 - All required background assets are available locally within the tool’s package (no runtime dependency on external URLs for core backgrounds).
 - Primary PDF export is implemented in-app (html2canvas + jsPDF): users download a `.pdf` file that mirrors the preview. Browser print remains available as an optional path for users who prefer the system print dialog.
 - The initial macro set is limited to the documented subset; extensibility beyond that subset is handled by adding entries to the supported macro mapping.

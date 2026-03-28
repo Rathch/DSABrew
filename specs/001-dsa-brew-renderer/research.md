@@ -1,6 +1,6 @@
 # Research: DSABrew Markdown-to-DSA Renderer
 
-**Date**: 2026-03-26 (updated 2026-03-27)  
+**Date**: 2026-03-26 (updated 2026-03-28)  
 **Feature**: `specs/001-dsa-brew-renderer/spec.md`
 
 ## Decisions
@@ -94,3 +94,49 @@
 - Exact visual layout (typography, margins, footer placement) for page number/footnotes/TOC.
 - Exact rules for which headings count as H1/H2/H3 for TOC generation (based on Markdown heading levels).
 - Fine-tuning column gaps and hyphenation for very long words in two-column mode.
+
+---
+
+## Public hosting (FR-020–FR-027) — Phase 0 decisions
+
+*Resolved for planning; aligns with `contracts/public-documents.md` and `spec.md`.*
+
+### Decision: Default stack for hosted API (reference)
+
+**Chosen**: **Node + TypeScript** (Fastify or Express) + **better-sqlite3** or **sql.js** + single SQLite file on disk; Markdown body stored in-DB for v1 (optional second phase: mirror to `.md` files for backup).
+**Rationale**: Same language as `web/`; easy to share types; SQLite fits single-host VPS; no separate DB server.
+**Alternatives considered**: **PHP + SQLite** (fine on shared hosting; document parallel routes if needed); files-only without SQLite (simpler reads, harder for slug→token lookups without a manifest DB).
+
+### Decision: Slug generation
+
+**Chosen**: **32+ bits** of randomness encoded as URL-safe string (e.g. **nanoid** 21 chars or 16 bytes hex); **two independent** values for `slug_view` and `slug_edit`.
+**Rationale**: Unguessable; meets FR-025.
+**Alternatives considered**: UUID v4 string (longer URLs).
+
+### Decision: Rate limits (initial numbers, tune in production)
+
+**Chosen** (starting point): **POST** create document — e.g. **10 / hour / IP**; **PUT** autosave — e.g. **120 / hour / IP** and **60 / minute / editSlug** (burst).
+**Rationale**: Blocks naive abuse; autosave needs higher ceiling; store limits in env vars.
+**Alternatives considered**: Stricter create (5/h) if abuse observed.
+
+### Decision: TTL / deletion without classic cron
+
+**Chosen**: **Primary: lazy deletion** — on `GET` (view or edit load), if row matches “still default hash” **and** `created_at + 24h < now`, delete and return 404. **Secondary: optional** hourly `DELETE` SQL in a **systemd timer** or platform cron if traffic is low and lazy is insufficient.
+**Rationale**: No separate job runner required for MVP; FR-027 satisfied.
+**Alternatives considered**: Only cron (needs infra); Bull queue (overkill).
+
+### Decision: Canonical hash for “unchanged default”
+
+**Chosen**: **SHA-256** of **normalized** Markdown: `trim`, **LF** line endings, single trailing newline (same normalization as `DEFAULT_MARKDOWN_DEMO` snapshot in repo).
+**Rationale**: Deterministic comparison; document exact function in API code.
+**Alternatives considered**: byte equality without normalization (brittle on OS line endings).
+
+### Decision: Autosave transport
+
+**Chosen**: **Debounced PUT** (400 ms default); **sendBeacon** or synchronous `fetch` on `visibilitychange` / `pagehide` for last keystroke.
+**Rationale**: Meets FR-021 without visible “Save” requirement.
+**Alternatives considered**: WebSocket (unnecessary for single editor).
+
+### Implementation note: Referenz-API (`server/`)
+
+**Umgebungsvariablen** für Rate Limits und Pfade: siehe `docs/hosting.md` (`RATE_POST_CREATE_PER_HOUR`, `RATE_PUT_PER_HOUR`, `RATE_PUT_BURST_PER_MIN`, `SQLITE_PATH`, `PUBLIC_ORIGIN`, `PORT`, optional `TRUST_PROXY=1` hinter Reverse Proxy für korrektes Client-IP-Logging).

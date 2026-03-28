@@ -1,7 +1,7 @@
 # Tasks: DSABrew Markdown-to-DSA Renderer
 
 **Feature**: `specs/001-dsa-brew-renderer`  
-**Date**: 2026-03-27
+**Date**: 2026-03-27 (updated 2026-03-28)
 
 ## Phase: Setup
 
@@ -19,7 +19,7 @@
 - [X] **T006** Markdown-Rendering ohne Raw-HTML; Link-Validierung
 - [X] **T007** `\page`, `{{pageNumber N}}`, `{{footnote …}}`, `{{tocDepthH3}}`, `\map`/`\rauten` mit Allowlist und Warnungen
 - [X] **T008** Map-Keys gemäß Spec (`einband`/`cover`, `content-even`, `content-odd`, `final`) → lokale Assets
-- [X] **T009** Neues Dokument: genau 4 Seiten mit Default-Hintergründen (FR-013 / FR-013a)
+- [X] **T009** Neues Dokument: genau **5** Seiten mit Default-Hintergründen (FR-013 / FR-013a)
 
 ## Phase: Integration
 
@@ -37,3 +37,12 @@
 - [X] **T018** Root-`README.md` bleibt mit Specs konsistent (siehe Repo-README)
 - [X] **T019** Typografie-Vertrag + CSS (`contracts/typography.md`, `web/index.html`, `style.css`), Spec FR-018
 - [X] **T020** Impressum-Seite: `impressum-config.ts`, `{{impressumPage}}`, `\map{impressum}`, Spec FR-013/019, Default-5-Seiten-Dokument
+
+## Phase: Öffentliche Dokumente (optional, FR-020–FR-027)
+
+- [X] **T021** Vertrag `contracts/public-documents.md` und Spec-FRs in `spec.md` abgleichen (bei Änderungen der API nachziehen)
+- [X] **T022** Backend wählen (Node/TS oder PHP): SQLite oder Dateiablage, `POST`/`GET`/`PUT`, getrennte View-/Edit-Slugs
+- [X] **T023** Rate limiting für `POST` und `PUT`; Grenzwerte dokumentieren (`research.md`)
+- [X] **T024** Client: Route `/d/:slug`, Autosave (Debounce + `beforeunload`/Beacon), kein Pflicht-Speichern-Button; View-only vs. Edit
+- [X] **T025** TTL 24 h für unverändertes Standarddokument; Job **oder** lazy deletion — dokumentierte Strategie
+- [X] **T026** Deployment-Doku: HTTPS, Umgebungsvariablen, Speicherpfad (`quickstart.md` oder eigenes `docs/hosting.md`)

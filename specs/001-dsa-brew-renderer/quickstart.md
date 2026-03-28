@@ -1,11 +1,11 @@
 # Quickstart: DSABrew Markdown-to-DSA Renderer
 
-**Date**: 2026-03-26 (updated 2026-03-27)  
+**Date**: 2026-03-26 (updated 2026-03-28)  
 **Feature**: `specs/001-dsa-brew-renderer/spec.md`
 
 ## Goal
 
-Run the web app locally, paste Markdown with macros, preview the multi-page A4 output, and export to PDF via browser print.
+Mit **laufender API** (`server/`) und **Web-App** (`web/`) Dokumente anlegen, unter **`/d/:token`** bearbeiten oder nur lesen, Links **teilen** (Nur Ansicht / Bearbeiten) und als PDF exportieren. Es gibt **keine** eingebaute Offline-Demo mit vorgefülltem Markdown auf der Startseite — neues Arbeiten beginnt über **„+ Neues Dokument“** (neuer Tab → `/new` → Bearbeiten-URL).
 
 ## Prerequisites
 
@@ -15,22 +15,26 @@ Run the web app locally, paste Markdown with macros, preview the multi-page A4 o
 
 ## Run (development)
 
-From repository root:
+Zwei Terminals (API + Web):
 
 ```bash
-cd web
-npm install
-npm run dev
+cd server && npm install && npm run dev
 ```
 
-Then open the shown local URL in your browser (typically `http://localhost:5173`).
+```bash
+cd web && npm install && npm run dev
+```
 
-## UI behavior (dev shell)
+Browser: **`http://localhost:5173/`** — Startseite; **„+ Neues Dokument“** öffnet **`/new`** in einem **neuen Tab**, legt ein Dokument an und leitet zur **Bearbeiten**-URL weiter. Vite leitet **`/api`** an Port **3001** weiter (Proxy).
 
-- **Preview (right)**: scrolls vertically when the rendered pages exceed the viewport.
-- **Editor (left)**: the textarea fills the left column; a **vertical scrollbar appears only when** the entered text is taller than the allocated input area (no extra page scroll for short text).
+## UI (Dokument)
 
-## Try a sample input
+- **Preview (rechts)**: scrollt bei langem Dokument.
+- **Editor (links)**: Textarea; Scrollbalken nur bei viel Text.
+- **+ Neues Dokument**: neuer Tab mit `/new` (weiteres Dokument).
+- **Teilen: Nur Ansicht** / **Teilen: Bearbeiten**: kopiert die passende URL in die Zwischenablage (Bearbeiten-Link nur im Edit-Modus sichtbar).
+
+## Markdown & Makros (im Dokument)
 
 - Use `\page` or **`{{page}}`** to force a new page (equivalent semantics).
 - On **cover** / **final** pages, set `\map{einband}` (or `\map{cover}`) and `\map{final}` as needed; **Impressum** after Einband: `{{impressumField …}}` (optional) + `{{impressumPage}}` — gleicher Seitenhintergrund wie Inhalt (even/odd); Defaults in `impressum-config.ts`.
@@ -51,4 +55,13 @@ Then open the shown local URL in your browser (typically `http://localhost:5173`
 
 ## Export to PDF
 
-Use **PDF speichern** in the editor toolbar: the app builds a multi-page A4 PDF (one page per preview page) and triggers a download. The PDF is image-based (matches the on-screen preview; text may not be selectable). You can still use the browser’s print dialog (`Ctrl+P` / “Print”) if you prefer system printing.
+Use **PDF speichern** in the editor toolbar: the app builds a multi-page A4 PDF (one page per preview page) and triggers a download. Tagged PDF mode adds invisible text and link annotations for copy/search; you can still use the browser’s print dialog (`Ctrl+P` / “Print”) if you prefer system printing.
+
+## API & Deployment
+
+Vertrag: `contracts/public-documents.md` · Betrieb: `docs/hosting.md`.
+
+- **`POST /api/documents`** — neues Dokument; `GET /api/documents/:token` — inkl. `slugView`, `slugEdit` nur bei Bearbeiten-Kontext.
+- **`VITE_PUBLIC_API_BASE`** setzen, wenn Web und API auf **verschiedenen Origins** liegen (sonst relativer `/api`-Proxy unter Vite).
+
+Details: Rate Limits, 24h-TTL, Lazy Deletion — `research.md` (Public hosting) und `docs/hosting.md`.

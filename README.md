@@ -1,6 +1,6 @@
 # DSABrew
 
-DSABrew ist ein Web-Tool, das Markdown in ein mehrseitiges A4-Layout rendert und den Export als **herunterladbare PDF-Datei** aus der Vorschau ermoeglicht (eine PDF-Seite pro Vorschau-Seite). Optional: weiterhin Drucken ueber den Browser (`Strg+P`) mit Print-CSS.
+DSABrew ist ein Web-Tool, das Markdown in ein mehrseitiges A4-Layout rendert und den Export als **herunterladbare PDF-Datei** aus der Vorschau ermoeglicht (eine PDF-Seite pro Vorschau-Seite). Oeffentlicher Betrieb nutzt die **API** unter `server/` (Dokumente unter `/d/:token`, neues Dokument z. B. ueber `/new` im neuen Tab). Optional: Drucken ueber den Browser (`Strg+P`) mit Print-CSS.
 
 ## Funktionen
 
@@ -28,6 +28,7 @@ DSABrew ist ein Web-Tool, das Markdown in ein mehrseitiges A4-Layout rendert und
 - `web/src/` - Renderer, UI und Styles
 - `web/tests/` - Sicherheits- und Funktionstests
 - `web/public/dsa/` - lokale DSA-Assets fuer Hintergruende
+- `server/` - optionale **REST-API** (Fastify + SQLite) fuer oeffentlich gehostete Dokumente (`/api/documents`, UI unter `/d/:token`); siehe `docs/hosting.md`
 - `specs/` - Spezifikation, Plan, Vertraege (`contracts/`), Checklisten, Tasks
 
 ### Impressum anpassen
@@ -43,15 +44,11 @@ Voraussetzungen:
 - Node.js **18 oder neuer** (siehe `web/package.json` → `engines`)
 - npm
 
-Schritte:
+**Web + API** (empfohlen): Zwei Terminals — (1) `cd server && npm install && npm run dev` (Port 3001), (2) `cd web && npm install && npm run dev` (Vite, typisch 5173). Im Browser `http://localhost:5173/` — **„+ Neues Dokument“** oeffnet `/new` in einem **neuen Tab** und legt ein Dokument an. Details: `docs/hosting.md`, `specs/.../quickstart.md`.
 
-1. In das Web-Projekt wechseln:
-   - `cd web`
-2. Abhaengigkeiten installieren:
-   - `npm install` (startet `postinstall` → erzeugt `web/public/dsa/image16.png` aus `media/image16.tiff` mit **sharp**, sonst ein kleines Platzhalter-PNG).
-3. Entwicklungsserver starten:
-   - `npm run dev` (vor dem Start wird `prepare-assets` ausgefuehrt, damit das Banner aktuell ist).
-4. Im Browser die angezeigte URL aufrufen (typisch `http://localhost:5173`)
+Nur **Web** ohne API: `cd web`, `npm install`, `npm run dev` — die Startseite laesst sich oeffnen, Dokumente erfordern aber den API-Prozess.
+
+`npm install` unter `web` startet `postinstall` (Assets u. a. `image16.png` aus `media/image16.tiff` mit **sharp**).
 
 Optional: Banner manuell neu erzeugen mit `npm run prepare-assets` im Ordner `web/`.
 
