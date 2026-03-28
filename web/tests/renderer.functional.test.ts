@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { DEFAULT_MARKDOWN_DEMO } from "../src/default-markdown-demo";
 import { buildPageChromeClasses, renderDocument } from "../src/renderer";
 
 describe("renderer functional", () => {
@@ -49,5 +50,79 @@ describe("renderer functional", () => {
     expect(r.pages[1].pageChromeClasses).toContain("page-bg-content-odd");
     expect(r.pages[2].pageChromeClasses).toContain("page-bg-content-even");
   });
+
+  it("renders npcBlock as dsa-npc HTML, not raw macro text", () => {
+    const md = `\\map{content-even}
+# K
+{{npcBlock
+name=Test
+mu=10
+{{/npcBlock}}`;
+    const html = renderDocument(md).pages[0].renderedHtml;
+    expect(html).toContain("dsa-npc-wrap");
+    expect(html).not.toContain("{{npcBlock");
+  });
+
+  it("accepts npcBlock with space after opening braces", () => {
+    const md = `\\map{content-even}
+# K
+{{ npcBlock
+name=Test
+mu=10
+{{ /npcBlock }}`;
+    const html = renderDocument(md).pages[0].renderedHtml;
+    expect(html).toContain("dsa-npc-wrap");
+    expect(html).not.toContain("{{ npcBlock");
+    expect(html).not.toContain("{{/npcBlock");
+  });
+
+  it("default demo: NSC-Seite rendiert npcBlock (kein Rohtext)", () => {
+    const r = renderDocument(DEFAULT_MARKDOWN_DEMO);
+    const joined = r.pages.map((p) => p.renderedHtml).join("\n");
+    expect(joined).toContain("dsa-npc-wrap");
+    expect(joined).not.toContain("{{npcBlock");
+  });
+
+  it("renders easier macro with dsa-diff and bundled icon", () => {
+    const md = "{{easier |\n*Hinweis:* Text.\n}}";
+    const html = renderDocument(md).pages[0].renderedHtml;
+    expect(html).toContain("dsa-diff--easier");
+    expect(html).toContain("dsa-diff__icon");
+    expect(html).not.toContain("{{easier");
+  });
+
+  it("renders chess macro inline with dsa-chess", () => {
+    const md = "Zug: {{ chess | pawn }} schlägt.";
+    const html = renderDocument(md).pages[0].renderedHtml;
+    expect(html).toContain("dsa-chess__img");
+    expect(html).not.toContain("{{ chess");
+  });
+
+  it("renders difficulty rating with four diamond slots", () => {
+    const md = "Stufe {{ difficulty | rot 2 }} und {{ difficulty | grün 3 }}.";
+    const html = renderDocument(md).pages[0].renderedHtml;
+    expect(html).toContain("dsa-difficulty-rating");
+    expect(html).toContain("dsa-difficulty-rating__slot");
+    expect(html).not.toContain("{{ difficulty");
+  });
+
+  it("parses adjacent difficulty macros without swallowing the next macro", () => {
+    const md = "A {{ difficulty | rot 2 }} B {{ difficulty | grün 4 }} C.";
+    const html = renderDocument(md).pages[0].renderedHtml;
+    expect(html).toContain("dsa-difficulty-rating--red");
+    expect(html).toContain("dsa-difficulty-rating--green");
+    expect(html).not.toContain("{{ difficulty");
+    expect(html).not.toContain("rot 2 }} {{");
+  });
+
+  it("renders difficulty label before diamonds", () => {
+    const md = "Test {{ difficulty | Kampf: | grün 4 }} Ende.";
+    const html = renderDocument(md).pages[0].renderedHtml;
+    expect(html).toContain("dsa-difficulty-rating-line");
+    expect(html).toContain("dsa-difficulty-rating__label");
+    expect(html).toContain("Kampf:");
+    expect(html).not.toContain("{{ difficulty");
+  });
+
 });
 

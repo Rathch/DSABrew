@@ -241,6 +241,17 @@ body {
   background-repeat: no-repeat;
 }
 
+/* \map{final}: Karte/Ornament in image32 rechts; Fließtext nur links unter dem Logo-Bereich (einspaltig, rechter Rand frei) */
+.a4-page.page-bg-final .page-body {
+  column-count: 1;
+  padding: 46mm 46% 18mm 13mm;
+  box-sizing: border-box;
+}
+
+.a4-page.page-bg-final .page-body > h1:first-of-type {
+  margin-top: 0;
+}
+
 /* Impressum-Seite: gleicher Wechsel wie Inhalt (ungerade Seite → image12, gerade → image17); Inhalt einspaltig */
 .page-body:has(.impressum-sheet) {
   column-count: 1;
@@ -330,7 +341,7 @@ body {
   margin: 0.45em 0 0.2em;
 }
 
-/* Ungeordnete Listen: Aufzählungszeichen = media/image1.png → list-bullet.png (wie Scriptorium: hängend, erste Zeile) */
+/* Ungeordnete Listen: media/image1.png — URL per main.ts (Vite-Bundle); Fallback prepare-assets → public/dsa/list-bullet.png */
 .page-body ul {
   list-style: none;
   margin: 0.4em 0;
@@ -353,7 +364,7 @@ body {
   top: calc(0.5lh - 0.34em);
   width: 1.12em;
   height: 0.68em;
-  background-image: url(/dsa/list-bullet.png);
+  background-image: var(--dsa-list-bullet-url, url(/dsa/list-bullet.png));
   background-repeat: no-repeat;
   background-position: left center;
   background-size: contain;
@@ -394,13 +405,129 @@ body {
 
 /* Vorlese-/Meister-Notizen + NSC: eine Spalte der Zweispaltigkeit, nicht volle Seitenbreite */
 .page-body .dsa-note-wrap,
-.page-body .dsa-npc-wrap {
+.page-body .dsa-npc-wrap,
+.page-body .dsa-diff-wrap {
   break-inside: avoid;
   page-break-inside: avoid;
 }
 
+/* {{easier | …}} / {{harder | …}}: Symbol links (~2 Zeilen hoch), Text eingerückt */
+.page-body .dsa-diff {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.65em;
+  margin: 0.55em 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.page-body .dsa-diff__icon {
+  flex-shrink: 0;
+  height: calc(2 * 1.38em);
+  height: 2lh;
+  width: auto;
+  max-width: min(30%, 5.25em);
+  object-fit: contain;
+  object-position: left center;
+}
+
+.page-body .dsa-diff__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.page-body .dsa-diff__body > :first-child {
+  margin-top: 0;
+}
+
+.page-body .dsa-diff__body > :last-child {
+  margin-bottom: 0;
+}
+
+/* {{ chess | figur }} — Inline-Symbol, Höhe an Schriftgröße (em) */
+.page-body .dsa-chess {
+  display: inline-block;
+  vertical-align: -0.18em;
+  line-height: 0;
+  margin: 0 0.1em;
+  max-height: 1.2em;
+}
+
+.page-body .dsa-chess__img {
+  display: inline-block;
+  height: 1.08em;
+  width: auto;
+  max-height: 1.15em;
+  vertical-align: baseline;
+  object-fit: contain;
+}
+
+.page-body .dsa-chess--missing {
+  display: inline-block;
+  min-width: 0.6em;
+  text-align: center;
+  font-weight: 700;
+  color: #a00;
+}
+
+/* {{ difficulty | rot n }} / {{ difficulty | Label | grün n }} — eine Zeile über volle Spaltenbreite (table: zuverlässig in Spaltenlayout + innerhalb <p>) */
+.page-body .dsa-difficulty-rating-line {
+  display: table;
+  width: 100%;
+  max-width: 100%;
+  table-layout: auto;
+  box-sizing: border-box;
+  margin: 0.32em 0;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.page-body .dsa-difficulty-rating__label {
+  display: table-cell;
+  vertical-align: middle;
+  width: auto;
+  padding-right: 0.65em;
+  line-height: 1.35;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.page-body .dsa-difficulty-rating-line .dsa-difficulty-rating {
+  display: table-cell;
+  vertical-align: middle;
+  text-align: end;
+  width: 1%;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.page-body .dsa-difficulty-rating {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.12em;
+  vertical-align: -0.15em;
+  line-height: 0;
+  margin: 0 0.12em;
+}
+
+.page-body .dsa-difficulty-rating__slot {
+  display: inline-block;
+  height: 0.95em;
+  width: auto;
+  max-height: 1em;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .page-body .footnotes {
   margin-top: 1em;
+}
+
+/* Einband: einspaltig — Standard ist column-count:2; sonst wandert der Fließtext in die rechte Spalte */
+.a4-page.page-bg-einband .page-body {
+  column-count: 1;
 }
 
 /* Einband dunkel: Titel silbrig; Fließtext hell (Komplement zum Hintergrund) */
@@ -423,6 +550,26 @@ body {
   text-align: center;
   margin-top: clamp(14mm, 18vh, 58mm);
   margin-bottom: 0.4em;
+}
+
+/* Fließtext unter der Einband-Überschrift (Kapitel) mittig; ab erster Inhalts-Überschrift wieder linksbündig */
+.a4-page.page-bg-einband:not(.page-einband-hell) .page-body > h1:first-of-type ~ p {
+  text-align: center;
+}
+
+/* Untertitel direkt unter dem Einband-H1 (z. B. „EINBAND (Demo)“ unter Projekttitel) */
+.a4-page.page-bg-einband:not(.page-einband-hell) .page-body > h1:first-of-type + h2 {
+  font-family: var(--font-andalus);
+  font-size: var(--fs-unterkapitel);
+  color: var(--einband-title);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.65);
+  text-align: center;
+  margin: 0.15em 0 0.5em;
+  font-weight: 400;
+}
+
+.a4-page.page-bg-einband:not(.page-einband-hell) .page-body > h2:first-of-type ~ p {
+  text-align: start;
 }
 
 .a4-page.page-bg-einband:not(.page-einband-hell) .page-body:not(:has(> h1)) > h2:first-of-type {
@@ -463,6 +610,24 @@ body {
   margin-bottom: 0.4em;
 }
 
+.a4-page.page-bg-einband.page-einband-hell .page-body > h1:first-of-type ~ p {
+  text-align: center;
+}
+
+.a4-page.page-bg-einband.page-einband-hell .page-body > h1:first-of-type + h2 {
+  font-family: var(--font-andalus);
+  font-size: var(--fs-unterkapitel);
+  color: #2a1c14;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+  text-align: center;
+  margin: 0.15em 0 0.5em;
+  font-weight: 400;
+}
+
+.a4-page.page-bg-einband.page-einband-hell .page-body > h2:first-of-type ~ p {
+  text-align: start;
+}
+
 .a4-page.page-bg-einband.page-einband-hell .page-body:not(:has(> h1)) > h2:first-of-type {
   font-family: var(--font-andalus);
   font-size: var(--fs-unterkapitel);
@@ -481,112 +646,148 @@ body {
   margin-bottom: 0.4em;
 }
 
+/* Nur Einband (index 0): kleine Ecke. Alle anderen Seiten: .book-footer-strip — Fallback unten absichern. */
 .page-number {
   position: absolute;
   right: 12mm;
   bottom: 10mm;
   font-family: var(--font-gentium);
   font-size: var(--fs-text);
+  color: #1a1a1a;
+}
+
+.a4-page.page-bg-content-even .page-number,
+.a4-page.page-bg-content-odd .page-number,
+.a4-page.page-bg-final .page-number {
+  bottom: 3mm;
+  font-family: "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  font-size: 28pt;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: #fff;
+  text-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.6),
+    0 0 8px rgba(0, 0, 0, 0.35);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.a4-page.page-bg-content-even .page-number.page-number--even,
+.a4-page.page-bg-content-odd .page-number.page-number--even,
+.a4-page.page-bg-final .page-number.page-number--even {
+  left: 8mm;
+  right: auto;
+}
+
+.a4-page.page-bg-content-even .page-number.page-number--odd,
+.a4-page.page-bg-content-odd .page-number.page-number--odd,
+.a4-page.page-bg-final .page-number.page-number--odd {
+  right: 8mm;
+  left: auto;
 }
 
 /* Scriptorium-artige Fußzeile: Laufender Titel + Seitenzahl (nach Impressum) */
 .a4-page--with-book-footer .page-body {
-  padding-bottom: calc(20mm + 13mm);
+  padding-bottom: calc(20mm + 14mm);
 }
 
 .book-footer-strip {
-  /* Verschiebung der Seitenzahl in den Kasten der Seitengrafik (content-even/odd) */
-  --footer-num-nudge-x-even: 10.6mm;
-  --footer-num-nudge-x-odd: -10.6mm;
-  --footer-num-nudge-y: -1.2mm;
+  /* Flex: Zahl und Titel — keine translateX, damit nichts überlappt. Gerade/ungerade: Modifikatoren unten. */
+  --footer-num-nudge-y: 0.35mm;
 
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: stretch;
-  column-gap: 4mm;
-  min-height: 13mm;
-  padding: 2mm 10mm 3mm;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  min-height: 14mm;
   box-sizing: border-box;
   font-family: var(--font-gentium);
   font-size: 9.5pt;
   line-height: 1.2;
-  background: linear-gradient(to top, rgba(40, 32, 22, 0.22) 0%, rgba(40, 32, 22, 0.06) 55%, transparent 100%);
-  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  background: linear-gradient(to top, rgba(40, 32, 22, 0.18) 0%, rgba(40, 32, 22, 0.05) 55%, transparent 100%);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Gerade Seitenzahl: Nummer links (Außen), Titel rechts daneben — wie bisher */
+.book-footer-strip--even {
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 4.5mm;
+  padding: 3mm 12mm 2.5mm 15.5mm;
+}
+
+/* Ungerade Seitenzahl: gespiegelt — Nummer rechts (Außen), Titel links davon */
+.book-footer-strip--odd {
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+  gap: 4.5mm;
+  padding: 3mm 15.5mm 2.5mm 12mm;
+}
+
+.book-footer-strip--odd .book-footer-title {
+  text-align: right;
 }
 
 .book-footer-cluster {
   display: flex;
   flex-direction: row;
-  align-items: stretch;
-  gap: 3mm;
+  align-items: center;
+  gap: 0;
   min-width: 0;
 }
 
 .book-footer-cluster--num-slot {
-  gap: 0;
+  flex: 0 0 auto;
   align-items: center;
+  min-width: 12mm;
+  justify-content: center;
 }
 
 .book-footer-cluster--start {
-  justify-self: start;
+  justify-content: flex-start;
 }
 
 .book-footer-cluster--end {
-  justify-self: end;
+  display: none;
 }
 
-/* Nur Text — kein eigener Kasten; Lage per Verschiebung an den dunklen Bereich im Seiten-Hintergrund (image12/17) */
+/* Weiße große Ziffern im dunklen Feld der Hintergrundgrafik (links neben dem Fließtext) */
 .book-footer-num {
   flex: 0 0 auto;
   margin: 0;
   text-align: center;
   line-height: 1;
   font-family: "Palatino Linotype", Palatino, "Book Antiqua", "Libre Bodoni", Didot, "Bodoni MT", Georgia, serif;
-  font-size: 28.5pt;
+  font-size: 28pt;
   font-weight: 500;
   font-variant-numeric: lining-nums;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   color: #fff;
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
   text-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.55),
-    0 0 6px rgba(0, 0, 0, 0.3);
-}
-
-.book-footer-strip--even .book-footer-num {
-  transform: translate(var(--footer-num-nudge-x-even), var(--footer-num-nudge-y));
-}
-
-.book-footer-strip--odd .book-footer-num {
-  transform: translate(var(--footer-num-nudge-x-odd), var(--footer-num-nudge-y));
+    0 1px 4px rgba(0, 0, 0, 0.6),
+    0 0 8px rgba(0, 0, 0, 0.35);
+  transform: translate(0, var(--footer-num-nudge-y));
 }
 
 .book-footer-title {
-  grid-column: 2;
+  flex: 1 1 auto;
   align-self: center;
+  min-width: 0;
   font-family: var(--font-gentium);
-  font-size: 16pt;
-  line-height: 1.2;
-  color: #1a1410;
+  font-size: 15pt;
+  line-height: 1.25;
+  color: #0f0c0a;
   font-weight: 400;
   letter-spacing: 0.02em;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  min-width: 0;
-}
-
-.book-footer-strip--odd .book-footer-title {
   text-align: left;
-}
-
-.book-footer-strip--even .book-footer-title {
-  text-align: right;
 }
 
 .warnings {
@@ -896,7 +1097,7 @@ body {
   color: #4a3010;
 }
 
-/* Makro {{npcBlock}}: exakte Pixel-Vorlage media/foo.png → public/dsa/npc-block-template.png */
+/* Makro {{npcBlock}}: exakte Pixel-Vorlage media/npc-block-template.png → public/dsa/npc-block-template.png */
 .dsa-npc-wrap {
   margin: 1em 0 1.1em;
   padding: 0;
@@ -1236,6 +1437,9 @@ body {
   .page-body .toc,
   .page-body hr,
   .page-body ul > li::before,
+  .page-body .dsa-diff__icon,
+  .page-body .dsa-chess__img,
+  .page-body .dsa-difficulty-rating__slot,
   .dsa-npc__template,
   .dsa-npc__frame,
   .a4-page.page-bg-einband::before,

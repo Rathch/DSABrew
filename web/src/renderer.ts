@@ -9,6 +9,15 @@ import {
 } from "./impressum-config";
 import { resolveImpressumFieldKey } from "./impressum-field-aliases";
 import { applyHeadingAnchorPlugin } from "./markdown-heading-anchor";
+import easierIconUrl from "@media/image19.png?url";
+import harderIconUrl from "@media/image20.png?url";
+import chessImg8 from "@media/image8.png?url";
+import chessImg9 from "@media/image9.png?url";
+import chessImg10 from "@media/image10.png?url";
+import chessImg11 from "@media/image11.png?url";
+import difficultyEmptyUrl from "@media/image5.png?url";
+import difficultyRedFilledUrl from "@media/image6.png?url";
+import difficultyGreenFilledUrl from "@media/image3.png?url";
 
 /** Resolved internal map ids (FR-013a backgrounds). `cover` is an alias for `einband`. */
 const MAP_CANONICAL_KEYS = new Set(["einband", "content-even", "content-odd", "final"]);
@@ -55,8 +64,6 @@ export interface Footnote {
 export interface BookFooterStrip {
   title: string;
   pageNumber: number;
-  /** Ungerade angezeigte Seitenzahl: Nummer links (Außen); gerade: Nummer rechts. */
-  numberOnLeft: boolean;
 }
 
 export interface RenderedPage {
@@ -90,9 +97,16 @@ const FOOTNOTE_MACRO = /\{\{footnote\s+([^|]+?)\s*\|\s*([^}]+)\}\}/g;
 const READ_ALOUD_NOTE_MACRO = /\{\{(readAloudNote|vorlesenNote)\s+([^|]*?)\s*\|\s*([\s\S]*?)\}\}/g;
 /** Meisterinformation (dunkel); Alias: `meisterNote`. */
 const GM_NOTE_MACRO = /\{\{(gmNote|meisterNote)\s+([^|]*?)\s*\|\s*([\s\S]*?)\}\}/g;
-/** NPC-/Monster-Kasten: `schlüssel=wert`, Ende `{{/npcBlock}}` (ein- oder mehrzeilig). */
+/** Optional-Hinweise: Symbol links (`media/image19` / `image20`), Inhalt = Markdown. */
+const EASIER_HARDER_MACRO = /\{\{(easier|harder)\s*\|\s*([\s\S]*?)\}\}/gi;
+/** Inline-Schachfigur: `{{ chess | pawn }}` — Namen siehe `resolveChessPiece`. */
+const CHESS_MACRO = /\{\{\s*chess\s*\|\s*([^}]+?)\s*\}\}/gi;
+/** Vier Rauten 0–4; optional Präfix: `{{ difficulty | Kampf: | grün 4 }}` oder `{{ difficulty | rot 3 }}` (Alias `dificulty`). Label darf kein `}` enthalten — sonst frisst `[^|]*?` über `}}` bis zum `|` des nächsten Makros. */
+const DIFFICULTY_RATING_MACRO =
+  /\{\{\s*(?:difficulty|dificulty)\s*\|\s*(?:([^|}]*?)\s*\|\s*)?([^}]+?)\s*\}\}/gi;
+/** NPC-/Monster-Kasten: `schlüssel=wert`, Ende `{{/npcBlock}}` (ein- oder mehrzeilig). `gi`: optional Leerzeichen nach `{{`, Schreibweise npcBlock. */
 const NPC_BLOCK_MACRO =
-  /\{\{npcBlock\s*\n?([\s\S]*?)\s*\{\{\s*\/npcBlock\s*\}\}\}/g;
+  /\{\{\s*npcBlock\s*\n?([\s\S]*?)\s*\{\{\s*\/npcBlock\s*\}\}/gi;
 const VALID_BG_MACRO = /\\(map|rauten)\{([^}\n]+)\}/g;
 const IMPRESSUM_PAGE_MACRO = /\{\{impressumPage\}\}/g;
 const IMPRESSUM_FIELD_MACRO = /\{\{impressumField\s+(\w+)\s*=\s*([^}]*)\}\}/g;
@@ -111,16 +125,21 @@ function collectGlobalImpressumOverrides(fullMarkdown: string): Partial<Impressu
   return partial;
 }
 
-function findLastImpressumPageIndex(pages: string[]): number {
-  let last = -1;
-  for (let i = 0; i < pages.length; i++) {
-    IMPRESSUM_PAGE_MACRO.lastIndex = 0;
-    if (IMPRESSUM_PAGE_MACRO.test(pages[i])) {
-      last = i;
-    }
-  }
+/**
+ * Makro-Beispiele in \`…\` / \`\`\`…\`\`\` ignorieren, damit z. B. \`{{impressumPage}}\` in der
+ * Makroliste die Fußzeilen-Logik nicht kaputtmacht (sonst fehlt bookFooter → kleine schwarze .page-number).
+ */
+function stripCodeLikeSpansForMacroDetection(raw: string): string {
+  return raw
+    .replace(/\r\n/g, "\n")
+    .replace(/```[\s\S]*?```/g, "")
+    .replace(/`[^`\n]*`/g, "");
+}
+
+function pageContainsLiteralImpressumPageMacro(raw: string): boolean {
+  const scan = stripCodeLikeSpansForMacroDetection(raw);
   IMPRESSUM_PAGE_MACRO.lastIndex = 0;
-  return last;
+  return IMPRESSUM_PAGE_MACRO.test(scan);
 }
 
 function collectImpressumFields(raw: string): {
@@ -246,6 +265,209 @@ function npcBlockPlaceholder(sequence: number): string {
   return `DSABREWNPCBLOCK${String(sequence).padStart(5, "0")}`;
 }
 
+function easierPlaceholder(sequence: number): string {
+  return `DSABREWEASIER${String(sequence).padStart(5, "0")}`;
+}
+
+function harderPlaceholder(sequence: number): string {
+  return `DSABREWHARDER${String(sequence).padStart(5, "0")}`;
+}
+
+function chessPlaceholder(sequence: number): string {
+  return `DSABREWCHESS${String(sequence).padStart(5, "0")}`;
+}
+
+function difficultyRatingPlaceholder(sequence: number): string {
+  return `DSABREWDRATE${String(sequence).padStart(5, "0")}`;
+}
+
+/** Vier Assets: image8–11 → Figurentyp (Aliase deutsch/englisch, Tippfehler pown). */
+function normalizeChessPieceKey(raw: string): string {
+  return raw
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "");
+}
+
+function resolveChessPiece(raw: string): { src: string; label: string } | null {
+  const key = normalizeChessPieceKey(raw);
+  const map: Record<string, { src: string; label: string }> = {
+    pawn: { src: chessImg8, label: "Bauer" },
+    pown: { src: chessImg8, label: "Bauer" },
+    bauer: { src: chessImg8, label: "Bauer" },
+    rook: { src: chessImg9, label: "Turm" },
+    turm: { src: chessImg9, label: "Turm" },
+    tower: { src: chessImg9, label: "Turm" },
+    knight: { src: chessImg10, label: "Springer" },
+    springer: { src: chessImg10, label: "Springer" },
+    horse: { src: chessImg10, label: "Springer" },
+    bishop: { src: chessImg11, label: "Läufer" },
+    laeufer: { src: chessImg11, label: "Läufer" },
+    laufer: { src: chessImg11, label: "Läufer" },
+    queen: { src: chessImg11, label: "Dame" },
+    dame: { src: chessImg11, label: "Dame" },
+    king: { src: chessImg10, label: "König" },
+    koenig: { src: chessImg10, label: "König" },
+    konig: { src: chessImg10, label: "König" }
+  };
+  return map[key] ?? null;
+}
+
+interface CollectedChessMacro {
+  token: string;
+  pieceRaw: string;
+}
+
+function collectChessMacros(raw: string): {
+  cleaned: string;
+  items: CollectedChessMacro[];
+  warnings: string[];
+} {
+  const items: CollectedChessMacro[] = [];
+  const warnings: string[] = [];
+  let n = 1;
+  CHESS_MACRO.lastIndex = 0;
+  const cleaned = raw.replace(CHESS_MACRO, (_full, pieceRaw: string) => {
+    const trimmed = pieceRaw.trim();
+    const token = chessPlaceholder(n++);
+    items.push({ token, pieceRaw: trimmed });
+    if (trimmed && !resolveChessPiece(trimmed)) {
+      warnings.push(`[WARN] chess: unbekannte Figur „${trimmed.slice(0, 80)}“`);
+    }
+    return token;
+  });
+  CHESS_MACRO.lastIndex = 0;
+  return { cleaned, items, warnings };
+}
+
+function buildChessInlineHtml(pieceRaw: string): string {
+  const resolved = resolveChessPiece(pieceRaw);
+  if (!resolved) {
+    return `<span class="dsa-chess dsa-chess--missing" title="${md.utils.escapeHtml(pieceRaw)}">?</span>`;
+  }
+  const srcAttr = md.utils.escapeHtml(resolved.src);
+  const labelAttr = md.utils.escapeHtml(resolved.label);
+  return `<span class="dsa-chess" role="img" aria-label="${labelAttr}"><img class="dsa-chess__img" src="${srcAttr}" alt="" decoding="async" loading="lazy" /></span>`;
+}
+
+/** `rot 3` / `grün 2` — Reihenfolge Modus und Zahl beliebig. */
+function parseDifficultyRatingInner(inner: string): { mode: "red" | "green"; points: number } | null {
+  const parts = inner
+    .trim()
+    .split(/\s+/)
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0);
+  if (parts.length < 2) {
+    return null;
+  }
+  let mode: "red" | "green" | null = null;
+  let points: number | null = null;
+  for (const p of parts) {
+    const pl = p.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
+    if (pl === "rot" || pl === "red" || pl === "r") {
+      mode = "red";
+    } else if (pl === "grun" || pl === "green" || pl === "g") {
+      mode = "green";
+    } else {
+      const n = Number.parseInt(pl, 10);
+      if (Number.isFinite(n)) {
+        points = n;
+      }
+    }
+  }
+  if (mode === null || points === null) {
+    return null;
+  }
+  if (points < 0 || points > 4) {
+    return null;
+  }
+  return { mode, points };
+}
+
+interface CollectedDifficultyRatingMacro {
+  token: string;
+  mode: "red" | "green";
+  points: number;
+  /** Optionaler Text vor den Rauten (Markdown inline); leer = nur Rauten. */
+  label: string;
+}
+
+function collectDifficultyRatingMacros(raw: string): {
+  cleaned: string;
+  items: CollectedDifficultyRatingMacro[];
+  warnings: string[];
+} {
+  const items: CollectedDifficultyRatingMacro[] = [];
+  const warnings: string[] = [];
+  let n = 1;
+  DIFFICULTY_RATING_MACRO.lastIndex = 0;
+  const cleaned = raw.replace(
+    DIFFICULTY_RATING_MACRO,
+    (_full, labelPart: string | undefined, rest: string) => {
+      const label = (labelPart ?? "").trim();
+      const parsed = parseDifficultyRatingInner(rest);
+      const token = difficultyRatingPlaceholder(n++);
+      if (!parsed) {
+        const snippet = [label, rest].filter(Boolean).join(" | ").trim().slice(0, 96);
+        warnings.push(
+          `[WARN] difficulty: ungültig „${snippet}“ (z. B. \`Kampf: | grün 2\` oder \`rot 3\`)`
+        );
+        items.push({ token, mode: "red", points: 0, label });
+        return token;
+      }
+      items.push({ token, mode: parsed.mode, points: parsed.points, label });
+      return token;
+    }
+  );
+  DIFFICULTY_RATING_MACRO.lastIndex = 0;
+  return { cleaned, items, warnings };
+}
+
+function buildDifficultyRatingHtml(mode: "red" | "green", points: number, labelMarkdown: string): string {
+  const filledSrc = mode === "red" ? difficultyRedFilledUrl : difficultyGreenFilledUrl;
+  const emptySrc = difficultyEmptyUrl;
+  const modeClass = mode === "red" ? "dsa-difficulty-rating--red" : "dsa-difficulty-rating--green";
+  const ariaCore = `Schwierigkeit ${points} von 4`;
+  const labelAttr = md.utils.escapeHtml(ariaCore);
+  const slots: string[] = [];
+  for (let i = 0; i < 4; i++) {
+    const src = i < points ? filledSrc : emptySrc;
+    const srcAttr = md.utils.escapeHtml(src);
+    slots.push(`<img class="dsa-difficulty-rating__slot" src="${srcAttr}" alt="" decoding="async" loading="lazy" />`);
+  }
+  const rating = `<span class="dsa-difficulty-rating ${modeClass}" role="img" aria-label="${labelAttr}">${slots.join("")}</span>`;
+  const lm = labelMarkdown.trim();
+  if (!lm) {
+    return rating;
+  }
+  const labelHtml = `<span class="dsa-difficulty-rating__label">${md.renderInline(lm)}</span>`;
+  return `<span class="dsa-difficulty-rating-line">${labelHtml}${rating}</span>`;
+}
+
+interface CollectedDifficultyMacro {
+  token: string;
+  kind: "easier" | "harder";
+  body: string;
+}
+
+function collectEasierHarderMacros(raw: string): { cleaned: string; items: CollectedDifficultyMacro[] } {
+  const items: CollectedDifficultyMacro[] = [];
+  let nEasier = 1;
+  let nHarder = 1;
+  EASIER_HARDER_MACRO.lastIndex = 0;
+  const cleaned = raw.replace(EASIER_HARDER_MACRO, (_full, kindRaw: string, body: string) => {
+    const kind = kindRaw.toLowerCase() as "easier" | "harder";
+    const token =
+      kind === "easier" ? easierPlaceholder(nEasier++) : harderPlaceholder(nHarder++);
+    items.push({ kind, token, body });
+    return token;
+  });
+  EASIER_HARDER_MACRO.lastIndex = 0;
+  return { cleaned, items };
+}
+
 interface CollectedNoteMacro {
   token: string;
   title: string;
@@ -298,6 +520,16 @@ function buildGmNoteHtml(title: string, bodyMarkdown: string): string {
   return `<div class="dsa-note-wrap dsa-note-wrap--gm"><div class="dsa-gm-frame" role="note"><div class="dsa-gm-frame__cap dsa-gm-frame__cap--top"><img class="dsa-gm-frame__cap-img" src="/dsa/gm-frame-cap-top.png" alt="" decoding="async" /></div><div class="dsa-gm-frame__mid"><aside class="dsa-note dsa-note--gm dsa-note--gm-framed"><h3 class="dsa-note__title">${titleHtml}</h3><div class="dsa-note__body">${bodyHtml}</div></aside></div><div class="dsa-gm-frame__cap dsa-gm-frame__cap--bottom"><img class="dsa-gm-frame__cap-img" src="/dsa/gm-frame-cap-bottom.png" alt="" decoding="async" /></div></div></div>`;
 }
 
+function buildDifficultyCalloutHtml(kind: "easier" | "harder", bodyMarkdown: string): string {
+  const iconSrc = kind === "easier" ? easierIconUrl : harderIconUrl;
+  const bodyHtml = md.render(bodyMarkdown.trim());
+  const cls = kind === "easier" ? "dsa-diff dsa-diff--easier" : "dsa-diff dsa-diff--harder";
+  const label = kind === "easier" ? "Leichter Hinweis" : "Schwerer Hinweis";
+  const labelAttr = md.utils.escapeHtml(label);
+  const srcAttr = md.utils.escapeHtml(iconSrc);
+  return `<div class="dsa-diff-wrap"><aside class="${cls}" role="note" aria-label="${labelAttr}"><img class="dsa-diff__icon" src="${srcAttr}" alt="" decoding="async" loading="lazy" /><div class="dsa-diff__body">${bodyHtml}</div></aside></div>`;
+}
+
 /** Ersetzt Makro-Platzhalter; bevorzugt ganze `<p>TOKEN</p>`-Blöcke (Block-Level). */
 function injectBlockToken(html: string, token: string, blockHtml: string): string {
   const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -317,6 +549,30 @@ function injectNoteMacros(html: string, items: CollectedNoteMacro[]): string {
         ? buildReadAloudNoteHtml(item.title, item.body)
         : buildGmNoteHtml(item.title, item.body);
     out = injectBlockToken(out, item.token, block);
+  }
+  return out;
+}
+
+function injectDifficultyMacros(html: string, items: CollectedDifficultyMacro[]): string {
+  let out = html;
+  for (const item of items) {
+    out = injectBlockToken(out, item.token, buildDifficultyCalloutHtml(item.kind, item.body));
+  }
+  return out;
+}
+
+function injectChessMacros(html: string, items: CollectedChessMacro[]): string {
+  let out = html;
+  for (const item of items) {
+    out = injectBlockToken(out, item.token, buildChessInlineHtml(item.pieceRaw));
+  }
+  return out;
+}
+
+function injectDifficultyRatingMacros(html: string, items: CollectedDifficultyRatingMacro[]): string {
+  let out = html;
+  for (const item of items) {
+    out = injectBlockToken(out, item.token, buildDifficultyRatingHtml(item.mode, item.points, item.label));
   }
   return out;
 }
@@ -715,19 +971,28 @@ function parseBackgrounds(raw: string): {
 interface TocHeadingItem {
   level: number;
   titleHtml: string;
+  pageNumber: number;
+  anchorId: string;
 }
 
 /**
  * Sammelt `#`–`###`-Zeilen in Dokumentreihenfolge (alle \\page-Segmente).
- * Überspringt Fenced Code und {{npcBlock}}-Körper, damit keine falschen Treffer.
+ * Überspringt Fenced Code, {{npcBlock}}- und {{easier|}}/{{harder|}}-Körper, damit keine falschen Treffer.
+ * Slug/ID pro Seite wie beim Heading-Anchor-Plugin (p{Seite}-{slug}).
  */
-function collectDocumentHeadingsForToc(pageSources: string[]): TocHeadingItem[] {
+function collectDocumentHeadingsForToc(pageSources: string[], pageNumberStart: number): TocHeadingItem[] {
   const items: TocHeadingItem[] = [];
   const headingLineRe = /^\s{0,3}(#{1,3})\s+(.+?)\s*$/;
-  for (const source of pageSources) {
+  for (let pageIndex = 0; pageIndex < pageSources.length; pageIndex++) {
+    const source = pageSources[pageIndex];
+    const displayPage = pageNumberStart + pageIndex;
+    const usedSlugs = new Set<string>();
     const lines = source.replace(/\r\n/g, "\n").split("\n");
     let inFence = false;
     let inNpcBlock = false;
+    let inEasierHarder = false;
+    let inChess = false;
+    let inDifficultyRating = false;
     for (const rawLine of lines) {
       const line = rawLine.trimEnd();
       if (/^\s*```/.test(line)) {
@@ -746,6 +1011,33 @@ function collectDocumentHeadingsForToc(pageSources: string[]): TocHeadingItem[] 
         }
         continue;
       }
+      if (/\{\{\s*(easier|harder)\s*\|/i.test(line)) {
+        inEasierHarder = true;
+      }
+      if (inEasierHarder) {
+        if (/\}\}/.test(line)) {
+          inEasierHarder = false;
+        }
+        continue;
+      }
+      if (/\{\{\s*chess\s*\|/i.test(line)) {
+        inChess = true;
+      }
+      if (inChess) {
+        if (/\}\}/.test(line)) {
+          inChess = false;
+        }
+        continue;
+      }
+      if (/\{\{\s*(?:difficulty|dificulty)\s*\|/i.test(line)) {
+        inDifficultyRating = true;
+      }
+      if (inDifficultyRating) {
+        if (/\}\}/.test(line)) {
+          inDifficultyRating = false;
+        }
+        continue;
+      }
       const m = headingLineRe.exec(line);
       if (!m) {
         continue;
@@ -754,9 +1046,22 @@ function collectDocumentHeadingsForToc(pageSources: string[]): TocHeadingItem[] 
       if (!titleRaw) {
         continue;
       }
+      const base = slugifyHeadingText(titleRaw);
+      let slug = base;
+      if (usedSlugs.has(slug)) {
+        let n = 2;
+        while (usedSlugs.has(`${base}-${n}`)) {
+          n += 1;
+        }
+        slug = `${base}-${n}`;
+      }
+      usedSlugs.add(slug);
+      const anchorId = `p${displayPage}-${slug}`;
       items.push({
         level: m[1].length,
-        titleHtml: md.renderInline(titleRaw)
+        titleHtml: md.renderInline(titleRaw),
+        pageNumber: displayPage,
+        anchorId
       });
     }
   }
@@ -765,18 +1070,35 @@ function collectDocumentHeadingsForToc(pageSources: string[]): TocHeadingItem[] 
 
 function buildTocNavHtml(items: TocHeadingItem[]): string {
   if (items.length === 0) {
-    return `<nav class="toc"><p>No headings found.</p></nav>`;
+    return `<nav class="toc toc--empty" aria-labelledby="toc-heading"><h2 class="toc-heading" id="toc-heading">Inhaltsverzeichnis</h2><p class="toc-empty">Keine Überschriften gefunden.</p></nav>`;
   }
   const lis = items
-    .map((item) => `<li class="toc-l${item.level}">${item.titleHtml}</li>`)
+    .map((item) => {
+      const href = `#${md.utils.escapeHtml(item.anchorId)}`;
+      const num = String(item.pageNumber);
+      return `<li class="toc-item toc-l${item.level}"><a class="toc-line" href="${href}"><span class="toc-title">${item.titleHtml}</span><span class="toc-leader" aria-hidden="true"></span><span class="toc-num">${num}</span></a></li>`;
+    })
     .join("");
-  return `<nav class="toc"><ol>${lis}</ol></nav>`;
+  return `<nav class="toc" aria-labelledby="toc-heading"><h2 class="toc-heading" id="toc-heading">Inhaltsverzeichnis</h2><ol class="toc-list">${lis}</ol></nav>`;
 }
 
 /** Ersetzt wörtliches `{{tocDepthH3}}` im gerenderten HTML (z. B. in <p>…</p>). */
 function injectTocMacro(html: string, tocItems: TocHeadingItem[]): string {
   const tocHtml = buildTocNavHtml(tocItems);
   return html.split("{{tocDepthH3}}").join(tocHtml);
+}
+
+/** TOC nutzt `md.renderInline`; für die Fußzeile brauchen wir Klartext wie im Scriptorium-Vorbild. */
+function htmlToPlainFooterTitle(html: string): string {
+  return html
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&#0*39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .trim();
 }
 
 export function renderDocument(markdown: string, options?: RenderDocumentOptions): RenderResult {
@@ -788,8 +1110,10 @@ export function renderDocument(markdown: string, options?: RenderDocumentOptions
   const runningTitleMerged = mergeImpressum({ ...options?.impressum, ...globalImp });
   const runningTitle = runningTitleMerged.projectTitle.trim() || DEFAULT_IMPRESSUM_DATA.projectTitle;
 
-  const lastImpressumPageIndex = findLastImpressumPageIndex(pages);
-  const documentTocItems = collectDocumentHeadingsForToc(pages);
+  const documentTocItems = collectDocumentHeadingsForToc(pages, pageNumberData.start);
+  const firstH1TocItem = documentTocItems.find((item) => item.level === 1);
+  const plainFirstH1 = firstH1TocItem ? htmlToPlainFooterTitle(firstH1TocItem.titleHtml) : "";
+  const runningFooterTitle = plainFirstH1.length > 0 ? plainFirstH1 : runningTitle;
 
   const renderedPages: RenderedPage[] = pages.map((rawPage, index) => {
     const displayPageNumber = pageNumberData.start + index;
@@ -797,15 +1121,21 @@ export function renderDocument(markdown: string, options?: RenderDocumentOptions
 
     const bgData = parseBackgrounds(rawPage);
     const imFields = collectImpressumFields(bgData.cleaned);
-    const hasImpressumMacro = IMPRESSUM_PAGE_MACRO.test(imFields.cleaned);
+    const hasImpressumMacro = pageContainsLiteralImpressumPageMacro(imFields.cleaned);
     IMPRESSUM_PAGE_MACRO.lastIndex = 0;
-    const withoutImpressumMacro = imFields.cleaned.replace(IMPRESSUM_PAGE_MACRO, "\n");
+    const withoutImpressumMacro = hasImpressumMacro
+      ? imFields.cleaned.replace(IMPRESSUM_PAGE_MACRO, "\n")
+      : imFields.cleaned;
     const footnoteData = collectFootnotes(withoutImpressumMacro);
     const readAloudData = collectReadAloudNotes(footnoteData.cleaned);
     const gmData = collectGmNotes(readAloudData.cleaned);
+    const easierHarderData = collectEasierHarderMacros(gmData.cleaned);
+    /* NPC vor chess/difficulty: verhindert, dass spätere Makros den Block-Körper mit „{{ … }}“ beschädigen. */
     const npcData = !hasImpressumMacro
-      ? collectNpcBlocks(gmData.cleaned)
-      : { cleaned: gmData.cleaned, items: [] as CollectedNpcMacro[], warnings: [] as string[] };
+      ? collectNpcBlocks(easierHarderData.cleaned)
+      : { cleaned: easierHarderData.cleaned, items: [] as CollectedNpcMacro[], warnings: [] as string[] };
+    const chessData = collectChessMacros(npcData.cleaned);
+    const difficultyRatingData = collectDifficultyRatingMacros(chessData.cleaned);
 
     /* Makros im Dokument überschreiben programmatische Optionen */
     const impressumDataMerged = mergeImpressum({
@@ -817,8 +1147,11 @@ export function renderDocument(markdown: string, options?: RenderDocumentOptions
     if (hasImpressumMacro) {
       html = renderImpressumHtml(impressumDataMerged, (s) => md.utils.escapeHtml(s));
     } else {
-      html = md.render(npcData.cleaned);
+      html = md.render(difficultyRatingData.cleaned);
       html = injectNoteMacros(html, [...readAloudData.items, ...gmData.items]);
+      html = injectDifficultyMacros(html, easierHarderData.items);
+      html = injectChessMacros(html, chessData.items);
+      html = injectDifficultyRatingMacros(html, difficultyRatingData.items);
       html = injectNpcBlocks(html, npcData.items);
       html = injectFootnoteRefs(html, footnoteData.footnotes);
       html = injectTocMacro(html, documentTocItems);
@@ -831,7 +1164,13 @@ export function renderDocument(markdown: string, options?: RenderDocumentOptions
             .join("")}</footer>`
         : "";
 
-    const allWarnings = [...bgData.warnings, ...imFields.fieldWarnings, ...npcData.warnings];
+    const allWarnings = [
+      ...bgData.warnings,
+      ...imFields.fieldWarnings,
+      ...chessData.warnings,
+      ...difficultyRatingData.warnings,
+      ...npcData.warnings
+    ];
 
     const warningHtml =
       allWarnings.length > 0
@@ -847,16 +1186,13 @@ export function renderDocument(markdown: string, options?: RenderDocumentOptions
     const effectiveMapKey =
       bgData.mapKey ?? (displayPageNumber % 2 === 0 ? "content-odd" : "content-even");
 
-    const showBookFooter =
-      lastImpressumPageIndex >= 0
-        ? index > lastImpressumPageIndex
-        : index > 0;
+    /* Scriptorsium-Fußzeile ab Impressum; \map{final} (Rückseite) ohne Seitenzahl in der Fußzeile. */
+    const showBookFooter = index > 0 && effectiveMapKey !== "final";
 
     const bookFooter: BookFooterStrip | undefined = showBookFooter
       ? {
-          title: runningTitle,
-          pageNumber: displayPageNumber,
-          numberOnLeft: displayPageNumber % 2 === 1
+          title: runningFooterTitle,
+          pageNumber: displayPageNumber
         }
       : undefined;
 

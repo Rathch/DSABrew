@@ -262,13 +262,63 @@ const ACTIONS: {
       insertAtCursor(ta, "\n\n{{gmNote Meisterinformation: |\nGeheime Infos für die Spielleitung.\n}}\n\n")
   },
   {
-    id: "npcBlock",
-    label: "NSC",
-    title: "NSC-/Monster-Kasten (eine Zeile; optional manuell umbrechen)",
+    id: "easier",
+    label: "Leichter",
+    title: "Optional leichter ({{easier | Markdown}})",
     run: (ta) =>
       insertAtCursor(
         ta,
-        "\n\n{{npcBlock name=Monster / Person portrait=/dsa/portrait.png groesse=2,00 Schritt gewicht=100 Stein mu=10 kl=10 in=10 ch=10 ff=10 ge=10 ko=10 kk=10 lep=100 ini=10+1W6 aw=6 rs=2 sk=0 zk=0 gs=10 angriff1=AT 14 TP 1W6+4 RW mittel angriff2=AT 10 TP 2W6+2 RW kurz aktionen=1 sonderfertigkeiten=Sonderfertigkeit1, Sonderfertigkeit2 talente=Schwimmen 2, Klettern 4 {{/npcBlock}}\n\n"
+        "\n\n{{easier |\n*Leichter-Symbol:* Zur Erleichterung einer Szene kannst du die Vorschläge der so markierten Abschnitte übernehmen.\n}}\n\n"
+      )
+  },
+  {
+    id: "harder",
+    label: "Schwerer",
+    title: "Optional schwerer ({{harder | Markdown}})",
+    run: (ta) =>
+      insertAtCursor(
+        ta,
+        "\n\n{{harder |\n*Schwerer-Symbol:* Braucht die Gruppe mehr Herausforderung? Mit den Hinweisen der so markierten Abschnitte kannst du eine Situation erschweren.\n}}\n\n"
+      )
+  },
+  {
+    id: "chess",
+    label: "Figur",
+    title: "Schachfigur inline ({{ chess | pawn }} — pawn, rook, knight, bishop, queen, king …)",
+    run: (ta) => insertAtCursor(ta, "{{ chess | pawn }}")
+  },
+  {
+    id: "difficulty",
+    label: "Rauten",
+    title:
+      "Schwierigkeit 0–4 ({{ difficulty | rot 2 }}, {{ difficulty | Kapitel: | grün 3 }} mit optionalem Text vor den Rauten)",
+    run: (ta) => insertAtCursor(ta, "{{ difficulty | Kampf: | grün 2 }}")
+  },
+  {
+    id: "npcBlock",
+    label: "NSC",
+    title:
+      "NSC-/Monster-Kasten ({{npcBlock … {{/npcBlock}}); gleiche Syntax wie Renderer — optional einzeilig, empfohlen mehrzeilig",
+    run: (ta) =>
+      insertAtCursor(
+        ta,
+        `
+
+{{npcBlock
+name=Lorem-Riese / NSC
+portrait=/dsa/portrait.png
+groesse=2,00 Schritt
+gewicht=100 Stein
+mu=12 kl=11 in=10 ch=9 ff=10 ge=11 ko=12 kk=11
+lep=110 ini=11+1W6 aw=7 rs=3 sk=1 zk=0 gs=11
+angriff1=AT 13 TP 1W6+3 RW mittel
+angriff2=AT 11 TP 1W6+2 RW kurz
+aktionen=2
+sonderfertigkeiten=Lorem I, Ipsum II
+talente=Schwimmen 3, Klettern 2
+{{/npcBlock}}
+
+`
       )
   }
 ];
