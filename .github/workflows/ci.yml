@@ -33,12 +33,18 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: |
+            package-lock.json
             web/package-lock.json
             server/package-lock.json
+
+      - name: npm ci (repository root — ESLint)
+        working-directory: .
+        run: npm ci
 
       - run: npm ci
 
       - name: ESLint (TypeScript)
+        working-directory: .
         run: npm run lint:ts
 
       - name: TypeScript (strict)

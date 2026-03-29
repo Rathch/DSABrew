@@ -67,7 +67,7 @@ Bei sehr neuen Vite-Versionen (z. B. 7+) koennen zusaetzliche Node-Mindestversio
 
 Entspricht im Wesentlichen `.github/workflows/ci.yml` (Root: **ESLint** für TS; Web: Typecheck, **Stylelint (CSS)**, Tests mit Coverage, Build; Server: Typecheck; `npm audit` fuer beide Pakete).
 
-**Linting:** **ESLint** mit **`typescript-eslint`** (`web/eslint.config.mjs`, Regelset `recommended`; prüft `web/src`, `web/tests`, `shared/`, `server/`). CSS: **Stylelint** mit **`stylelint-config-standard`** (`web/stylelint.config.mjs`). Typprüfung bleibt **`tsc --noEmit`**. Nach neuen Dev-Dependencies: **`cd web && npm install`**, damit `web/package-lock.json` zu `web/package.json` passt.
+**Linting:** **ESLint** mit **`typescript-eslint`** (`eslint.config.mjs` im **Repository-Root** — nötig, damit `shared/` und `server/` mitlintbar sind; Regelset `recommended`). CSS: **Stylelint** mit **`stylelint-config-standard`** (`web/stylelint.config.mjs`). Typprüfung bleibt **`tsc --noEmit`**. Nach neuen Dev-Dependencies: **`npm install`** im **Root** (ESLint) und **`cd web && npm install`** (Web-Paket).
 
 | Befehl | Bedeutung |
 | --- | --- |

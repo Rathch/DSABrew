@@ -3,46 +3,47 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 /**
- * ESLint flat config (cwd: web/). Lints web sources, tests, Vite config, repo `shared/` and `server/`.
+ * ESLint flat config (Repository-Root). ESLint 9 erlaubt keine Lint-Ziele außerhalb des
+ * Config-Verzeichnisses, wenn die Config unter `web/` liegt — daher diese Datei hier.
  * @see https://typescript-eslint.io/getting-started
  */
 export default tseslint.config(
   {
     ignores: [
       "**/node_modules/**",
-      "**/dist/**",
-      "**/coverage/**",
-      "scripts/**"
+      "web/dist/**",
+      "web/coverage/**",
+      "web/scripts/**"
     ]
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    files: ["src/**/*.ts"],
+    files: ["web/src/**/*.ts"],
     languageOptions: {
       globals: { ...globals.browser }
     }
   },
   {
-    files: ["vite.config.ts"],
+    files: ["web/vite.config.ts"],
     languageOptions: {
       globals: { ...globals.node }
     }
   },
   {
-    files: ["tests/**/*.ts"],
+    files: ["web/tests/**/*.ts"],
     languageOptions: {
       globals: { ...globals.vitest }
     }
   },
   {
-    files: ["../server/**/*.ts"],
+    files: ["server/**/*.ts"],
     languageOptions: {
       globals: { ...globals.node }
     }
   },
   {
-    files: ["../shared/**/*.ts"],
+    files: ["shared/**/*.ts"],
     languageOptions: {
       globals: { ...globals.es2021 }
     }
