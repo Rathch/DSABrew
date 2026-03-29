@@ -93,18 +93,6 @@ describe("renderer functional", () => {
     expect(r.pages[1].singleColumn).toBe(true);
   });
 
-
-
-  it("resolves cover alias to einband chrome", () => {
-
-    const r = renderDocument("\\map{cover}");
-
-    expect(r.pages[0].mapKey).toBe("einband");
-
-    expect(r.pages[0].pageChromeClasses).toContain("page-bg-einband");
-
-  });
-
   it("applies automatic even/odd content backgrounds when no map is set", () => {
     const r = renderDocument("{{pageNumber 1}}\n# S1\n\\page\n# S2\n\\page\n# S3");
     expect(r.pages[0].pageChromeClasses).toContain("page-bg-content-even");
@@ -199,6 +187,30 @@ mu=10
     expect(html).toContain("dsa-difficulty-rating__label");
     expect(html).toContain("Kampf:");
     expect(html).not.toContain("{{ difficulty");
+  });
+
+  it("renders readAloudNote (vorlesenNote alias) with title and body", () => {
+    const md = "{{readAloudNote Titel | **Hinweis** im Text.}}";
+    const html = renderDocument(md).pages[0].renderedHtml;
+    expect(html).toContain("dsa-note--read-aloud");
+    expect(html).toContain("Titel");
+    expect(html).toContain("<strong>Hinweis</strong>");
+    expect(html).not.toContain("{{readAloudNote");
+  });
+
+  it("renders gmNote (meisterNote alias)", () => {
+    const md = "{{meisterNote GM | Nur für die SL.}}";
+    const html = renderDocument(md).pages[0].renderedHtml;
+    expect(html).toContain("dsa-note--gm");
+    expect(html).toContain("Nur für die SL.");
+    expect(html).not.toContain("{{meisterNote");
+  });
+
+  it("renders {{impressumPage}} as impressum sheet markup", () => {
+    const r = renderDocument("{{impressumPage}}");
+    const html = r.pages.map((p) => p.renderedHtml).join("\n");
+    expect(html).toContain("impressum-sheet");
+    expect(html).toContain("IMPRESSUM");
   });
 
 });

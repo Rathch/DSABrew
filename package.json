@@ -8,7 +8,9 @@
   "scripts": {
     "ci": "npm run ci:install && npm run ci:verify && npm run ci:audit",
     "ci:install": "npm ci --prefix web && npm ci --prefix server",
-    "ci:verify": "npm run typecheck --prefix web && npm run test:coverage --prefix web && npm run build --prefix web && npm run typecheck --prefix server",
+    "lint:ts": "npm run lint:ts --prefix web",
+    "lint:ts:fix": "npm run lint:ts:fix --prefix web",
+    "ci:verify": "npm run lint:ts && npm run typecheck --prefix web && npm run lint:css --prefix web && npm run test:coverage --prefix web && npm run build --prefix web && npm run typecheck --prefix server",
     "ci:audit": "npm audit --audit-level=high --prefix web && npm audit --audit-level=high --prefix server",
     "ci:gitleaks": "gitleaks detect --source . --verbose --exit-code 1",
     "ci:all": "npm run ci && npm run ci:gitleaks",

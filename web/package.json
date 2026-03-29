@@ -14,7 +14,11 @@
     "import-gm-frame": "node scripts/import-gm-meister-frame.mjs",
     "predev": "npm run prepare-assets",
     "prebuild": "npm run prepare-assets",
-    "postinstall": "npm run prepare-assets"
+    "postinstall": "npm run prepare-assets",
+    "lint:css": "stylelint \"src/**/*.css\"",
+    "lint:css:fix": "stylelint \"src/**/*.css\" --fix",
+    "lint:ts": "eslint src tests vite.config.ts ../shared ../server",
+    "lint:ts:fix": "eslint src tests vite.config.ts ../shared ../server --fix"
   },
   "engines": {
     "node": ">=20.0.0"
@@ -25,11 +29,17 @@
     "markdown-it": "^14.1.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.16.0",
     "@types/markdown-it": "^14.1.2",
     "@types/node": "^22.13.10",
     "@vitest/coverage-v8": "^3.2.4",
+    "eslint": "^9.16.0",
+    "globals": "^15.14.0",
     "sharp": "^0.33.5",
+    "stylelint": "^16.14.1",
+    "stylelint-config-standard": "^36.0.1",
     "typescript": "^5.9.2",
+    "typescript-eslint": "^8.18.2",
     "vite": "^6.2.0",
     "vitest": "^3.2.4"
   },

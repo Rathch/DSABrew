@@ -65,18 +65,19 @@ Bei sehr neuen Vite-Versionen (z. B. 7+) koennen zusaetzliche Node-Mindestversio
 
 ## CI lokal (vor Push)
 
-Entspricht im Wesentlichen `.github/workflows/ci.yml` (Web: Typecheck, Tests mit Coverage, Build; Server: Typecheck; `npm audit` fuer beide Pakete).
+Entspricht im Wesentlichen `.github/workflows/ci.yml` (Root: **ESLint** für TS; Web: Typecheck, **Stylelint (CSS)**, Tests mit Coverage, Build; Server: Typecheck; `npm audit` fuer beide Pakete).
 
-Im **Repository-Root** (einmal `npm install` im Root ausfuehren, erzeugt nur die Root-`package-lock.json`):
+**Linting:** **ESLint** mit **`typescript-eslint`** (`web/eslint.config.mjs`, Regelset `recommended`; prüft `web/src`, `web/tests`, `shared/`, `server/`). CSS: **Stylelint** mit **`stylelint-config-standard`** (`web/stylelint.config.mjs`). Typprüfung bleibt **`tsc --noEmit`**. Nach neuen Dev-Dependencies: **`cd web && npm install`**, damit `web/package-lock.json` zu `web/package.json` passt.
 
 | Befehl | Bedeutung |
 | --- | --- |
-| `npm run ci` | `npm ci` in `web/` und `server/`, dann alle Checks + Audit (wie CI ohne Gitleaks) |
-| `npm run ci:quick` | Kein `npm ci` — nur Checks + Audit (schneller, wenn Abhaengigkeiten schon installiert sind) |
+| `npm run lint:ts` | ESLint für `web/`, `server/`, `shared/` (Root ausfuehren, nach `npm install` im Root) |
+| `npm run ci` | `npm ci` im Root, dann `web/` und `server/`, dann alle Checks + Audit (wie CI ohne Gitleaks) |
+| `npm run ci:quick` | Kein `npm ci` — nur Checks + Audit (schneller, wenn Abhaengigkeiten schon installiert sind); inkl. **`npm run lint:ts`**, **`npm run lint:css`** (Web) |
 | `npm run ci:all` | Wie `ci`, zusaetzlich **Gitleaks** (Binary muss installiert sein, z. B. [releases](https://github.com/zricethezav/gitleaks/releases)) |
 | `npm run ci:gitleaks` | Nur Secret-Scan mit Gitleaks |
 
-Ohne Root-Skripte: in `web/` nacheinander `npx tsc --noEmit`, `npm run test:coverage`, `npm run build`; in `server/` `npm run typecheck`; in beiden `npm audit --audit-level=high`.
+Ohne Root-Skripte: in `web/` nacheinander `npm run lint:ts`, `npx tsc --noEmit`, `npm run lint:css`, `npm run test:coverage`, `npm run build`; in `server/` `npm run typecheck`; in beiden `npm audit --audit-level=high`.
 
 ## Tests ausfuehren
 
