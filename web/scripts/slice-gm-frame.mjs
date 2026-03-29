@@ -1,9 +1,9 @@
 /**
- * Erzeugt /dsa/gm-frame-cap-top.png, gm-frame-repeat-y.png, gm-frame-cap-bottom.png
+ * Generates /dsa/gm-frame-cap-top.png, gm-frame-repeat-y.png, gm-frame-cap-bottom.png
  *
- * Leisten: bevorzugt media/image28.png (oben) + media/image26.png (unten), jeweils 800px breit.
- * Alternativ: Referenz-Screenshot media/gm-meister-frame.png (optional gm-meister-frame-slice.json),
- * oder Ausschnitte aus image29.png, sonst SVG-Platzhalter.
+ * Bars: prefers media/image28.png (top) + media/image26.png (bottom), each 800px wide.
+ * Alternative: reference screenshot media/gm-meister-frame.png (optional gm-meister-frame-slice.json),
+ * or crops from image29.png, otherwise SVG placeholders.
  */
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -14,16 +14,16 @@ const webRoot = join(__dirname, "..");
 const repoRoot = join(webRoot, "..");
 const outDir = join(webRoot, "public/dsa");
 
-/** Referenz-Screenshot des kompletten Meister-Kastens (Zierleisten mit Gem + Maske); erste vorhandene Datei gewinnt */
+/** Reference screenshot of the full GM box (ornament bars with gem + mask); first existing file wins */
 const SRC_FRAME_CANDIDATES = [
   "media/gm-meister-frame.png",
   "media/meisterinformationen-reference.png"
 ];
 const SLICE_RATIOS_PATH = join(repoRoot, "media/gm-meister-frame-slice.json");
-/** Scriptorium: eigenständige Zierleisten-Grafiken */
+/** Scriptorium: standalone ornament bar graphics */
 const SRC_CAP_TOP = join(repoRoot, "media/image28.png");
 const SRC_CAP_BOTTOM = join(repoRoot, "media/image26.png");
-/** Gleiche Datei wie `note-gm-meister-bg.png` — obere/untere Leisten optisch an den Mittelstreifen anbinden */
+/** Same file as `note-gm-meister-bg.png` — visually join top/bottom bars to the middle strip */
 const SRC_MEISTER_PANEL = join(repoRoot, "media/image29.png");
 const SRC_PARCHMENT = join(repoRoot, "media/image27.png");
 
@@ -43,7 +43,7 @@ function resolveSrcFramePath() {
   return null;
 }
 
-/** Anteil der Bildhöhe für obere/untere Zierleiste bei `gm-meister-frame*.png` (optional überschreibbar per JSON). */
+/** Fraction of image height for top/bottom ornament bars on `gm-meister-frame*.png` (optional override via JSON). */
 function readFullFrameSliceRatios() {
   const defaults = { topRatio: 0.13, bottomRatio: 0.15 };
   if (!existsSync(SLICE_RATIOS_PATH)) {
@@ -73,8 +73,8 @@ function deckleRightPath(w, h) {
 }
 
 /**
- * Fallback-Leisten: Pergament-Ton, leichte Textur, zackige Kanten (Anschluss ans Mittelfeld),
- * Gold-/Bronze-Zierleiste — nur wenn weder gm-meister-frame noch image29 vorliegen.
+ * Fallback bars: parchment tone, light texture, deckled edges (meet the middle field),
+ * gold/bronze ornament — only when neither gm-meister-frame nor image29 exist.
  */
 function placeholderCapSvg(height, variant, uid) {
   const noise = `<filter id="n${uid}" x="-5%" y="-5%" width="110%" height="110%">
@@ -146,7 +146,7 @@ async function writePlaceholderCaps(sharp) {
   console.log("slice-gm-frame: Platzhalter-Leisten (gm-frame-cap-*.png)");
 }
 
-/** Obere/untere Ausschnitte aus image29 — gleiche Grafik wie Mittel-Hintergrund, wirkt wie ein Stück. */
+/** Top/bottom crops from image29 — same graphic as middle background, reads as one piece. */
 async function sliceCapsFromMeisterPanel(sharp, absPath) {
   const buf = await sharp(absPath).ensureAlpha().png().toBuffer();
   const meta = await sharp(buf).metadata();
@@ -215,7 +215,7 @@ async function sliceFromFullFrame(sharp, absPath) {
   );
 }
 
-/** image28 = obere Leiste, image26 = untere Leiste (Scriptorium-Assets). */
+/** image28 = top bar, image26 = bottom bar (Scriptorium assets). */
 async function capsFromImage28And26(sharp) {
   if (!existsSync(SRC_CAP_TOP) || !existsSync(SRC_CAP_BOTTOM)) {
     return false;

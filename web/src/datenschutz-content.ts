@@ -1,6 +1,6 @@
 /**
- * Inhalt der Seite /datenschutz (statisches HTML, kein Nutzer-Input).
- * Hinweis: Kein Ersatz für individuelle Rechtsberatung.
+ * Content for `/datenschutz` (static HTML, no user input).
+ * Note: not a substitute for individual legal advice.
  */
 
 export const DATENSCHUTZ_BODY_HTML = `

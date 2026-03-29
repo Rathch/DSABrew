@@ -1,7 +1,7 @@
 /**
- * Scroll-Kopplung Editor ↔ Vorschau + schmaler Seitenstreifen:
- * Immer Maßstab und Streifen aus der Textarea (scrollHeight, \\page-Segmente, Zeilen wie Nummernspalte),
- * damit die Minimap auch bei sichtbarer Vorschau mit dem Markdown übereinstimmt.
+ * Scroll sync editor ↔ preview + narrow page strip:
+ * Always derive scale and stripes from the textarea (scrollHeight, \\page segments, lines like the gutter),
+ * so the minimap stays aligned with the markdown even when the preview is visible.
  */
 
 import { minimapSegmentLayout, pageSegmentsZeroBased } from "./editor-page-stripes";
@@ -28,7 +28,7 @@ function previewIsVisible(preview: HTMLElement): boolean {
   return getComputedStyle(preview).display !== "none";
 }
 
-/** Einmalige load-Listener für Vorschau-Bilder (scrollHeight ändert sich, #preview-Box oft nicht → kein ResizeObserver). */
+/** One-off load listeners for preview images (scrollHeight changes; #preview box often does not → no ResizeObserver). */
 function bindPreviewImageLoads(preview: HTMLElement, onLayout: () => void): void {
   preview.querySelectorAll("img").forEach((img) => {
     if (img.complete) {
@@ -73,7 +73,6 @@ export function setupEditorPreviewScrollSync(options: {
 
   let ignore = false;
 
-  /** Minimap-Scroll wie Zeilennummern: gleicher scrollTop wie Textarea; Streifen in Dokument-Pixeln. */
   function syncMinimapScrollFromTextarea(): void {
     if (!pagesContainer || gutter.hidden) {
       return;
@@ -111,7 +110,7 @@ export function setupEditorPreviewScrollSync(options: {
     const pageEls = preview.querySelectorAll<HTMLElement>(".a4-page");
     const domOk = previewIsVisible(preview) && pageEls.length > 0;
 
-    /* Eine Seite ohne Vorschau: Streifen ausblenden (wie zuvor) */
+    /* Single page without preview: hide stripes (as before) */
     if (!multiSource && !domOk) {
       gutter.hidden = true;
       return;

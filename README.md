@@ -41,7 +41,7 @@ DSABrew ist ein Web-Tool, das Markdown in ein mehrseitiges A4-Layout rendert und
 
 Voraussetzungen:
 
-- Node.js **18 oder neuer** (siehe `web/package.json` → `engines`)
+- Node.js **20 oder neuer** (siehe `web/package.json` → `engines`; optional `nvm use` mit `.nvmrc`)
 - npm
 
 **Web + API** (empfohlen): Zwei Terminals — (1) `cd server && npm install && npm run dev` (Port 3001), (2) `cd web && npm install && npm run dev` (Vite, typisch 5173). Im Browser `http://localhost:5173/` — sofortige Anlage eines Dokuments und Weiterleitung zur Bearbeiten-URL; **„+ Neues Dokument“** oeffnet `/new` in einem **neuen Tab**. Details: `docs/hosting.md`, `specs/.../quickstart.md`.
@@ -52,16 +52,31 @@ Nur **Web** ohne API: `cd web`, `npm install`, `npm run dev` — ohne laufende A
 
 Optional: Banner manuell neu erzeugen mit `npm run prepare-assets` im Ordner `web/`.
 
-### Hinweis: Vite-Version und Node.js
+### Hinweis: Vite und Node.js
 
-Das Projekt nutzt **Vite 5**, damit der Dev-Server auch unter **Node 18** laeuft. Wenn du frueher **Vite 7** installiert hattest, kann es zu Fehlern wie `crypto.hash is not a function` kommen (Vite 7 verlangt **Node 20.19+ oder 22.12+**).
+Das Web-Paket nutzt **Vite 6** (siehe `web/package.json`). **Node 20+** ist Voraussetzung (CI und `engines`).
 
 Nach einem Wechsel der Vite-Major-Version am besten neu installieren:
 
 - `rm -rf node_modules package-lock.json`
 - `npm install`
 
-**Alternative:** Node.js auf **20.19+** (oder **22.12+**) aktualisieren und dann ggf. neuere Tooling-Versionen verwenden.
+Bei sehr neuen Vite-Versionen (z. B. 7+) koennen zusaetzliche Node-Mindestversionen gelten (z. B. `crypto.hash` ab **Node 20.19+**).
+
+## CI lokal (vor Push)
+
+Entspricht im Wesentlichen `.github/workflows/ci.yml` (Web: Typecheck, Tests mit Coverage, Build; Server: Typecheck; `npm audit` fuer beide Pakete).
+
+Im **Repository-Root** (einmal `npm install` im Root ausfuehren, erzeugt nur die Root-`package-lock.json`):
+
+| Befehl | Bedeutung |
+| --- | --- |
+| `npm run ci` | `npm ci` in `web/` und `server/`, dann alle Checks + Audit (wie CI ohne Gitleaks) |
+| `npm run ci:quick` | Kein `npm ci` — nur Checks + Audit (schneller, wenn Abhaengigkeiten schon installiert sind) |
+| `npm run ci:all` | Wie `ci`, zusaetzlich **Gitleaks** (Binary muss installiert sein, z. B. [releases](https://github.com/zricethezav/gitleaks/releases)) |
+| `npm run ci:gitleaks` | Nur Secret-Scan mit Gitleaks |
+
+Ohne Root-Skripte: in `web/` nacheinander `npx tsc --noEmit`, `npm run test:coverage`, `npm run build`; in `server/` `npm run typecheck`; in beiden `npm audit --audit-level=high`.
 
 ## Tests ausfuehren
 

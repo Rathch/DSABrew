@@ -30,7 +30,7 @@ export default defineConfig({
       reporter: ["text", "json-summary", "lcov"],
       include: ["src/**/*.ts"],
       exclude: ["**/*.d.ts"]
-      // Mindest-Schwellen bei Bedarf ergänzen, z. B. thresholds: { lines: 50 }
+      // Add minimum thresholds as needed, e.g. thresholds: { lines: 50 }
     }
   }
 });

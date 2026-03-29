@@ -1,13 +1,7 @@
-/**
- * Toolbar für den Markdown-Editor: fügt Syntax ein bzw. markiert Auswahl — vergleichbar mit CKEditor/TinyMCE,
- * aber weiterhin reines Markdown für DSABrew.
- */
-
 import easierIconUrl from "@media/image19.png?url";
 import harderIconUrl from "@media/image20.png?url";
 import npcPortraitDummyUrl from "@media/npc-portrait-dummy.svg?url";
 
-/** CSS-Suffix für `.md-toolbar-preview--…` oder `image` für bundled Asset. */
 type ToolbarPreviewKind =
   | "hr"
   | "page-2col"
@@ -58,7 +52,6 @@ function insertAtCursor(textarea: HTMLTextAreaElement, text: string): void {
   dispatchInput(textarea);
 }
 
-/** Zeilen, die die aktuelle Auswahl (oder Cursorzeile) schneiden. */
 function getLineRange(value: string, selStart: number, selEnd: number): { start: number; end: number } {
   let lineStart = value.lastIndexOf("\n", selStart - 1) + 1;
   let lineEnd = value.indexOf("\n", Math.max(selEnd - 1, 0));
@@ -194,7 +187,6 @@ const ACTIONS: {
   label: string;
   title: string;
   run: (ta: HTMLTextAreaElement) => void;
-  /** Kleine Vorschau links im Button (Makros / Layout). */
   preview?: ToolbarPreviewKind;
 }[] = [
   {
@@ -459,9 +451,6 @@ function appendPreviewVisual(preview: ToolbarPreviewKind, host: HTMLElement): vo
   }
 }
 
-/**
- * Baut die Toolbar unter `container` und verdrahtet `textarea`.
- */
 export function attachMarkdownToolbar(
   container: HTMLElement,
   textarea: HTMLTextAreaElement

@@ -1,4 +1,4 @@
-/** Siehe `specs/002-modern-ui-darkmode/contracts/ui-shell.md` */
+/** See `specs/002-modern-ui-darkmode/contracts/ui-shell.md` */
 export const LS_THEME_KEY = "dsabrew-theme";
 
 export type ThemePreference = "light" | "dark" | "system";
@@ -50,7 +50,6 @@ function onSystemThemeChange(): void {
 
 let systemMql: MediaQueryList | null = null;
 
-/** Einmal beim App-Start; reagiert nur, wenn Nutzer „System“ gewählt hat. */
 export function initThemeMediaListener(): void {
   if (systemMql) {
     return;
@@ -73,7 +72,7 @@ export function syncThemeToggleButtons(): void {
       (mode === "light" && pref === "light") || (mode === "dark" && pref === "dark");
     btn.setAttribute("aria-pressed", on ? "true" : "false");
 
-    /* Nur die jeweils andere Option: bei dunkler Darstellung nur „Hell“, bei heller nur „Dunkel“. */
+    /* Only the opposite option: in dark mode only “Light”, in light mode only “Dark”. */
     if (mode === "light") {
       btn.hidden = !effectiveDark;
     } else {
@@ -91,7 +90,7 @@ const ICON_SUN = `<svg class="theme-segmented__icon" width="16" height="16" view
 
 const ICON_MOON = `<svg class="theme-segmented__icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.25 8.25 0 009.25 12c0 2.9.496 5.564 1.328 7.531a.75.75 0 01-.162.819l-.07.057a.75.75 0 01-.9 0l-.044-.036A8.25 8.25 0 011.5 12a8.25 8.25 0 016.584-8.123.75.75 0 01.822.162l.004.003.004.003z" clip-rule="evenodd"/></svg>`;
 
-/** Zwei Modi + implizites „System“ (OS): kein eigener Button; erneuter Klick auf Hell/Dunkel schaltet zurück auf System. */
+/** Two modes + implicit “System” (OS): no dedicated button; clicking Light/Dark again returns to system. */
 export function themeControlClusterHtml(): string {
   return `
     <div class="theme-segmented" role="radiogroup" aria-label="Farbschema: Hell, Dunkel oder System (Standard)">

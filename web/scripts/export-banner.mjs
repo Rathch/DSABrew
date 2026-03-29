@@ -1,6 +1,6 @@
 /**
- * Erzeugt `web/public/dsa/image16.png` aus `media/image16.tiff` (Scriptorium-Banner im Impressum).
- * Bei fehlendem TIFF oder sharp-Fehler: 1×1-Platzhalter-PNG.
+ * Generates `web/public/dsa/image16.png` from `media/image16.tiff` (Scriptorium banner in impressum).
+ * On missing TIFF or sharp error: 1×1 placeholder PNG.
  */
 import { mkdirSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -13,7 +13,7 @@ const tiffPath = join(repoRoot, "media/image16.tiff");
 const publicDir = join(webRoot, "public/dsa");
 const outPublic = join(publicDir, "image16.png");
 
-/** 1×1 transparentes PNG (Fallback). */
+/** 1×1 transparent PNG (fallback). */
 const PLACEHOLDER_PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
   "base64"

@@ -1,10 +1,10 @@
 /**
- * Legt die Referenz-Grafik für die Meister-Zierleisten ab:
- * Kopiert eine PNG (Screenshot des Ziel-Kastens) nach media/gm-meister-frame.png
+ * Installs the reference graphic for GM ornament bars:
+ * copies a PNG (screenshot of the target box) to media/gm-meister-frame.png
  *
- * Usage: node scripts/import-gm-meister-frame.mjs <quelle.png> [--prepare]
- *    oder: MEISTER_FRAME_SRC=/pfad/zur.png node scripts/import-gm-meister-frame.mjs
- * Mit --prepare: slice-gm-frame.mjs direkt danach ausführen (sharp nötig).
+ * Usage: node scripts/import-gm-meister-frame.mjs <source.png> [--prepare]
+ *    or: MEISTER_FRAME_SRC=/path/to.png node scripts/import-gm-meister-frame.mjs
+ * With --prepare: run slice-gm-frame.mjs right after (sharp required).
  */
 import { copyFileSync, existsSync, mkdirSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";

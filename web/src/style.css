@@ -1,4 +1,4 @@
-/* App-Chrome & Theme: Vanilla CSS, Dark Mode über html.dark (siehe web/src/theme.ts) */
+/* App chrome & theme: vanilla CSS, dark mode via html.dark (see web/src/theme.ts) */
 
 html,
 body,
@@ -39,7 +39,7 @@ html.dark #app {
   background-image: linear-gradient(165deg, #18181b 0%, #09090b 42%, #27272a 100%);
 }
 
-/* —— Theme-Umschalter —— */
+/* —— Theme toggle —— */
 .theme-segmented {
   display: inline-flex;
   flex-direction: row;
@@ -95,7 +95,7 @@ html.dark .theme-segmented {
     box-shadow 0.15s ease;
 }
 
-/* display:inline-flex überschreibt sonst das Standard-[hidden]-Verhalten (inkl. Dark-Varianten) */
+/* display:inline-flex otherwise overrides default [hidden] behavior (including dark variants) */
 .theme-segmented__btn[hidden],
 html.dark .theme-segmented__btn[hidden] {
   display: none !important;
@@ -134,7 +134,7 @@ html.dark .theme-segmented__btn[aria-pressed="true"] {
     0 0 0 1px rgb(82 82 91 / 0.8);
 }
 
-/* —— Toolbar-Buttons (Hosted) —— */
+/* —— Toolbar buttons (hosted) —— */
 .ui-toolbar-btn {
   display: inline-flex;
   align-items: center;
@@ -250,7 +250,7 @@ html.dark .ui-toolbar-btn--cta:hover {
   flex-shrink: 0;
 }
 
-/* —— Hosted-Dokument-Navigation —— */
+/* —— Hosted document navigation —— */
 .hosted-doc-nav {
   display: grid;
   width: 100%;
@@ -422,7 +422,7 @@ html.dark .hosted-doc-nav .editor__sync-label input[type="checkbox"] {
   }
 }
 
-/* —— Schmale Ansicht: Layout / MD / Vorschau —— */
+/* —— Narrow view: layout / MD / preview —— */
 .ui-segment-btn {
   margin: 0;
   padding: 0.375rem 0.75rem;
@@ -496,7 +496,7 @@ html.dark .hosted-view-radiogroup .ui-segment-btn {
   border-right-color: #52525b;
 }
 
-/* —— Hosted Layout-Hintergrund & Banner —— */
+/* —— Hosted layout background & banner —— */
 .layout--hosted-bg {
   background-image: linear-gradient(to bottom right, rgb(241 245 249 / 0.9) 0%, rgb(250 250 250 / 0.8) 50%, rgb(245 245 244 / 0.9) 100%);
 }
@@ -638,7 +638,7 @@ html.dark .hosted-doc-footer {
   border-top-color: #52525b;
 }
 
-/* —— Rechtstexte, Links, Fehler —— */
+/* —— Legal copy, links, errors —— */
 .chrome-link {
   color: #4f46e5;
   text-decoration: underline;
@@ -825,7 +825,7 @@ html.dark .legal-h2 {
   margin-top: 0.5rem;
 }
 
-/* Fußzeile: Linkleiste + Fan-Zeile in einem Block */
+/* Footer: link row + fan line in one block */
 .site-chrome-footer {
   box-sizing: border-box;
   width: 100%;
@@ -870,7 +870,7 @@ html.dark .chrome-footer-nav--bordered-strong {
   font-size: 0.875rem;
 }
 
-/* Gleiche Spaltenbreiten über die volle Zeilenbreite; umbrechen bei wenig Platz */
+/* Equal column widths across the row; wrap when space is tight */
 .chrome-footer-nav li {
   flex: 1 1 0;
   min-width: min(100%, 4.75rem);
@@ -882,7 +882,7 @@ html.dark .chrome-footer-nav--bordered-strong {
   max-width: 100%;
 }
 
-/* —— Fan-Produkt / Fußzeile (eine Zeile: Logo | Disclaimer | Homebrew) —— */
+/* —— Fan product / footer (one row: logo | disclaimer | homebrew) —— */
 .fan-notice {
   margin-top: 0.85rem;
   max-width: 100%;
@@ -957,7 +957,7 @@ html.dark .fan-notice__credit {
   }
 }
 
-/* —— Privacy-Strip (#dsabrew-privacy-strip) —— */
+/* —— Privacy strip (#dsabrew-privacy-strip) —— */
 .privacy-strip {
   position: fixed;
   left: 0;
@@ -1038,9 +1038,9 @@ html.dark .privacy-strip {
 }
 
 :root {
-  /* Zwei-Spalten-Layout: Eingabe min. 400px, Vorschau füllt den Rest und skaliert A4 proportional */
+  /* Two-column layout: input min 400px, preview fills the rest and scales A4 proportionally */
   --layout-editor-min: 400px;
-  /* Scriptorium-Vorlage: siehe specs/001-dsa-brew-renderer/contracts/typography.md */
+  /* Scriptorium template: see specs/001-dsa-brew-renderer/contracts/typography.md */
   --font-andalus: Andalus, "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
   --font-gentium: "Gentium Book Plus", "Gentium Book Basic", Gentium, "Noto Serif", serif;
   --fs-kapitel: 23.5pt;
@@ -1049,12 +1049,12 @@ html.dark .privacy-strip {
   --fs-unterabschnitt: 10pt;
   --fs-text: 10pt;
   --einband-title: #c8ccd4;
-  /* Abstand letzte Textzeile → Fußleiste (.book-footer-strip) */
+  /* Gap from last text line to footer strip (.book-footer-strip) */
   --page-footer-gap-above-strip: 5mm;
   --book-footer-strip-clearance: 5mm;
 }
 
-/* Öffentliche Seiten (Impressum, Datenschutz), Fehler-/404-Ansichten: Seite darf mit dem Inhalt scrollen */
+/* Public pages (impressum, privacy), error/404 views: page may scroll with content */
 body.dsabrew-body--scrollable {
   overflow-y: auto;
   overflow-x: hidden;
@@ -1066,7 +1066,7 @@ body.dsabrew-body--scrollable #app {
   height: auto;
 }
 
-/* Nur bei scrollbaren Seiten: Platz, damit der letzte Inhalt nicht unter dem Hinweis liegt */
+/* Only on scrollable pages: space so the last content is not hidden under the notice */
 body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   padding-bottom: 4.5rem;
   box-sizing: border-box;
@@ -1084,7 +1084,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 
 .layout {
   display: grid;
-  /* Spalte 1: mindestens 400px, schrumpft zuerst bis zur Untergrenze; Spalte 2: nimmt übrigen Platz, Inhalt skaliert */
+  /* Column 1: at least 400px, shrinks first to the floor; column 2: takes remaining space, content scales */
   grid-template-columns: minmax(var(--layout-editor-min), 1fr) minmax(0, 1fr);
   gap: 12px;
   padding: 12px;
@@ -1115,7 +1115,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   font-size: 1.25rem;
 }
 
-/* Nur-Lese-URL: linke Spalte (Markdown) klar als gesperrt / nicht editierbar */
+/* View-only URL: left column (Markdown) clearly locked / not editable */
 .editor--readonly {
   padding: 10px 12px 12px 14px;
   border-radius: 0;
@@ -1223,7 +1223,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   background: #ddd;
 }
 
-/* Makros / Layout: Mini-Vorschau + Beschriftung */
+/* Macros / layout: mini preview + label */
 .md-toolbar-btn--with-preview {
   display: inline-flex;
   flex-direction: row;
@@ -1324,7 +1324,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   letter-spacing: 0.02em;
 }
 
-/* Vier Rauten wie im Makro (rot / rot / grün / leer) */
+/* Four diamonds as in the macro (red / red / green / empty) */
 .md-toolbar-preview--difficulty {
   display: flex;
   align-items: center;
@@ -1342,7 +1342,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.1);
 }
 
-/* NSC: gleiches Dummy-Porträt wie im Kasten (SVG), rund wie im Spiel */
+/* NPC: same dummy portrait as in the box (SVG), round as in play */
 .md-toolbar-preview--npc {
   padding: 1px;
   background: #e8e4de;
@@ -1354,7 +1354,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   object-position: center 35%;
 }
 
-/* Mini-Gitter 2×2 */
+/* Mini grid 2×2 */
 .md-toolbar-preview--table {
   background-color: #faf8f5;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
@@ -1397,12 +1397,12 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   border-radius: 0;
 }
 
-/* Seiten-Streifen nur im Quelltext (Hintergrundbild per JS); Grundfarbe weglassen */
+/* Page stripes only in source (background image via JS); omit base fill color */
 .editor textarea.editor-textarea--page-stripes {
   background-color: transparent;
 }
 
-/* Zwei Spalten: Scroll-Kopplung + Seitenstreifen (Vorschau-Seiten, wechselnde Farben + Rahmen = sichtbarer Ausschnitt) */
+/* Two columns: scroll sync + page stripes (preview pages, alternating colors + frame = visible slice) */
 .editor__sync-bar {
   flex: 0 0 auto;
   display: flex;
@@ -1482,7 +1482,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   overflow: hidden;
 }
 
-/* Wie Zeilennummern: scrollTop der Textarea spiegeln; kein eigenes Mausrad-Scrollen */
+/* Like line numbers: mirror textarea scrollTop; no separate wheel scrolling */
 .editor__viewport-gutter-inner {
   position: relative;
   height: 100%;
@@ -1518,7 +1518,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   box-sizing: border-box;
 }
 
-/* Abwechselnd Blau / Grün (logische Zeilen bis \\page) */
+/* Alternating blue / green (logical lines until \\page) */
 .editor__viewport-gutter-page--a {
   background: rgb(59 130 246 / 0.38);
 }
@@ -1570,7 +1570,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   box-sizing: border-box;
 }
 
-/* App-Chrome Dark Mode: Editor-Leiste, Textarea, Vorschau-Hintergrund — nicht .a4-page / Druck */
+/* App chrome dark mode: editor chrome, textarea, preview background — not .a4-page / print */
 .dark .md-toolbar {
   background: rgb(39 39 42 / 0.92);
   border-color: rgb(63 63 70);
@@ -1658,15 +1658,15 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 }
 
 /*
- * Vorschau: A4 bleibt in CSS fest 210mm × min. 297mm — nur die Darstellung wird proportional verkleinert (zoom),
- * damit Typometrie und Layout wie auf echtem A4 bleiben. (Druck: zoom in @media print zurücksetzen.)
+ * Preview: A4 stays fixed in CSS at 210mm × min 297mm — only the display is scaled down (zoom),
+ * so typography and layout match real A4. (Print: reset zoom in @media print.)
  */
 .preview .a4-page {
-  /* Skaliert die gerenderte A4-Seite ins Spaltenmaß; mm-Maße im Box-Tree bleiben A4 (s. Druck). */
+  /* Scales the rendered A4 page into the column; mm sizes in the box tree stay A4 (see print). */
   zoom: min(1, calc(100cqi / 210mm));
 }
 
-/* TOC-Anker / Hash-Sprung: Abstand zum oberen Rand der scrollbaren Vorschau */
+/* TOC anchor / hash jump: offset from the top of the scrollable preview */
 .preview .page-body :is(h1, h2, h3, h4, h5, h6)[id] {
   scroll-margin-top: 10px;
 }
@@ -1677,17 +1677,17 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   background: #fff;
   box-sizing: border-box;
   margin: 0 auto;
-  /* Kein Seitenpadding hier — sonst liegen ::before/::after nur in der Innenbox; Rand bleibt weiß */
+  /* No page padding here — otherwise ::before/::after sit only in the inner box; margin stays white */
   padding: 0;
   position: relative;
   overflow: hidden;
 }
 
-/* FR-013a: lokale Assets unter /dsa/ — Vite public/
- * Inhalt (even/odd/final): cover = Vollflaeche ohne Verzerrung.
- * Einband: image13 = oberer Banner, image14 = unterer Rahmen (breit, Mitte transparent).
- * Nicht als zwei Vollflaechen stacken — sonst wirkt die Grafik "riesig" und falsch beschnitten. */
-/* Dunkler Einband (Standard, \\map{einband} / \\map{einband dunkel}) */
+/* FR-013a: local assets under /dsa/ — Vite public/
+ * Content (even/odd/final): cover = full bleed without distortion.
+ * Cover: image13 = top banner, image14 = bottom frame (wide, center transparent).
+ * Do not stack as two full-bleed layers — otherwise the art looks huge and wrongly cropped. */
+/* Dark cover (default, \\map{einband} / \\map{einband dunkel}) */
 .a4-page.page-bg-einband:not(.page-einband-hell)::before {
   content: "";
   position: absolute;
@@ -1701,14 +1701,14 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   background-repeat: no-repeat, no-repeat;
 }
 
-/* Heller Einband (\\map{einband hell}): Pergament bis zum Seitenrand (100%/100%, kein cover-Letterboxing) */
+/* Light cover (\\map{einband hell}): parchment to the page edge (100%/100%, no cover letterboxing) */
 .a4-page.page-bg-einband.page-einband-hell::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  /* Ton an note-read-aloud-Pergament angeglichen — füllt transparente/sehr helle Bildränder */
+  /* Tone matched to read-aloud parchment — fills transparent/very light image edges */
   background-color: #f7f5f2;
   background-image:
     url(/dsa/image13.png),
@@ -1741,7 +1741,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   background-repeat: no-repeat;
 }
 
-/* Final / Rückseite: wie helles Einband-Pergament — Grafik bis zum Seitenrand (100%/100%, kein cover-Letterboxing) */
+/* Final / back cover: like light cover parchment — art to the page edge (100%/100%, no cover letterboxing) */
 .a4-page.page-bg-final::before {
   content: "";
   position: absolute;
@@ -1755,7 +1755,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   background-repeat: no-repeat;
 }
 
-/* \map{final}: Karte/Ornament in image32 rechts; Fließtext nur links unter dem Logo-Bereich (einspaltig, rechter Rand frei) */
+/* \map{final}: map/ornament in image32 on the right; body text only left under the logo (single column, right margin clear) */
 .a4-page.page-bg-final .page-body {
   column-count: 1;
   padding: 46mm 46% 18mm 13mm;
@@ -1766,12 +1766,12 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   margin-top: 0;
 }
 
-/* Impressum-Seite: gleicher Wechsel wie Inhalt (ungerade Seite → image12, gerade → image17); Inhalt einspaltig */
+/* Impressum page: same alternation as content (odd page → image12, even → image17); single-column content */
 .page-body:has(.impressum-sheet) {
   column-count: 1;
 }
 
-/* Leichtes Rauten-Overlay (kein externes Asset nötig) */
+/* Light diamond overlay (no external asset needed) */
 .a4-page.page-rauten-default::after,
 .a4-page.page-rauten-dense::after {
   content: "";
@@ -1800,13 +1800,13 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   z-index: 1;
 }
 
-/* Zieldokument: Fließtext zweispaltig; kein column-span — alles (Überschriften, hr, Kästen) bleibt in einer Spalte */
+/* Target document: body text in two columns; no column-span — everything (headings, hr, boxes) stays in one column */
 .page-body {
   box-sizing: border-box;
   padding: 20mm 15mm 20mm;
   column-count: 2;
   column-gap: 5mm;
-  /* balance: große Kästen (z. B. {{npcBlock}}) wandern oft in Spalte 2, Überschrift bleibt links — unerwünscht */
+  /* balance: large boxes (e.g. {{npcBlock}}) often land in column 2 while the heading stays left — unwanted */
   column-fill: auto;
   orphans: 2;
   widows: 2;
@@ -1816,12 +1816,12 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   color: #1a1a1a;
 }
 
-/* Nach \\pageSingle / {{pageSingle}}: eine Spalte, volle Inhaltsbreite (Tabellen, Kästen, Überschriften) */
+/* After \\pageSingle / {{pageSingle}}: one column, full content width (tables, boxes, headings) */
 .a4-page.a4-page--single-column .page-body {
   column-count: 1;
 }
 
-/* NSC-Kasten auf einspaltiger Seite: nicht über volle Breite — entspricht etwa einer Spalte bei Zweispaltigkeit */
+/* NPC box on single-column page: not full width — roughly one column of the two-column layout */
 .a4-page.a4-page--single-column .page-body .dsa-npc-wrap {
   max-width: min(100%, calc(50% - 2.5mm));
 }
@@ -1866,7 +1866,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   margin: 0.45em 0 0.2em;
 }
 
-/* Ungeordnete Listen: media/image1.png — URL per main.ts (Vite-Bundle); Fallback prepare-assets → public/dsa/list-bullet.png */
+/* Unordered lists: media/image1.png — URL from main.ts (Vite bundle); fallback prepare-assets → public/dsa/list-bullet.png */
 .page-body ul {
   list-style: none;
   margin: 0.4em 0;
@@ -1876,7 +1876,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 .page-body ul > li {
   position: relative;
   margin: 0.2em 0;
-  /* Platz für breites Icon + ~2–3 Zeichen Abstand zum Text */
+  /* Room for wide icon + ~2–3 characters gap to text */
   padding-left: 1.75em;
 }
 
@@ -1884,7 +1884,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   content: "";
   position: absolute;
   left: 0;
-  /* Mitte des Icons an der ersten Textzeile */
+  /* Center of icon aligned to the first text line */
   top: 0.38em;
   top: calc(0.5lh - 0.34em);
   width: 1.12em;
@@ -1910,9 +1910,9 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   height: 0.6em;
 }
 
-/* `---` / Trennlinien-Button: <hr> als Scriptorium-Grafik (media/image31 → note-gm-meister-trennlinie.png).
- * Volle Spaltenbreite: background-size 100% auto (nicht contain — sonst winzig zentriert).
- * aspect-ratio = Bildbreite/Bildhöhe (PNG image31: 800×48); bei anderem Export anpassen. */
+/* `---` / divider button: <hr> as Scriptorium graphic (media/image31 → note-gm-meister-trennlinie.png).
+ * Full column width: background-size 100% auto (not contain — otherwise tiny centered).
+ * aspect-ratio = image width/height (PNG image31: 800×48); adjust if export changes. */
 .page-body hr {
   display: block;
   border: none;
@@ -1928,7 +1928,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   overflow: hidden;
 }
 
-/* Markdown-Tabellen: Scriptorium / Speisenliste — wie Fließtext/Kästen nur eine Spalte (kein column-span) */
+/* Markdown tables: Scriptorium / menu list — like body/boxes, single column only (no column-span) */
 .page-body table.dsa-md-table {
   break-inside: avoid;
   page-break-inside: avoid;
@@ -1969,7 +1969,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   width: 48%;
 }
 
-/* Abschnittszeile: | **Name** | | — volle Breite, grauer Balken */
+/* Section row: | **Name** | | — full width, gray bar */
 .page-body table.dsa-md-table tbody tr:has(> td:nth-child(2):empty):has(> td:nth-child(1) > strong:only-child),
 .page-body table.dsa-md-table tbody tr:has(> td:nth-child(2):empty):has(> td:nth-child(1) > p:only-child > strong:only-child) {
   background-color: #e0e0e0;
@@ -1990,7 +1990,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   border-bottom-color: transparent;
 }
 
-/* Vorlese-/Meister-Notizen + NSC: eine Spalte der Zweispaltigkeit, nicht volle Seitenbreite */
+/* Read-aloud / GM notes + NPC: one column of the two-column layout, not full page width */
 .page-body .dsa-note-wrap,
 .page-body .dsa-npc-wrap,
 .page-body .dsa-diff-wrap {
@@ -1998,7 +1998,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   page-break-inside: avoid;
 }
 
-/* Überschrift + NSC-Kasten zusammenhalten: Kasten direkt unter H1/H2 in derselben Spalte */
+/* Keep heading + NPC box together: box directly under H1/H2 in the same column */
 .page-body h1:has(+ .dsa-npc-wrap),
 .page-body h2:has(+ .dsa-npc-wrap) {
   break-after: avoid;
@@ -2011,7 +2011,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   page-break-before: avoid;
 }
 
-/* {{easier | …}} / {{harder | …}}: Symbol links (~2 Zeilen hoch), Text eingerückt */
+/* {{easier | …}} / {{harder | …}}: icon on the left (~2 lines tall), text indented */
 .page-body .dsa-diff {
   display: flex;
   flex-direction: row;
@@ -2045,7 +2045,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   margin-bottom: 0;
 }
 
-/* {{ chess | figur }} — Inline-Symbol, Höhe an Schriftgröße (em) */
+/* {{ chess | figur }} — inline symbol, height tied to font size (em) */
 .page-body .dsa-chess {
   display: inline-block;
   vertical-align: -0.18em;
@@ -2071,7 +2071,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   color: #a00;
 }
 
-/* {{ difficulty | rot n }} / {{ difficulty | Label | grün n }} — eine Zeile über volle Spaltenbreite (table: zuverlässig in Spaltenlayout + innerhalb <p>) */
+/* {{ difficulty | rot n }} / {{ difficulty | Label | grün n }} — one row full column width (table: reliable in columns + inside <p>) */
 .page-body .dsa-difficulty-rating-line {
   display: table;
   width: 100%;
@@ -2121,7 +2121,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   flex-shrink: 0;
 }
 
-/* \\pageSingle: Rauten-Makro nicht über Spaltenbreite nach rechts ziehen — Label + Symbole gemeinsam zentriert */
+/* \\pageSingle: do not stretch diamond macro past column width — label + symbols centered together */
 .a4-page.a4-page--single-column .page-body .dsa-difficulty-rating-line {
   display: flex;
   flex-direction: row;
@@ -2148,12 +2148,12 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   margin-top: 1em;
 }
 
-/* Einband: einspaltig — Standard ist column-count:2; sonst wandert der Fließtext in die rechte Spalte */
+/* Cover: single column — default is column-count:2; otherwise body text flows into the right column */
 .a4-page.page-bg-einband .page-body {
   column-count: 1;
 }
 
-/* Einband dunkel: Titel silbrig; Fließtext hell (Komplement zum Hintergrund) */
+/* Dark cover: title silvery; body text light (complement to background) */
 .a4-page.page-bg-einband:not(.page-einband-hell) .page-body {
   color: rgba(245, 242, 236, 0.95);
 }
@@ -2175,12 +2175,12 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   margin-bottom: 0.4em;
 }
 
-/* Fließtext unter der Einband-Überschrift (Kapitel) mittig; ab erster Inhalts-Überschrift wieder linksbündig */
+/* Body text under cover heading (chapter) centered; from first content heading left-aligned again */
 .a4-page.page-bg-einband:not(.page-einband-hell) .page-body > h1:first-of-type ~ p {
   text-align: center;
 }
 
-/* Untertitel direkt unter dem Einband-H1 (z. B. „EINBAND (Demo)“ unter Projekttitel) */
+/* Subtitle directly under cover H1 (e.g. “EINBAND (Demo)” under project title) */
 .a4-page.page-bg-einband:not(.page-einband-hell) .page-body > h1:first-of-type + h2 {
   font-family: var(--font-andalus);
   font-size: var(--fs-unterkapitel);
@@ -2213,7 +2213,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   margin-bottom: 0.4em;
 }
 
-/* Einband hell: dunkle Schrift, Titel mit leichtem Aufhellen */
+/* Light cover: dark type, title with slight brightening */
 .a4-page.page-bg-einband.page-einband-hell .page-body {
   color: #1a1410;
 }
@@ -2269,7 +2269,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   margin-bottom: 0.4em;
 }
 
-/* Nur Einband (index 0): kleine Ecke. Alle anderen Seiten: .book-footer-strip — Fallback unten absichern. */
+/* Cover only (index 0): small corner. All other pages: .book-footer-strip — fallback secured at bottom. */
 .page-number {
   position: absolute;
   right: 12mm;
@@ -2309,8 +2309,8 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   left: auto;
 }
 
-/* Scriptorium-artige Fußzeile: Laufender Titel + Seitenzahl (nach Impressum) */
-/* Flex: .page-body streckt auf Seitenhöhe (Fußleiste ist position:absolute). */
+/* Scriptorium-style footer strip: running title + page number (after impressum) */
+/* Flex: .page-body stretches to page height (footer strip is position:absolute). */
 .a4-page.a4-page--with-book-footer {
   display: flex;
   flex-direction: column;
@@ -2329,9 +2329,9 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 }
 
 /*
- * Fußnoten liegen sonst oft nur in Spalte 2 — column-fill:balance gleicht die Spaltenhöhen an
- * und erzeugt eine große Leerfläche unter der kürzeren Spalte. column-span:all setzt den Block
- * unter den Zweispalter (volle Breite), der Abstand zur Fußzeile kommt fast nur noch aus padding-bottom.
+ * Footnotes would otherwise sit mostly in column 2 — column-fill:balance evens column heights
+ * and creates a large gap under the shorter column. column-span:all places the block
+ * below the two-column area (full width); spacing to the footer strip comes almost only from padding-bottom.
  */
 .a4-page--with-book-footer .page-body footer.footnotes {
   column-span: all;
@@ -2340,7 +2340,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 }
 
 .book-footer-strip {
-  /* Flex: Zahl und Titel — keine translateX, damit nichts überlappt. Gerade/ungerade: Modifikatoren unten. */
+  /* Flex: number and title — no translateX so nothing overlaps. Even/odd: modifiers below. */
   --footer-num-nudge-y: 0.35mm;
 
   position: absolute;
@@ -2359,7 +2359,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-/* Gerade Seitenzahl: Nummer links (Außen), Titel rechts daneben — wie bisher */
+/* Even page number: number left (outside), title to its right — as before */
 .book-footer-strip--even {
   flex-direction: row;
   justify-content: flex-start;
@@ -2367,7 +2367,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   padding: 3mm 12mm 2.5mm 15.5mm;
 }
 
-/* Ungerade Seitenzahl: gespiegelt — Nummer rechts (Außen), Titel links davon */
+/* Odd page number: mirrored — number right (outside), title to its left */
 .book-footer-strip--odd {
   flex-direction: row-reverse;
   justify-content: flex-start;
@@ -2402,7 +2402,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   display: none;
 }
 
-/* Weiße große Ziffern im dunklen Feld der Hintergrundgrafik (links neben dem Fließtext) */
+/* Large white numerals in the dark area of the background art (left of body text) */
 .book-footer-num {
   flex: 0 0 auto;
   margin: 0;
@@ -2455,7 +2455,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   font-size: var(--fs-text);
 }
 
-/* {{tocDepthH3}} — Inhaltsverzeichnis mit Punktlinie und rechter Seitenzahl (eine Spalte) */
+/* {{tocDepthH3}} — table of contents with dot leader and page number on the right (one column) */
 .page-body .toc {
   box-sizing: border-box;
   width: 100%;
@@ -2513,7 +2513,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   text-decoration: underline;
 }
 
-/* {{abschnitt N | …}} — Sprung zu nummerierter H2 */
+/* {{abschnitt N | …}} — jump to numbered H2 */
 .page-body a.dsa-abschnitt-ref {
   text-decoration: underline;
   text-underline-offset: 2px;
@@ -2594,7 +2594,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   font-size: 0.85em;
 }
 
-/* Makros {{readAloudNote}} / {{gmNote}} — Pergament-Höhe folgt dem Text; Breite wie Spalte */
+/* Macros {{readAloudNote}} / {{gmNote}} — parchment height follows text; width like column */
 .dsa-note-wrap {
   margin: 0.95em 0 1.05em;
   width: 100%;
@@ -2602,7 +2602,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   box-sizing: border-box;
 }
 
-/* {{roulbox Titel | Untertitel | Markdown}} — Regelkasten (dunkler Kopf, grauer Körper, Augen-Listenpunkte) */
+/* {{roulbox Title | Subtitle | Markdown}} — rule box (dark head, gray body, eye list bullets) */
 .dsa-roulbox-wrap {
   margin: 0.95em 0 1.05em;
   width: 100%;
@@ -2663,7 +2663,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   margin-bottom: 0;
 }
 
-/* Stylisiertes „Auge“ (grün / Lid-Ton) als Aufzählung — nur in roulbox */
+/* Stylized “eye” (green / lid tone) as list marker — roulbox only */
 .dsa-roulbox__body ul {
   list-style: none;
   padding-left: 0;
@@ -2692,12 +2692,12 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   padding-left: 1.35em;
 }
 
-/* Vorlese-Box: nur Schlagschatten; kein äußerer dunkler Rand (Pergamentgrafik ohne zusätzlichen Frame) */
+/* Read-aloud box: drop shadow only; no outer dark border (parchment art without extra frame) */
 .dsa-note-wrap--read-aloud {
   filter: drop-shadow(2px 5px 11px rgba(30, 22, 12, 0.35));
 }
 
-/* Meisterinfo: dreiteilig (Leisten + wachsende Mitte), bleibt in einer Spalte */
+/* GM note: three-part (bars + growing middle), stays in one column */
 .dsa-note-wrap--gm {
   padding: 0;
   border-radius: 0;
@@ -2727,7 +2727,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   vertical-align: top;
 }
 
-/* Naht zwischen oberer Leiste und Mittel-Hintergrund ohne hellen Spalt */
+/* Seam between top bar and middle background without a bright gap */
 .dsa-gm-frame__cap + .dsa-gm-frame__mid {
   margin-top: -2px;
 }
@@ -2736,7 +2736,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   margin-top: -2px;
 }
 
-/* Mittelbereich: image29 (note-gm-meister-bg) streckt sich mit dem Text (Breite/Höhe = Inhalt) */
+/* Middle: image29 (note-gm-meister-bg) grows with text (width/height = content) */
 .dsa-gm-frame__mid {
   flex: 0 1 auto;
   box-sizing: border-box;
@@ -2779,7 +2779,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   margin-bottom: 0;
 }
 
-/* Hell: Textur streckt sich mit dem Kasten (100% — kein festes Pergament-Format) */
+/* Light: texture stretches with the box (100% — no fixed parchment format) */
 .dsa-note--read-aloud {
   color: #0f0c08;
   background-image:
@@ -2813,7 +2813,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   font-weight: 700;
 }
 
-/* Dunkel: Vollflächig nur ohne Rahmen-Makro; mit Rahmen → .dsa-note--gm-framed */
+/* Dark: full bleed only without frame macro; with frame → .dsa-note--gm-framed */
 .dsa-note--gm {
   color: #faf6f0;
   background-image:
@@ -2854,7 +2854,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   color: #4a3010;
 }
 
-/* Makro {{npcBlock}}: exakte Pixel-Vorlage media/npc-block-template.png → public/dsa/npc-block-template.png */
+/* Macro {{npcBlock}}: exact pixel template media/npc-block-template.png → public/dsa/npc-block-template.png */
 .dsa-npc-wrap {
   margin: 1em 0 1.1em;
   padding: 0;
@@ -2874,7 +2874,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   color: #0f0b07;
 }
 
-/* Prozentbezug = volle Rahmenfläche (wie npc-block-template); Portrait: Zentrum des Kreises */
+/* Percent refs = full frame area (like npc-block-template); portrait: center of circle */
 .dsa-npc__frame {
   position: relative;
   display: grid;
@@ -2888,16 +2888,16 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   --npc-txt-r: 31%;
   --npc-txt-t: 10.5%;
   --npc-txt-b: 15.5%;
-  /* Mittelpunkt Porträtkreis (% des Rahmens) — an goldener Vorlage ausgerichtet */
+  /* Portrait circle center (% of frame) — aligned to golden reference */
   --npc-p-cx: 82.5%;
   --npc-p-cy: 16%;
   --npc-p-w: 25%;
-  /* Feinjustage nach Vorlage: z. B. 1mm / -0.5mm */
+  /* Fine tune vs reference: e.g. 1mm / -0.5mm */
   --npc-p-nudge-x: 0mm;
   --npc-p-nudge-y: 0mm;
 }
 
-/* Inhalt bestimmt die Zeilenhöhe; Vorlage füllt dieselbe Zelle und wächst mit (object-fit: fill) */
+/* Content sets line height; template fills the same cell and grows with it (object-fit: fill) */
 .dsa-npc__inner {
   grid-column: 1;
   grid-row: 1;
@@ -2915,7 +2915,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 .dsa-npc__template {
   grid-column: 1;
   grid-row: 1;
-  /* Über Portrait: Zierrahmen/Kreis aus PNG; Porträt-Loch transparent → Bild darunter sichtbar */
+  /* Above portrait: ornament frame/circle from PNG; portrait hole transparent → image below shows through */
   z-index: 2;
   align-self: stretch;
   justify-self: stretch;
@@ -2966,7 +2966,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   font-weight: 700;
 }
 
-/* Unter der Vorlage (z-index): Zentrum = goldener Kreis (Loch in npc-block-template.png) */
+/* Below template (z-index): center = golden circle (hole in npc-block-template.png) */
 .dsa-npc__portrait {
   position: absolute;
   z-index: 1;
@@ -2994,12 +2994,12 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   object-position: center center;
 }
 
-/* SVG-Platzhalter: Kopf leicht nach oben im Kreis */
+/* SVG placeholder: head slightly toward top of circle */
 .dsa-npc__portrait-img--dummy {
   object-position: center 35%;
 }
 
-/* Kein display:contents — in mehrspaltigem .page-body können Grid-Kinder sonst verschwinden */
+/* No display:contents — in multi-column .page-body grid children could vanish */
 .dsa-npc__stat-grid {
   display: flex;
   flex-direction: column;
@@ -3029,7 +3029,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   min-height: 1em;
 }
 
-/* INI + Wert (z. B. 10+1W6) in einer Zeile: zwei Spalten des 4er-Rasters */
+/* INI + value (e.g. 10+1W6) on one row: two columns of the 4-column grid */
 .dsa-npc__stat-cell--span-2 {
   grid-column: span 2;
   white-space: nowrap;
@@ -3056,7 +3056,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   margin-top: 0;
 }
 
-/* Impressum-Inhalt (HTML aus impressum-config) */
+/* Impressum content (HTML from impressum-config) */
 .impressum-sheet {
   max-width: 145mm;
   margin: 0 auto;
@@ -3189,7 +3189,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
     display: none !important;
   }
 
-  /* Bildschirm-Zoom zurücksetzen — festes A4 für Druck/PDF */
+  /* Reset screen zoom — fixed A4 for print/PDF */
   .preview .a4-page {
     zoom: 1;
     width: 210mm;
@@ -3230,13 +3230,13 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   }
 }
 
-/* Gehostete App: volle Gitterbreite für Banner/Footer */
+/* Hosted app: full grid width for banner/footer */
 .hosted-banner,
 .hosted-doc-footer {
   grid-column: 1 / -1;
 }
 
-/* Ansicht Beides / Nur Markdown / Nur Vorschau — alle Breiten (Toggle im Banner) */
+/* View split / Markdown only / Preview only — all widths (toggle in banner) */
 .layout.layout--hosted.layout--view-single.layout--focus-editor .preview {
   display: none !important;
 }
@@ -3246,7 +3246,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 }
 
 /*
- * Einspalten-Ansicht: sichtbares Panel über die volle Gitterbreite
+ * Single-panel view: visible panel spans full grid width
  */
 .layout.layout--hosted.layout--view-single.layout--focus-preview .preview {
   grid-column: 1 / -1;
@@ -3264,7 +3264,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   min-width: 0;
 }
 
-/* Banner in Zeile 1; Editor + Vorschau in Zeile 2; Fußlinks in Zeile 3 */
+/* Row 1: banner; row 2: editor + preview; row 3: footer links */
 .layout.layout--hosted {
   grid-template-rows: auto minmax(0, 1fr) auto;
   align-items: stretch;
@@ -3283,7 +3283,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   overflow-x: auto;
 }
 
-/* Statuszeile unter globalem Toolbar, über Makro-Leiste */
+/* Status line under global toolbar, above macro bar */
 .editor__flash {
   flex: 0 0 auto;
   margin: 0;

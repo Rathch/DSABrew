@@ -6,8 +6,9 @@
     "strict": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "rootDir": "src",
-    "resolveJsonModule": true
+    "rootDir": "..",
+    "resolveJsonModule": true,
+    "types": ["node"]
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts", "../shared/**/*.ts"]
 }

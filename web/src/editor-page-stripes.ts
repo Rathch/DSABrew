@@ -1,7 +1,7 @@
 /**
- * Seiten-Streifen im Editor und in der Minimap: Zeile für Zeile im Rohtext zählen,
- * bis zu einer eigenen Zeile mit \\page / \\pageSingle (oder {{page}} / {{pageSingle}}).
- * Zeilenhöhe = berechnete line-height der Textarea (fix pro Zeile), dann auf scrollHeight skaliert.
+ * Page stripes in the editor and minimap: count raw text line by line
+ * up to a dedicated line with \\page / \\pageSingle (or {{page}} / {{pageSingle}}).
+ * Line height = computed textarea line-height (fixed per line), then scaled to scrollHeight.
  */
 
 const PAGE_OR_SINGLE_BREAK = /(?:^|\n)\s*\\page(Single)?\s*\n/g;
@@ -19,7 +19,6 @@ function normalizePageMacros(raw: string): string {
     .replace(PAGE_SINGLE_ALIAS, "\n\\pageSingle\n");
 }
 
-/** Rohtext je „Seite“ (Renderer / Kompatibilität). */
 export function splitMarkdownPageChunks(raw: string): string[] {
   const normalized = normalizePageMacros(raw);
   const chunks: string[] = [];
@@ -35,14 +34,13 @@ export function splitMarkdownPageChunks(raw: string): string[] {
   return chunks;
 }
 
-/** Eine Zeile im Editor, die einen Seitenwechsel markiert (ohne weiteren Text). */
 export function isPageBreakLine(line: string): boolean {
   return RE_PAGE_CMD.test(line) || RE_PAGE_MACRO.test(line) || RE_PAGE_SINGLE_MACRO.test(line);
 }
 
 /**
- * Seiten als zusammenhängende Zeilenbereiche (0-basierter Index, inkl. Endindex),
- * getrennt durch Seitenumbruch-Zeilen — diese Zeilen gehören zu keinem Segment.
+ * Pages as contiguous line ranges (0-based indices, inclusive end),
+ * separated by page-break lines — those lines belong to no segment.
  */
 export function pageSegmentsZeroBased(raw: string): { start: number; end: number }[] {
   const lines = raw.split(/\r\n|\r|\n/);
@@ -81,7 +79,7 @@ export function textareaLineMetrics(textarea: HTMLTextAreaElement): { lh: number
 }
 
 /**
- * Pixel-Top und -Höhe je Segment: (Zeilen × lh) skaliert auf textarea.scrollHeight.
+ * Pixel top and height per segment: (lines × lh) scaled to textarea.scrollHeight.
  */
 export function minimapSegmentLayout(
   textarea: HTMLTextAreaElement,
@@ -124,7 +122,7 @@ function stripeColorsEditorBg(): { a: string; b: string } {
 }
 
 /**
- * Hintergrundstreifen nur bei mehreren Seiten; feste Zeilenlogik wie die Minimap.
+ * Background stripes only when there are multiple pages; same line logic as the minimap.
  */
 export function updateEditorPageStripeBackground(textarea: HTMLTextAreaElement): void {
   const segments = pageSegmentsZeroBased(textarea.value);

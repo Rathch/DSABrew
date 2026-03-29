@@ -12,6 +12,7 @@ import {
   updateMarkdown
 } from "./db.js";
 import { normalizeMarkdown, sha256Hex } from "./normalize.js";
+import { DEFAULT_MARKDOWN_DEMO } from "../../shared/default-markdown-demo.js";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const repoRoot = join(__dirname, "../..");
@@ -40,9 +41,8 @@ function allowHourlyPut(ip: string, maxPerHour: number): boolean {
 let canonicalMarkdown = "";
 let canonicalHash = "";
 
-async function loadCanonical(): Promise<void> {
-  const mod = await import("../../web/src/default-markdown-demo.ts");
-  canonicalMarkdown = mod.DEFAULT_MARKDOWN_DEMO;
+function loadCanonical(): void {
+  canonicalMarkdown = DEFAULT_MARKDOWN_DEMO;
   canonicalHash = sha256Hex(normalizeMarkdown(canonicalMarkdown));
 }
 
@@ -58,7 +58,7 @@ function publicUrl(path: string): string | undefined {
 }
 
 async function main(): Promise<void> {
-  await loadCanonical();
+  loadCanonical();
 
   const db = openDb(SQLITE_PATH);
   const app = Fastify({

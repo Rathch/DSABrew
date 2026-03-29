@@ -9,7 +9,7 @@ Mit **laufender API** (`server/`) und **Web-App** (`web/`) Dokumente anlegen, un
 
 ## Prerequisites
 
-- **Node.js 18+** (see `web/package.json` → `engines`); the repo pins tooling compatible with Node 18 (e.g. Vite 5).
+- **Node.js 20+** (see `web/package.json` → `engines`; optional `.nvmrc` for `nvm use`).
 - npm (ships with Node)
 - A modern browser (Chrome/Edge/Firefox)
 

@@ -55,16 +55,16 @@ async function copyTextToClipboard(text: string): Promise<boolean> {
   }
 }
 
-const app = document.querySelector<HTMLDivElement>("#app");
-
-if (!app) {
-  throw new Error("Missing #app root element");
-}
+const app =
+  document.querySelector<HTMLDivElement>("#app") ??
+  (() => {
+    throw new Error("Missing #app root element");
+  })();
 
 initThemeMediaListener();
 applyThemePreference(getThemePreference());
 
-/* Capture-Phase: greift auch, wenn ein Kind `stopPropagation` nutzt (z. B. Toolbar). */
+/* Capture phase: also runs when a child uses `stopPropagation` (e.g. toolbar). */
 document.addEventListener(
   "click",
   (e: MouseEvent) => {
@@ -94,7 +94,6 @@ const BODY_SCROLLABLE_CLASS = "dsabrew-body--scrollable";
 const STRIP_VISIBLE_CLASS = "dsabrew-privacy-strip-visible";
 const LS_PRIVACY_STRIP_DISMISSED = "dsabrew-privacy-strip-dismissed";
 
-/** Start-/Rechtsseiten & Fehler: body scrollt; Editor-Ansicht: overflow hidden wie bisher */
 function setPublicPageScroll(enable: boolean): void {
   document.body.classList.toggle(BODY_SCROLLABLE_CLASS, enable);
 }
@@ -158,7 +157,6 @@ function landingFooterNav(navClass: string): string {
     </nav>`;
 }
 
-/** Fußzeile: Nav-Links (volle Breite) + Markenhinweis / Fan-Produkt (siehe `fan-product-notice.ts`). */
 function siteChromeFooter(footerNavClass: string): string {
   return `<div class="site-chrome-footer">${landingFooterNav(footerNavClass)}${fanProductNoticeHtml()}</div>`;
 }
@@ -190,12 +188,10 @@ function buildLegalPageLayout(kind: "impressum" | "datenschutz"): string {
 `;
 }
 
-/** Symbol „Nur Ansicht“ (Auge) — feste 16×16, nicht em-basiert (verhindert Riesen-Icons). */
 const ICON_VIEW = `<svg class="hosted-toolbar-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>`;
 
 const ICON_EDIT = `<svg class="hosted-toolbar-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.003 1.003 0 0 0 0-1.41l-2.34-2.34a1.003 1.003 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>`;
 
-/** Scroll-Kopplung + Hell/Dunkel in der Kopfzeile (rechts neben der Dokumentnavigation). */
 function hostedChromeToolsHtml(): string {
   return `
     <div class="hosted-chrome-tools">
@@ -328,9 +324,9 @@ function wireShareButtons(
 }
 
 const LS_HOSTED_VIEW = "dsabrew-hosted-view";
-/** @deprecated nur Migration von älteren Keys */
+/** @deprecated migration from older keys only */
 const LS_HOSTED_PANE = "dsabrew-hosted-pane";
-/** @deprecated nur Migration von älteren Keys */
+/** @deprecated migration from older keys only */
 const LS_HOSTED_FOCUS = "dsabrew-hosted-focus";
 const HOSTED_NARROW_MQ = "(max-width: 960px)";
 
@@ -419,10 +415,6 @@ function wireHostedViewControls(layout: HTMLElement, docMode: "view" | "edit"): 
     setSegActive(viewToIndex(v));
   }
 
-  /**
-   * Nur-Ansicht-URL (Teilen: Nur Ansicht): immer „Nur Vorschau“, nicht die zuletzt im Bearbeiten-Modus
-   * gespeicherte Ansicht (z. B. Beides).
-   */
   function applyHostedViewState(): void {
     const v =
       docMode === "view" ? "preview" : readHostedViewPref() ?? defaultHostedView(docMode);
@@ -524,7 +516,7 @@ function initEditorAndPreview(
 
   let firstPreviewDone = false;
 
-  function updatePreview(markdown: string): void {
+  const updatePreview = (markdown: string): void => {
     try {
       const result = renderDocument(markdown);
       preview.innerHTML = result.pages
@@ -570,7 +562,7 @@ function initEditorAndPreview(
       const msg = e instanceof Error ? e.message : String(e);
       preview.innerHTML = `<aside class="${ERR_ASIDE}" role="alert"><strong>Vorschau fehlgeschlagen</strong><pre class="dsabrew-err-aside__pre">${escapeHtml(msg)}</pre></aside>`;
     }
-  }
+  };
 
   preview.addEventListener("click", (e: MouseEvent) => {
     if (e.button !== 0) {
@@ -616,7 +608,7 @@ function initEditorAndPreview(
   const DEBOUNCE_MS = 400;
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-  async function persistMarkdown(markdown: string): Promise<void> {
+  const persistMarkdown = async (markdown: string): Promise<void> => {
     if (options.mode !== "edit") {
       return;
     }
@@ -632,9 +624,9 @@ function initEditorAndPreview(
     if (saveStatus) {
       saveStatus.textContent = "Gespeichert";
     }
-  }
+  };
 
-  function scheduleHostedSave(): void {
+  const scheduleHostedSave = (): void => {
     if (options.mode !== "edit") {
       return;
     }
@@ -651,9 +643,9 @@ function initEditorAndPreview(
         }
       });
     }, DEBOUNCE_MS);
-  }
+  };
 
-  function flushHostedSave(): void {
+  const flushHostedSave = (): void => {
     if (options.mode !== "edit") {
       return;
     }
@@ -669,12 +661,12 @@ function initEditorAndPreview(
       headers: { "Content-Type": "application/json" },
       body
     }).catch(() => {});
-  }
+  };
 
   input.addEventListener("input", () => {
     updatePreview(input.value);
     scheduleHostedSave();
-    refreshEditorPageStripes();
+    updateEditorPageStripeBackground(input);
   });
 
   window.addEventListener("pagehide", flushHostedSave);
@@ -686,7 +678,7 @@ function initEditorAndPreview(
 
   const pdfBanner = document.querySelector<HTMLButtonElement>("#pdf-btn-banner");
 
-  async function runPdfExport(): Promise<void> {
+  const runPdfExport = async (): Promise<void> => {
     const prevBanner = pdfBanner?.textContent;
     if (pdfBanner) {
       pdfBanner.disabled = true;
@@ -710,12 +702,12 @@ function initEditorAndPreview(
         pdfBanner.textContent = prevBanner ?? "PDF speichern";
       }
     }
-  }
+  };
 
   pdfBanner?.addEventListener("click", () => void runPdfExport());
 
   updatePreview(input.value);
-  refreshEditorPageStripes();
+  updateEditorPageStripeBackground(input);
   syncThemeToggleButtons();
 }
 

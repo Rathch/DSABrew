@@ -1,0 +1,17 @@
+{
+  "name": "dsabrew",
+  "private": true,
+  "description": "Root scripts mirroring .github/workflows/ci.yml (run before push)",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "ci": "npm run ci:install && npm run ci:verify && npm run ci:audit",
+    "ci:install": "npm ci --prefix web && npm ci --prefix server",
+    "ci:verify": "npm run typecheck --prefix web && npm run test:coverage --prefix web && npm run build --prefix web && npm run typecheck --prefix server",
+    "ci:audit": "npm audit --audit-level=high --prefix web && npm audit --audit-level=high --prefix server",
+    "ci:gitleaks": "gitleaks detect --source . --verbose --exit-code 1",
+    "ci:all": "npm run ci && npm run ci:gitleaks",
+    "ci:quick": "npm run ci:verify && npm run ci:audit"
+  }
+}

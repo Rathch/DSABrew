@@ -24,7 +24,7 @@ const MAP_CANONICAL_KEYS = new Set(["einband", "content-even", "content-odd", "f
 
 const RAUTEN_ASSET_KEYS = new Set(["default", "dense"]);
 
-/** Während `md.render` pro Seite: Anker-IDs = `p{Seitennummer}-{slug}` (siehe contracts/macros.md). */
+/** During `md.render` per page: anchor IDs = `p{pageNumber}-{slug}` (see contracts/macros.md). */
 let anchorPageDisplayNumber = 1;
 
 function slugifyHeadingText(text: string): string {
@@ -40,7 +40,7 @@ function slugifyHeadingText(text: string): string {
 
 const md = new MarkdownIt({
   html: false,
-  /* linkify: true frisst u. a. führende „{{“ in Makros (z. B. {{npcBlock) → {npcBlock in der HTML-Ausgabe). */
+  /* linkify: true eats leading “{{” in macros (e.g. {{npcBlock) → {npcBlock in HTML output). */
   linkify: false
 });
 
@@ -54,7 +54,7 @@ md.validateLink = (url: string): boolean => {
   return true;
 };
 
-/** Scriptorsium-Pergament-Stil für Markdown-Tabellen (siehe style.css `.dsa-md-table`). */
+/** Scriptorium parchment style for Markdown tables (see style.css `.dsa-md-table`). */
 md.renderer.rules.table_open = () => '<table class="dsa-md-table">\n';
 
 export interface Footnote {
@@ -63,7 +63,7 @@ export interface Footnote {
   sequence: number;
 }
 
-/** Scriptorsium-artige Fußzeile (Nummer + Laufender Titel), nur nach dem Impressum. */
+/** Scriptorium-style footer strip (number + running title), only after the impressum page. */
 export interface BookFooterStrip {
   title: string;
   pageNumber: number;
@@ -80,9 +80,9 @@ export interface RenderedPage {
   rautenKey: string | null;
   /** Extra CSS class names for page chrome (backgrounds), space-separated. */
   pageChromeClasses: string;
-  /** `true` nach `\\pageSingle` / `{{pageSingle}}` — einspaltiges Layout (`.a4-page--single-column`). */
+  /** `true` after `\\pageSingle` / `{{pageSingle}}` — single-column layout (`.a4-page--single-column`). */
   singleColumn?: boolean;
-  /** Gesetzt auf allen Seiten **nach** der letzten `{{impressumPage}}`-Seite (sonst `undefined` → klassische Ecke). */
+  /** Set on all pages **after** the last `{{impressumPage}}` page (otherwise `undefined` → classic corner). */
   bookFooter?: BookFooterStrip;
 }
 
@@ -94,37 +94,37 @@ export interface RenderDocumentOptions {
   impressum?: Partial<ImpressumData>;
 }
 
-/** Seitenumbruch; optional `Single` → folgende Seite einspaltig (`\\pageSingle`). */
+/** Page break; optional `Single` → following page is single-column (`\\pageSingle`). */
 const PAGE_OR_SINGLE_BREAK = /(?:^|\n)\s*\\page(Single)?\s*\n/g;
 const PAGE_ALIAS = /\{\{page\}\}/g;
 const PAGE_SINGLE_ALIAS = /\{\{\s*pageSingle\s*\}\}/gi;
 const PAGE_NUMBER = /\{\{pageNumber\s+(\d+)\}\}/g;
 const FOOTNOTE_MACRO = /\{\{footnote\s+([^|]+?)\s*\|\s*([^}]+)\}\}/g;
-/** Pergament-Vorlesetext (hell); Aliase: `vorlesenNote`. Titel | Fließtext (Markdown im Inhalt). */
+/** Parchment read-aloud note (light); aliases: `vorlesenNote`. Title | body (Markdown in body). */
 const READ_ALOUD_NOTE_MACRO = /\{\{(readAloudNote|vorlesenNote)\s+([^|]*?)\s*\|\s*([\s\S]*?)\}\}/g;
-/** Meisterinformation (dunkel); Alias: `meisterNote`. */
+/** GM note (dark); alias: `meisterNote`. */
 const GM_NOTE_MACRO = /\{\{(gmNote|meisterNote)\s+([^|]*?)\s*\|\s*([\s\S]*?)\}\}/g;
-/** Regel-/Optional-Kasten (grauer Körper, dunkler Kopf): `Titel | Untertitel | Markdown`. Leeres Untertitel-Feld: `Titel | | Körper`. */
+/** Rule/optional box (gray body, dark head): `Title | Subtitle | Markdown`. Empty subtitle: `Title | | Body`. */
 const ROULBOX_MACRO =
   /\{\{\s*roulbox\s+([^|]*?)\s*\|\s*([^|]*?)\s*\|\s*([\s\S]*?)\}\}/gi;
-/** Optional-Hinweise: Symbol links (`media/image19` / `image20`), Inhalt = Markdown. */
+/** Optional hints: icon on the left (`media/image19` / `image20`), body = Markdown. */
 const EASIER_HARDER_MACRO = /\{\{(easier|harder)\s*\|\s*([\s\S]*?)\}\}/gi;
-/** Inline-Schachfigur: `{{ chess | pawn }}` — Namen siehe `resolveChessPiece`. */
+/** Inline chess piece: `{{ chess | pawn }}` — names in `resolveChessPiece`. */
 const CHESS_MACRO = /\{\{\s*chess\s*\|\s*([^}]+?)\s*\}\}/gi;
-/** Vier Rauten 0–4; optional Präfix: `{{ difficulty | Kampf: | grün 4 }}` oder `{{ difficulty | rot 3 }}` (Alias `dificulty`). Label darf kein `}` enthalten — sonst frisst `[^|]*?` über `}}` bis zum `|` des nächsten Makros. */
+/** Four diamonds 0–4; optional prefix: `{{ difficulty | Kampf: | grün 4 }}` or `{{ difficulty | rot 3 }}` (alias `dificulty`). Label must not contain `}` — otherwise `[^|]*?` spans past `}}` to the next macro’s `|`. */
 const DIFFICULTY_RATING_MACRO =
   /\{\{\s*(?:difficulty|dificulty)\s*\|\s*(?:([^|}]*?)\s*\|\s*)?([^}]+?)\s*\}\}/gi;
-/** Solo-Abenteuer: Sprung zu nummerierter `## N. …`-Überschrift; LABEL = Markdown-Inline. Kein `}}` im LABEL. */
+/** Solo adventure: jump to numbered `## N. …` heading; LABEL = Markdown inline. No `}}` in LABEL. */
 const ABSCHNITT_MACRO =
   /\{\{\s*abschnitt\s+(\d+)\s*\|\s*([\s\S]*?)\}\}/gi;
-/** NPC-/Monster-Kasten: `schlüssel=wert`, Ende `{{/npcBlock}}` (ein- oder mehrzeilig). `gi`: optional Leerzeichen nach `{{`, Schreibweise npcBlock. */
+/** NPC/monster block: `key=value`, end `{{/npcBlock}}` (single- or multi-line). `gi`: optional space after `{{`, npcBlock spelling. */
 const NPC_BLOCK_MACRO =
   /\{\{\s*npcBlock\s*\n?([\s\S]*?)\s*\{\{\s*\/npcBlock\s*\}\}/gi;
 const VALID_BG_MACRO = /\\(map|rauten)\{([^}\n]+)\}/g;
 const IMPRESSUM_PAGE_MACRO = /\{\{impressumPage\}\}/g;
 const IMPRESSUM_FIELD_MACRO = /\{\{impressumField\s+(\w+)\s*=\s*([^}]*)\}\}/g;
 
-/** Sammelt alle `{{impressumField …}}` im Dokument (letzte Angabe pro Key gewinnt). */
+/** Collects all `{{impressumField …}}` in the document (last value per key wins). */
 function collectGlobalImpressumOverrides(fullMarkdown: string): Partial<ImpressumData> {
   const partial: Partial<ImpressumData> = {};
   const re = new RegExp(IMPRESSUM_FIELD_MACRO.source, "g");
@@ -139,8 +139,8 @@ function collectGlobalImpressumOverrides(fullMarkdown: string): Partial<Impressu
 }
 
 /**
- * Makro-Beispiele in \`…\` / \`\`\`…\`\`\` ignorieren, damit z. B. \`{{impressumPage}}\` in der
- * Makroliste die Fußzeilen-Logik nicht kaputtmacht (sonst fehlt bookFooter → kleine schwarze .page-number).
+ * Ignore macro examples in \`…\` / \`\`\`…\`\`\` so e.g. \`{{impressumPage}}\` in a
+ * macro list does not break footer logic (otherwise bookFooter is missing → small black .page-number).
  */
 function stripCodeLikeSpansForMacroDetection(raw: string): string {
   return raw
@@ -175,7 +175,7 @@ function collectImpressumFields(raw: string): {
 }
 
 /**
- * `cover` → einband. Nur beim Einband: zweites Wort `hell` / `dunkel` (Aliase light, dark, heller).
+ * `cover` → einband. Cover only: second word `hell` / `dunkel` (aliases light, dark, heller).
  */
 function parseMapMacroInner(rawKey: string): {
   canonical: string | null;
@@ -239,7 +239,7 @@ export function buildPageChromeClasses(
 
 interface PageSegment {
   raw: string;
-  /** Inhalt dieser Seite erscheint einspaltig (nach vorangehendem `\\pageSingle`). */
+  /** This page’s content is single-column (after a preceding `\\pageSingle`). */
   singleColumn: boolean;
 }
 
@@ -328,7 +328,7 @@ function difficultyRatingPlaceholder(sequence: number): string {
   return `DSABREWDRATE${String(sequence).padStart(5, "0")}`;
 }
 
-/** Vier Assets: image8–11 → Figurentyp (Aliase deutsch/englisch, Tippfehler pown). */
+/** Four assets: image8–11 → piece type (DE/EN aliases, typo pown). */
 function normalizeChessPieceKey(raw: string): string {
   return raw
     .normalize("NFKD")
@@ -399,7 +399,7 @@ function buildChessInlineHtml(pieceRaw: string): string {
   return `<span class="dsa-chess" role="img" aria-label="${labelAttr}"><img class="dsa-chess__img" src="${srcAttr}" alt="" decoding="async" loading="lazy" /></span>`;
 }
 
-/** `rot 3` / `grün 2` — Reihenfolge Modus und Zahl beliebig. */
+/** `rot 3` / `grün 2` — mode and number may appear in any order. */
 function parseDifficultyRatingInner(inner: string): { mode: "red" | "green"; points: number } | null {
   const parts = inner
     .trim()
@@ -437,7 +437,7 @@ interface CollectedDifficultyRatingMacro {
   token: string;
   mode: "red" | "green";
   points: number;
-  /** Optionaler Text vor den Rauten (Markdown inline); leer = nur Rauten. */
+  /** Optional text before the diamonds (Markdown inline); empty = diamonds only. */
   label: string;
 }
 
@@ -609,7 +609,7 @@ function buildDifficultyCalloutHtml(kind: "easier" | "harder", bodyMarkdown: str
   return `<div class="dsa-diff-wrap"><aside class="${cls}" role="note" aria-label="${labelAttr}"><img class="dsa-diff__icon" src="${srcAttr}" alt="" decoding="async" loading="lazy" /><div class="dsa-diff__body">${bodyHtml}</div></aside></div>`;
 }
 
-/** Ersetzt Makro-Platzhalter; bevorzugt ganze `<p>TOKEN</p>`-Blöcke (Block-Level). */
+/** Replaces macro placeholders; prefers full `<p>TOKEN</p>` blocks (block-level). */
 function injectBlockToken(html: string, token: string, blockHtml: string): string {
   const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const wrapped = new RegExp(`<p>\\s*${escaped}\\s*</p>`, "gi");
@@ -686,7 +686,7 @@ function normalizeNpcKey(raw: string): string {
   return NPC_KEY_ALIASES[k] ?? k;
 }
 
-/** Längste Schlüssel zuerst, damit z. B. `ini` vor `in` und `sonderfertigkeiten` korrekt greift. */
+/** Longest keys first so e.g. `ini` matches before `in` and `sonderfertigkeiten` parses correctly. */
 const NPC_SCAN_KEYS_SORTED = [
   "sonderfertigkeiten",
   "angriff1",
@@ -715,7 +715,7 @@ const NPC_SCAN_KEYS_SORTED = [
   "gs"
 ].sort((a, b) => b.length - a.length);
 
-/** Eine Zeile mit mehreren `schlüssel=wert`-Paaren (Leerzeichen dazwischen), z. B. `name=… portrait=…`. */
+/** One line with multiple `key=value` pairs (spaces between), e.g. `name=… portrait=…`. */
 function parseNpcSingleLine(single: string): Record<string, string> {
   const out: Record<string, string> = {};
   const lower = single.toLowerCase();
@@ -783,8 +783,8 @@ function parseNpcBlockBody(body: string): Record<string, string> {
 }
 
 /**
- * Portrait-Wert aus dem Makro: Anführungszeichen / spitze Klammern entfernen
- * (häufig bei `portrait="https://…"` oder Kopie aus Markdown).
+ * Portrait value from macro: strip quotes / angle brackets
+ * (common with `portrait="https://…"` or paste from Markdown).
  */
 function normalizeNpcPortraitRaw(raw: string): string {
   let t = raw.trim();
@@ -801,8 +801,8 @@ function normalizeNpcPortraitRaw(raw: string): string {
 }
 
 /**
- * Portrait: http(s), absolut ab `/`, oder kurzer Name für `public/dsa/` (Vite).
- * `bild.png` → `/dsa/bild.png`; `dsa/unter/…` → `/dsa/unter/…`
+ * Portrait: http(s), absolute from `/`, or short name under `public/dsa/` (Vite).
+ * `bild.png` → `/dsa/bild.png`; `dsa/sub/…` → `/dsa/sub/…`
  */
 function portraitSrcForHtml(url: string): string | null {
   const t = normalizeNpcPortraitRaw(url);
@@ -1055,7 +1055,7 @@ function parseBackgrounds(raw: string): {
   return { cleaned, mapKey, rautenKey, einbandTone, warnings };
 }
 
-/** Eintrag für {{tocDepthH3}} — aus Markdown aller Seiten (siehe contracts/macros.md: dokumentweit). */
+/** Entry for {{tocDepthH3}} — from Markdown of all pages (see contracts/macros.md: document-wide). */
 interface TocHeadingItem {
   level: number;
   titleHtml: string;
@@ -1064,7 +1064,7 @@ interface TocHeadingItem {
 }
 
 /**
- * Rohe Markdown-Zeilen je Seite (nach \\page), mit denselben Ausblendungen wie TOC / Abschnitts-Index.
+ * Raw Markdown lines per page (after \\page), with the same skips as TOC / section index.
  */
 function forEachDocumentMarkdownLine(
   pageSources: PageSegment[],
@@ -1141,9 +1141,9 @@ function forEachDocumentMarkdownLine(
 }
 
 /**
- * Sammelt `#`–`###`-Zeilen in Dokumentreihenfolge (alle \\page-Segmente).
- * Überspringt Fenced Code, {{npcBlock}}-, {{roulbox …}}-, {{easier|}}/{{harder|}}-Körper, damit keine falschen Treffer.
- * Slug/ID pro Seite wie beim Heading-Anchor-Plugin (p{Seite}-{slug}).
+ * Collects `#`–`###` lines in document order (all \\page segments).
+ * Skips fenced code, {{npcBlock}}-, {{roulbox …}}-, {{easier|}}/{{harder|}} bodies to avoid false matches.
+ * Slug/ID per page like the heading-anchor plugin (p{page}-{slug}).
  */
 function collectDocumentHeadingsForToc(pageSources: PageSegment[], pageNumberStart: number): TocHeadingItem[] {
   const items: TocHeadingItem[] = [];
@@ -1185,7 +1185,7 @@ function collectDocumentHeadingsForToc(pageSources: PageSegment[], pageNumberSta
 }
 
 /**
- * Nummerierte H2 (`## 14. Titel`) → Anker-ID für {{abschnitt N | …}} (gleiche Slug-Regeln wie Überschriften-Plugin).
+ * Numbered H2 (`## 14. Title`) → anchor id for {{abschnitt N | …}} (same slug rules as heading plugin).
  */
 function collectNumberedH2AnchorMap(
   pageSources: PageSegment[],
@@ -1194,7 +1194,7 @@ function collectNumberedH2AnchorMap(
   const map = new Map<number, string>();
   const warnings: string[] = [];
   const headingLineRe = /^\s{0,3}(#{1,3})\s+(.+?)\s*$/;
-  /** `## 15. Titel` oder `## 15 Titel` (Punkt nach Nummer optional). */
+  /** `## 15. Title` or `## 15 Title` (dot after number optional). */
   const sectionNumRe = /^(\d+)(?:\.\s+|\s+)/;
   const slugsByPage = new Map<number, Set<string>>();
   forEachDocumentMarkdownLine(pageSources, pageNumberStart, (line, displayPage) => {
@@ -1310,13 +1310,13 @@ function buildTocNavHtml(items: TocHeadingItem[]): string {
   return `<nav class="toc" aria-labelledby="toc-heading"><h2 class="toc-heading" id="toc-heading">Inhaltsverzeichnis</h2><ol class="toc-list">${lis}</ol></nav>`;
 }
 
-/** Ersetzt wörtliches `{{tocDepthH3}}` im gerenderten HTML (z. B. in <p>…</p>). */
+/** Replaces literal `{{tocDepthH3}}` in rendered HTML (e.g. inside <p>…</p>). */
 function injectTocMacro(html: string, tocItems: TocHeadingItem[]): string {
   const tocHtml = buildTocNavHtml(tocItems);
   return html.split("{{tocDepthH3}}").join(tocHtml);
 }
 
-/** TOC nutzt `md.renderInline`; für die Fußzeile brauchen wir Klartext wie im Scriptorium-Vorbild. */
+/** TOC uses `md.renderInline`; the footer strip needs plain text like the Scriptorium reference. */
 function htmlToPlainFooterTitle(html: string): string {
   return html
     .replace(/<[^>]+>/g, "")
@@ -1362,7 +1362,7 @@ export function renderDocument(markdown: string, options?: RenderDocumentOptions
     const gmData = collectGmNotes(readAloudData.cleaned);
     const roulboxData = collectRoulboxes(gmData.cleaned);
     const easierHarderData = collectEasierHarderMacros(roulboxData.cleaned);
-    /* NPC vor chess/difficulty: verhindert, dass spätere Makros den Block-Körper mit „{{ … }}“ beschädigen. */
+    /* NPC before chess/difficulty: prevents later macros from corrupting the block body with “{{ … }}”. */
     const npcData = !hasImpressumMacro
       ? collectNpcBlocks(easierHarderData.cleaned)
       : { cleaned: easierHarderData.cleaned, items: [] as CollectedNpcMacro[], warnings: [] as string[] };
@@ -1370,7 +1370,7 @@ export function renderDocument(markdown: string, options?: RenderDocumentOptions
     const difficultyRatingData = collectDifficultyRatingMacros(chessData.cleaned);
     const abschnittMacroData = collectAbschnittMacros(difficultyRatingData.cleaned);
 
-    /* Makros im Dokument überschreiben programmatische Optionen */
+    /* Document macros override programmatic options */
     const impressumDataMerged = mergeImpressum({
       ...options?.impressum,
       ...imFields.partial
@@ -1427,14 +1427,14 @@ export function renderDocument(markdown: string, options?: RenderDocumentOptions
             .join("")}</aside>`
         : "";
 
-    /* Scriptorium / FR-013a: Nach dem Einband wechseln die Inhaltstexturen (image12 ↔ image17)
-     * gegen die naive „Seite N gerade ↔ even-Asset“-Zuordnung. Ungerade Seitenzahl → content-even
-     * (image12), gerade → content-odd (image17), damit Impressum (meist Seite 2) und folgende
-     * Inhaltsseiten zur Word-Vorlage passen. */
+    /* Scriptorium / FR-013a: After the cover, content textures (image12 ↔ image17) alternate
+     * against the naive “page N even ↔ even-asset” mapping. Odd page number → content-even
+     * (image12), even → content-odd (image17), so impressum (usually page 2) and following
+     * content pages match the Word template. */
     const effectiveMapKey =
       bgData.mapKey ?? (displayPageNumber % 2 === 0 ? "content-odd" : "content-even");
 
-    /* Scriptorsium-Fußzeile ab Impressum; \map{final} (Rückseite) ohne Seitenzahl in der Fußzeile. */
+    /* Scriptorium footer strip after impressum; \map{final} (back cover) without page number in the strip. */
     const showBookFooter = index > 0 && effectiveMapKey !== "final";
 
     const bookFooter: BookFooterStrip | undefined = showBookFooter

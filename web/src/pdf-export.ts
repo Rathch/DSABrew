@@ -1,20 +1,18 @@
 /**
- * Export der Vorschau als herunterladbare PDF-Datei (eine A4-Seite pro `.a4-page`).
+ * Export the preview as a downloadable PDF (one A4 page per `.a4-page`).
  *
- * - **Sichtbar:** Raster aus html2canvas (wie die Vorschau).
- * - **Unsichtbar darüber:** echter PDF-Text (`renderingMode: "invisible"`) → kopierbar/durchsuchbar.
- * - **Links:** PDF-Link-Annotationen (`#…` → interne Seite, `http(s):` → URL).
+ * - **Visible:** raster from html2canvas (same as the preview).
+ * - **Invisible on top:** real PDF text (`renderingMode: "invisible"`) → selectable/searchable.
+ * - **Links:** PDF link annotations (`#…` → internal page, `http(s):` → URL).
  *
- * Kein vollständiges PDF/UA-Tagged-Structure-Tree (würde pdf-lib + Marked Content erfordern);
- * Sprache wird per `setLanguage("de")` gesetzt.
+ * Not a full PDF/UA tagged structure tree (would need pdf-lib + marked content);
+ * language is set via `setLanguage("de")`.
  */
 
 import type { jsPDF } from "jspdf";
 
 export interface ExportPdfOptions {
-  /** Dateiname beim Speichern (mit oder ohne `.pdf`) */
   filename?: string;
-  /** Fortschritt 1-basiert */
   onProgress?: (current: number, total: number) => void;
 }
 
@@ -26,7 +24,6 @@ function defaultFilename(): string {
   return `dsabrew-${y}-${m}-${day}.pdf`;
 }
 
-/** Wo welche Anker-ID liegt (1-basierte PDF-Seite für jsPDF `pageNumber`). */
 function buildAnchorToPageMap(pages: NodeListOf<HTMLElement>): Map<string, number> {
   const map = new Map<string, number>();
   pages.forEach((page, idx) => {
@@ -48,7 +45,7 @@ interface ImgBoxMm {
   h: number;
 }
 
-/** DOM-Rechteck relativ zur Seite → mm im Bildrahmen (Letterbox). */
+/** DOM rect relative to the page → mm in the image frame (letterbox). */
 function rectToPdfMm(
   elRect: DOMRect,
   pageRect: DOMRect,
@@ -81,7 +78,6 @@ function isAllowedLinkHref(href: string): boolean {
   return true;
 }
 
-/** px → pt (96 CSS px) */
 function pxToPt(px: number): number {
   return (px * 72) / 96;
 }
@@ -102,13 +98,13 @@ function drawInvisibleTextInRect(
   pdf.setFontSize(Math.min(Math.max(fontPt, 5), 28));
 
   const lineH = pdf.getLineHeight() / pdf.internal.scaleFactor;
-  const lines = pdf.splitTextToSize(text, Math.max(r.w - 0.5, 1)).filter((ln) => ln.trim().length > 0);
+  const lines = pdf.splitTextToSize(text, Math.max(r.w - 0.5, 1)).filter((ln: string) => ln.trim().length > 0);
   let y = r.y + 0.5;
   const bottom = r.y + r.h;
   for (const line of lines) {
-    // Nicht verlangen, dass die volle jsPDF-Zeilenhöhe in die gemessene Box passt:
-    // Bei Überschriften ist getBoundingClientRect().height oft knapper als activeFontSize×1.15
-    // (Subpixel, Schriftmetriken) — sonst wird gar kein Text ausgegeben und nichts ist auswählbar.
+    // Do not require the full jsPDF line height to fit the measured box:
+    // For headings, getBoundingClientRect().height is often tighter than activeFontSize×1.15
+    // (subpixels, font metrics) — otherwise no text is drawn and nothing is selectable.
     if (y >= bottom - 0.15) {
       break;
     }
@@ -168,7 +164,6 @@ function overlayLinksAndInvisibleText(
   box: ImgBoxMm,
   anchorToPage: Map<string, number>
 ): void {
-  // —— Links + Text in <a>
   pageEl.querySelectorAll<HTMLAnchorElement>("a[href]").forEach((a) => {
     const href = a.getAttribute("href");
     if (!href || !isAllowedLinkHref(href)) {
@@ -198,7 +193,6 @@ function overlayLinksAndInvisibleText(
     drawInvisibleTextInRect(pdf, a.textContent || "", r, fs, inferFontStyle(a));
   });
 
-  // —— Übriger Fließtext (nicht innerhalb von <a>, keine doppelten li>p)
   pageEl.querySelectorAll<HTMLElement>(TEXT_BLOCK_SELECTOR).forEach((el) => {
     if (el.closest("a")) {
       return;
@@ -224,7 +218,7 @@ function overlayLinksAndInvisibleText(
 }
 
 /**
- * @throws Error wenn keine `.a4-page`-Elemente vorhanden sind
+ * @throws Error if there are no `.a4-page` elements
  */
 export async function exportPreviewToPdf(
   previewRoot: HTMLElement,
@@ -246,7 +240,7 @@ export async function exportPreviewToPdf(
   try {
     pdf.setLanguage("de");
   } catch {
-    /* ältere jsPDF-Builds */
+    /* older jsPDF builds */
   }
   pdf.setProperties({
     title: "DSABrew Export",

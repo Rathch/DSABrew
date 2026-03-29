@@ -1,14 +1,15 @@
 import type MarkdownIt from "markdown-it";
+import type StateCore from "markdown-it/lib/rules_core/state_core.mjs";
 
 /**
- * Setzt `id` auf `heading_open`-Tokens (nach dem Inline-Pass), analog zu markdown-it-anchor.
- * Doppelte Slugs auf derselben Seite: `-2`, `-3`, …
+ * Sets `id` on `heading_open` tokens (after the inline pass), similar to markdown-it-anchor.
+ * Duplicate slugs on the same page: `-2`, `-3`, …
  */
 export function applyHeadingAnchorPlugin(
   md: MarkdownIt,
   slugForHeading: (plainText: string) => string
 ): void {
-  md.core.ruler.after("inline", "dsabrew_heading_anchor", (state) => {
+  md.core.ruler.after("inline", "dsabrew_heading_anchor", (state: StateCore) => {
     const used = new Set<string>();
     for (let i = 0; i < state.tokens.length; i++) {
       const t = state.tokens[i];

@@ -1,7 +1,3 @@
-/**
- * Zeilennummern-Spalte: gleiche Typometrie wie die Textarea, Scroll per JS gekoppelt.
- */
-
 function countLines(text: string): number {
   if (!text) {
     return 1;

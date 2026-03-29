@@ -1,4 +1,10 @@
-/** Öffentliches Asset unter `public/dsa/image16.png` (wird von `npm run prepare-assets` erzeugt). */
+import type { ImpressumData } from "../../shared/impressum-default-data.js";
+import { DEFAULT_IMPRESSUM_DATA } from "../../shared/impressum-default-data.js";
+
+export type { ImpressumData };
+export { DEFAULT_IMPRESSUM_DATA };
+
+/** Public asset at `public/dsa/image16.png` (produced by `npm run prepare-assets`). */
 function impressumBannerImageSrc(): string {
   const base = import.meta.env.BASE_URL;
   const prefix = base.endsWith("/") ? base : `${base}/`;
@@ -6,79 +12,21 @@ function impressumBannerImageSrc(): string {
 }
 
 /**
- * Standard-Daten für die Impressum-Seite (nach dem Einband).
+ * Default data for the legal notice (impressum) page (after the cover).
  *
- * **Primär anpassbar im Markdown** (pro Dokument):
- * - `{{impressumField key=value}}` — Keys = `ImpressumData` oder deutsche Kurzformen (`version`, `datum`, `auflage`, `autor`, `kontakt`, `illustration`, `lektorat`, `disclaimer`, …); siehe `impressum-field-aliases.ts` und `contracts/macros.md`.
- * - `{{impressumPage}}` — rendert den Block; Feld-Makros auf derselben Seite darüber
+ * **Primarily customizable in Markdown** (per document):
+ * - `{{impressumField key=value}}` — keys = `ImpressumData` or German short forms (`version`, `datum`, `auflage`, `autor`, `kontakt`, `illustration`, `lektorat`, `disclaimer`, …); see `impressum-field-aliases.ts` and `contracts/macros.md`.
+ * - `{{impressumPage}}` — renders the block; field macros on the same page above it
  *
- * **Defaults hier** (`DEFAULT_IMPRESSUM_DATA`), wenn kein Feld-Makro gesetzt ist.
- * Optional: `renderDocument(md, { impressum: { … } })` — wird von Feld-Makros überschrieben.
+ * **Defaults here** (`DEFAULT_IMPRESSUM_DATA`) when no field macro is set.
+ * Optional: `renderDocument(md, { impressum: { … } })` — overridden by field macros.
  */
-export interface ImpressumData {
-  /** Hauptzeile unter „IMPRESSUM“ (Projekttitel) */
-  projectTitle: string;
-  versionLabel: string;
-  /** Einzeilige Anzeige, falls `versionNumber`/`versionDate`/`versionEdition` alle leer sind */
-  versionValue: string;
-  /** Einzelteile für „Version / Datum / Auflage“ (Anzeige: mit „ / “ verbunden) */
-  versionNumber: string;
-  versionDate: string;
-  versionEdition: string;
-  authorLabel: string;
-  authorValue: string;
-  contactLabel: string;
-  contactValue: string;
-  illustrationsLabel: string;
-  illustrationsValue: string;
-  lektoratLabel: string;
-  lektoratValue: string;
-  /** Disclaimer-Haupttext (ein Absatz unter der Disclaimer-Überschrift, vor der Copyright-Zeile) */
-  disclaimerBody: string;
-  /** Text vor „Copyright <Jahr> von <Name>“ im Absatz danach */
-  copyrightLinePrefix: string;
-  copyrightYear: string;
-  copyrightHolder: string;
-  footerCreditsPrefix: string;
-  footerWordTemplateLabel: string;
-  footerWordTemplateUrl: string;
-  /** Text nach dem Link, z. B. „ von Massimo Feth …“ */
-  footerCreditsSuffix: string;
-}
-
-export const DEFAULT_IMPRESSUM_DATA: ImpressumData = {
-  projectTitle: "Abenteuerliche Beschreibung",
-  versionLabel: "Version / Datum / Auflage",
-  versionValue: "Version 1.4 / 15.10.2017 / 5. Auflage",
-  versionNumber: "Version 1.4",
-  versionDate: "15.10.2017",
-  versionEdition: "5. Auflage",
-  authorLabel: "Autor",
-  authorValue: "Christian Rath-ulrich",
-  contactLabel: "Kontakt",
-  contactValue: "dsa@rath-ulrich.de",
-  illustrationsLabel: "Illustrationen",
-  illustrationsValue: "Lorem Ipsum, Dolor Sit, Amet Consetetur",
-  lektoratLabel: "Lektorat / Korrekturen",
-  lektoratValue: "Lorem Ipsum, Dolor Sit, Amet Consetetur",
-  disclaimerBody:
-    "Das vorliegende Werk verwendet das Regelwerk „Das Schwarze Auge“ (DSA) und die Spielwelt Aventuria. Beide sind geistiges Eigentum von Ulisses Spiele GmbH. " +
-    "Die Nutzung erfolgt im Rahmen der Fan-Richtlinien bzw. der vertraglichen Regelungen mit Ulisses Spiele. Weitere Informationen: www.ulisses-spiele.de. " +
-    "„Das Schwarze Auge“, „Aventuria“, „Scriptorium Aventuris“ und zugehörige Marken sind eingetragene Marken der Ulisses Spiele GmbH.",
-  copyrightLinePrefix: "Alle anderen Originalmaterialien in diesem Werk sind Copyright ",
-  copyrightYear: "2017",
-  copyrightHolder: "NAME HIER EINTRAGEN",
-  footerCreditsPrefix: "Credits / Dieses Produkt basiert auf der",
-  footerWordTemplateLabel: "Microsoft Word-Vorlage",
-  footerWordTemplateUrl: "https://blog.fethz.de",
-  footerCreditsSuffix: " von Massimo Feth (blog.fethz.de)."
-};
 
 export function mergeImpressum(partial?: Partial<ImpressumData>): ImpressumData {
   return { ...DEFAULT_IMPRESSUM_DATA, ...partial };
 }
 
-/** Zeile „Version / Datum / Auflage“: bevorzugt die drei Einzelfelder, sonst `versionValue`. */
+/** “Version / Date / Edition” line: prefers the three separate fields, otherwise `versionValue`. */
 export function formatVersionDisplayLine(data: ImpressumData): string {
   const parts = [data.versionNumber, data.versionDate, data.versionEdition]
     .map((s) => s.trim())
@@ -89,7 +37,7 @@ export function formatVersionDisplayLine(data: ImpressumData): string {
   return data.versionValue.trim();
 }
 
-/** Sichere href-Attribute (kein javascript:). */
+/** Safe href attributes (no javascript:). */
 export function safeHttpHref(url: string): string {
   const t = url.trim();
   if (/^javascript:/i.test(t)) {
@@ -101,9 +49,6 @@ export function safeHttpHref(url: string): string {
   return t;
 }
 
-/**
- * Statisches HTML für die Impressum-Seite. `esc` = z. B. markdown-it `escapeHtml`.
- */
 export function renderImpressumHtml(data: ImpressumData, esc: (s: string) => string): string {
   const href = esc(safeHttpHref(data.footerWordTemplateUrl));
 
