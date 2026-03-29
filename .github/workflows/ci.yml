@@ -1,0 +1,148 @@
+# CI: Typecheck, Build, Tests, CVE-Audit, Secret-Scanning, optional Secret-Präsenz
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: "20"
+
+jobs:
+  web:
+    name: Web (Typecheck, Test, Build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - run: npm ci
+
+      - name: TypeScript (strict)
+        run: npx tsc --noEmit
+
+      - name: Tests mit Abdeckung
+        run: npm run test:coverage
+
+      - name: Coverage-Bericht (Artefakt)
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-coverage
+          path: web/coverage/
+          if-no-files-found: warn
+
+      - name: Coverage in Job-Zusammenfassung
+        working-directory: web
+        run: |
+          test -f coverage/coverage-summary.json || exit 0
+          node <<'NODE'
+          const fs = require("fs");
+          const j = JSON.parse(fs.readFileSync("coverage/coverage-summary.json", "utf8"));
+          const t = j.total || {};
+          const row = (k) => `| ${k} | ${t[k]?.pct ?? "–"} % |`;
+          const md =
+            "### Web-Testabdeckung (Vitest)\n\n| Metrik | Anteil |\n| --- | --- |\n" +
+            `${row("lines")}\n${row("statements")}\n${row("functions")}\n${row("branches")}\n`;
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY || "/dev/stdout", md);
+          NODE
+
+      - name: Production build
+        run: npm run build
+
+  server:
+    name: Server (Typecheck)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - run: npm ci
+
+      - name: TypeScript
+        run: npm run typecheck
+
+  dependency-audit:
+    name: npm audit (CVEs)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [web, server]
+    defaults:
+      run:
+        working-directory: ${{ matrix.package }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: ${{ matrix.package }}/package-lock.json
+
+      - run: npm ci
+
+      # Schwelle anpassen: low | moderate | high | critical
+      - name: npm audit
+        run: npm audit --audit-level=high
+
+  secret-scan:
+    name: Committed secrets (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Optional: Prüft, ob festgelegte GitHub Action-Secrets gesetzt sind (Deploy, Releases).
+  # 1) Repository variable CI_VERIFY_SECRETS = true
+  # 2) Unten Secret-Namen an eure Settings → Secrets → Actions anpassen (oder Schritte duplizieren).
+  verify-action-secrets:
+    name: Erforderliche Repo-Secrets (optional)
+    # Auf Fork-PRs stehen Repo-Secrets nicht zur Verfügung → Job überspringen
+    if: >-
+      vars.CI_VERIFY_SECRETS == 'true' &&
+      (github.event_name != 'pull_request' ||
+       github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pflicht-Secrets (Beispiel — Namen anpassen)
+        env:
+          # Beispiel: ein Secret, das für eure Deploy-/Release-Pipeline existieren muss
+          DEPLOYMENT_SECRET: ${{ secrets.DEPLOYMENT_SECRET }}
+        run: |
+          if [ -z "$DEPLOYMENT_SECRET" ]; then
+            echo "::error::Secret DEPLOYMENT_SECRET fehlt unter Settings → Secrets and variables → Actions."
+            echo "::error::Passe den Job an (anderer Secret-Name) oder setze CI_VERIFY_SECRETS auf false."
+            exit 1
+          fi
+          echo "DEPLOYMENT_SECRET ist gesetzt."

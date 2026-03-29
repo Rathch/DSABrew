@@ -23,6 +23,14 @@ export default defineConfig({
     }
   },
   test: {
-    globals: true
+    globals: true,
+    coverage: {
+      provider: "v8",
+      reportsDirectory: "./coverage",
+      reporter: ["text", "json-summary", "lcov"],
+      include: ["src/**/*.ts"],
+      exclude: ["**/*.d.ts"]
+      // Mindest-Schwellen bei Bedarf ergänzen, z. B. thresholds: { lines: 50 }
+    }
   }
 });

@@ -1,0 +1,22 @@
+# CVE-/Lizenz-Hinweise zu geänderten Abhängigkeiten in Pull Requests (GitHub Dependency Review)
+name: Dependency Review
+
+on:
+  pull_request:
+    branches: [main, master]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  dependency-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/dependency-review-action@v4
+        with:
+          # Schwelle anpassen: low | moderate | high | critical
+          fail-on-severity: high
+          # Optional: Lizenz-Ausschluss, z. B. deny-licenses: GPL-3.0 — kann npm-Ökosystem schnell blockieren
