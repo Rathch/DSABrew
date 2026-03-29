@@ -1,6 +1,10 @@
 /**
- * Kopplung Editor ↔ Vorschau: proportionales Scrollen + Minimap-Streifen für den in der Vorschau sichtbaren Bereich.
+ * Scroll-Kopplung Editor ↔ Vorschau + schmaler Seitenstreifen:
+ * Immer Maßstab und Streifen aus der Textarea (scrollHeight, \\page-Segmente, Zeilen wie Nummernspalte),
+ * damit die Minimap auch bei sichtbarer Vorschau mit dem Markdown übereinstimmt.
  */
+
+import { minimapSegmentLayout, pageSegmentsZeroBased } from "./editor-page-stripes";
 
 const LS_SCROLL_LINK = "dsabrew-scroll-link";
 
@@ -18,6 +22,26 @@ function setScrollRatio(el: HTMLElement, r: number): void {
     return;
   }
   el.scrollTop = Math.max(0, Math.min(max, r * max));
+}
+
+function previewIsVisible(preview: HTMLElement): boolean {
+  return getComputedStyle(preview).display !== "none";
+}
+
+/** Einmalige load-Listener für Vorschau-Bilder (scrollHeight ändert sich, #preview-Box oft nicht → kein ResizeObserver). */
+function bindPreviewImageLoads(preview: HTMLElement, onLayout: () => void): void {
+  preview.querySelectorAll("img").forEach((img) => {
+    if (img.complete) {
+      return;
+    }
+    img.addEventListener(
+      "load",
+      () => {
+        requestAnimationFrame(onLayout);
+      },
+      { once: true }
+    );
+  });
 }
 
 export function setupEditorPreviewScrollSync(options: {
@@ -45,7 +69,24 @@ export function setupEditorPreviewScrollSync(options: {
     isSplitLayout
   } = options;
 
+  const pagesContainer = document.getElementById("editor-viewport-gutter-pages");
+
   let ignore = false;
+
+  /** Minimap-Scroll wie Zeilennummern: gleicher scrollTop wie Textarea; Streifen in Dokument-Pixeln. */
+  function syncMinimapScrollFromTextarea(): void {
+    if (!pagesContainer || gutter.hidden) {
+      return;
+    }
+    if (gutterRange.style.display === "none") {
+      return;
+    }
+    const st = textarea.scrollTop;
+    const ch = textarea.clientHeight;
+    gutterInner.scrollTop = st;
+    gutterRange.style.top = `${st}px`;
+    gutterRange.style.height = `${Math.max(4, ch)}px`;
+  }
 
   const saved = localStorage.getItem(LS_SCROLL_LINK);
   if (saved === "0") {
@@ -56,71 +97,127 @@ export function setupEditorPreviewScrollSync(options: {
     localStorage.setItem(LS_SCROLL_LINK, toggle.checked ? "1" : "0");
   });
 
-  function updateMinimap(): void {
+  function updatePageStripeGutter(): void {
     const split = isSplitLayout();
     syncBar.hidden = !split;
-    gutter.hidden = !split;
-    if (!split) {
+
+    if (!pagesContainer) {
       return;
     }
 
-    const sh = preview.scrollHeight;
-    const ch = preview.clientHeight;
-    const st = preview.scrollTop;
-    const th = textarea.scrollHeight;
-    const tch = textarea.clientHeight;
-    const tst = textarea.scrollTop;
+    const segments = pageSegmentsZeroBased(textarea.value);
+    const multiSource = segments.length > 1;
 
-    gutterInner.style.transform = `translateY(${-tst}px)`;
-    gutterTrack.style.height = `${th}px`;
+    const pageEls = preview.querySelectorAll<HTMLElement>(".a4-page");
+    const domOk = previewIsVisible(preview) && pageEls.length > 0;
 
-    if (sh <= 0) {
+    /* Eine Seite ohne Vorschau: Streifen ausblenden (wie zuvor) */
+    if (!multiSource && !domOk) {
+      gutter.hidden = true;
+      return;
+    }
+
+    gutter.hidden = false;
+
+    const shRaw = textarea.scrollHeight;
+    if (shRaw <= 0) {
+      gutterInner.style.transform = "";
+      gutterTrack.style.height = "0";
+      pagesContainer.replaceChildren();
       gutterRange.style.display = "none";
       return;
     }
-    gutterRange.style.display = "block";
 
-    const topPx = (st / sh) * th;
-    const hPx = Math.max((ch / sh) * th, 3);
-    gutterRange.style.top = `${topPx}px`;
-    gutterRange.style.height = `${hPx}px`;
+    const sh = shRaw;
+    const gh = gutter.clientHeight;
+    if (gh <= 0) {
+      requestAnimationFrame(() => updatePageStripeGutter());
+      return;
+    }
+
+    gutterTrack.style.height = `${sh}px`;
+    pagesContainer.replaceChildren();
+
+    const layouts = minimapSegmentLayout(textarea, segments);
+    layouts.forEach((lay, i) => {
+      const seg = document.createElement("div");
+      seg.className = `editor__viewport-gutter-page editor__viewport-gutter-page--${i % 2 === 0 ? "a" : "b"}`;
+      seg.style.top = `${lay.top}px`;
+      seg.style.height = `${lay.height}px`;
+      pagesContainer.appendChild(seg);
+    });
+
+    gutterRange.style.display = "block";
+    syncMinimapScrollFromTextarea();
+  }
+
+  function schedulePageStripeGutter(): void {
+    requestAnimationFrame(() => {
+      updatePageStripeGutter();
+      bindPreviewImageLoads(preview, schedulePageStripeGutter);
+    });
+  }
+
+  function reobserveA4Pages(roPages: ResizeObserver): void {
+    roPages.disconnect();
+    preview.querySelectorAll(".a4-page").forEach((el) => {
+      roPages.observe(el);
+    });
   }
 
   function onPreviewScroll(): void {
-    updateMinimap();
     if (!isSplitLayout() || !toggle.checked || ignore) {
       return;
     }
     ignore = true;
     setScrollRatio(textarea, scrollRatio(preview));
     ignore = false;
-    updateMinimap();
+    syncMinimapScrollFromTextarea();
   }
 
   function onTextareaScroll(): void {
-    updateMinimap();
+    syncMinimapScrollFromTextarea();
     if (!isSplitLayout() || !toggle.checked || ignore) {
       return;
     }
     ignore = true;
     setScrollRatio(preview, scrollRatio(textarea));
     ignore = false;
-    updateMinimap();
   }
 
   preview.addEventListener("scroll", onPreviewScroll, { passive: true });
   textarea.addEventListener("scroll", onTextareaScroll, { passive: true });
-  textarea.addEventListener("input", () => requestAnimationFrame(() => updateMinimap()));
+  textarea.addEventListener("input", () => requestAnimationFrame(() => updatePageStripeGutter()));
 
-  const ro = new ResizeObserver(() => updateMinimap());
+  const ro = new ResizeObserver(() => updatePageStripeGutter());
   ro.observe(preview);
   ro.observe(textarea);
   ro.observe(gutter);
 
-  const mo = new MutationObserver(() => requestAnimationFrame(() => updateMinimap()));
+  const roPages = new ResizeObserver(() => updatePageStripeGutter());
+
+  const mo = new MutationObserver(() => {
+    reobserveA4Pages(roPages);
+    schedulePageStripeGutter();
+  });
   mo.observe(preview, { childList: true, subtree: true });
 
-  layout.addEventListener("dsabrew-layout-changed", () => updateMinimap());
+  let winResizeTimer: ReturnType<typeof setTimeout> | null = null;
+  window.addEventListener("resize", () => {
+    if (winResizeTimer) {
+      clearTimeout(winResizeTimer);
+    }
+    winResizeTimer = setTimeout(() => {
+      winResizeTimer = null;
+      updatePageStripeGutter();
+    }, 100);
+  });
 
-  updateMinimap();
+  void document.fonts.ready.then(() => updatePageStripeGutter());
+
+  layout.addEventListener("dsabrew-layout-changed", () => updatePageStripeGutter());
+
+  reobserveA4Pages(roPages);
+  bindPreviewImageLoads(preview, schedulePageStripeGutter);
+  updatePageStripeGutter();
 }

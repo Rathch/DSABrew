@@ -4,8 +4,18 @@ import { attachMarkdownToolbar } from "./markdown-toolbar";
 import { exportPreviewToPdf } from "./pdf-export";
 import { renderDocument } from "./renderer";
 import { setupEditorPreviewScrollSync } from "./scroll-sync";
+import { updateEditorPageStripeBackground } from "./editor-page-stripes";
+import { setupEditorLineNumbers } from "./editor-line-numbers";
 import { DATENSCHUTZ_BODY_HTML } from "./datenschutz-content";
 import { fanProductNoticeHtml } from "./fan-product-notice";
+import {
+  applyThemePreference,
+  getThemePreference,
+  initThemeMediaListener,
+  setThemePreference,
+  syncThemeToggleButtons,
+  themeControlClusterHtml
+} from "./theme";
 
 document.documentElement.style.setProperty(
   "--dsa-list-bullet-url",
@@ -50,6 +60,35 @@ const app = document.querySelector<HTMLDivElement>("#app");
 if (!app) {
   throw new Error("Missing #app root element");
 }
+
+initThemeMediaListener();
+applyThemePreference(getThemePreference());
+
+/* Capture-Phase: greift auch, wenn ein Kind `stopPropagation` nutzt (z. B. Toolbar). */
+document.addEventListener(
+  "click",
+  (e: MouseEvent) => {
+    const t = e.target;
+    if (!(t instanceof Element)) {
+      return;
+    }
+    const btn = t.closest<HTMLButtonElement>("[data-theme-btn]");
+    if (!btn || !app.contains(btn)) {
+      return;
+    }
+    const m = btn.dataset.themeBtn;
+    if (m !== "light" && m !== "dark") {
+      return;
+    }
+    const cur = getThemePreference();
+    if (m === "light") {
+      setThemePreference(cur === "light" ? "system" : "light");
+    } else {
+      setThemePreference(cur === "dark" ? "system" : "dark");
+    }
+  },
+  true
+);
 
 const BODY_SCROLLABLE_CLASS = "dsabrew-body--scrollable";
 const STRIP_VISIBLE_CLASS = "dsabrew-privacy-strip-visible";
@@ -99,98 +138,127 @@ const LINK_ELF = "https://elf.ulisses-spiele.de/";
 const LINK_GPL = "https://www.gnu.org/licenses/gpl-3.0.html";
 const LINK_GITHUB = "https://github.com/Rathch/DSABrew";
 
-function landingFooterNav(extraClass: string): string {
+const A_CHROME = 'class="chrome-link"';
+
+const A_ERR = 'class="chrome-link chrome-link--danger"';
+
+const ERR_ASIDE = "dsabrew-err-aside";
+
+function landingFooterNav(navClass: string): string {
   return `
-    <nav class="landing-footer${extraClass}" aria-label="Rechtliches und externe Links">
-      <ul class="landing-footer__list">
-        <li><a href="/impressum">Impressum</a></li>
-        <li><a href="/datenschutz">Datenschutz</a></li>
-        <li><a href="${LINK_SCRIPTORIUM}" rel="noopener noreferrer">Scriptorium Aventuris</a></li>
-        <li><a href="${LINK_ELF}" rel="noopener noreferrer">ELF (Ulisses)</a></li>
-        <li><a href="${LINK_GPL}" rel="noopener noreferrer">GNU GPLv3</a></li>
-        <li><a href="${LINK_GITHUB}" rel="noopener noreferrer">GitHub</a></li>
+    <nav class="${navClass}" aria-label="Rechtliches und externe Links">
+      <ul>
+        <li><a href="/impressum" ${A_CHROME}>Impressum</a></li>
+        <li><a href="/datenschutz" ${A_CHROME}>Datenschutz</a></li>
+        <li><a href="${LINK_SCRIPTORIUM}" rel="noopener noreferrer" ${A_CHROME}>Scriptorium Aventuris</a></li>
+        <li><a href="${LINK_ELF}" rel="noopener noreferrer" ${A_CHROME}>ELF (Ulisses)</a></li>
+        <li><a href="${LINK_GPL}" rel="noopener noreferrer" ${A_CHROME}>GNU GPLv3</a></li>
+        <li><a href="${LINK_GITHUB}" rel="noopener noreferrer" ${A_CHROME}>GitHub</a></li>
       </ul>
     </nav>`;
 }
 
-/** Fußzeile: Nav-Links + Markenhinweis / Fan-Produkt (siehe `fan-product-notice.ts`). */
-function siteChromeFooter(navExtraClass: string): string {
-  return `${landingFooterNav(navExtraClass)}${fanProductNoticeHtml()}`;
+/** Fußzeile: Nav-Links (volle Breite) + Markenhinweis / Fan-Produkt (siehe `fan-product-notice.ts`). */
+function siteChromeFooter(footerNavClass: string): string {
+  return `<div class="site-chrome-footer">${landingFooterNav(footerNavClass)}${fanProductNoticeHtml()}</div>`;
 }
 
 function buildLegalPageLayout(kind: "impressum" | "datenschutz"): string {
   const title = kind === "impressum" ? "Impressum" : "Datenschutz";
   const body =
     kind === "impressum"
-      ? `<div class="landing-legal-body">
-      <address class="landing-impressum">
-        <p class="landing-impressum__name">Christian Rath-Ulrich</p>
-        <p class="landing-impressum__addr">Ernst-Mühlendyckstr 2<br />51143 Köln</p>
-        <p class="landing-impressum__contact">
-          <a href="mailto:kontakt@rath-ulrich.de">kontakt@rath-ulrich.de</a>
+      ? `<div class="legal-prose">
+      <address class="legal-impressum-address">
+        <p class="legal-impressum-name">Christian Rath-Ulrich</p>
+        <p>Ernst-Mühlendyckstr 2<br />51143 Köln</p>
+        <p>
+          <a href="mailto:kontakt@rath-ulrich.de" ${A_CHROME}>kontakt@rath-ulrich.de</a>
         </p>
       </address>
     </div>`
       : DATENSCHUTZ_BODY_HTML;
   return `
-  <div class="landing landing--legal">
-    <header class="landing__header">
-      <h1 class="landing__title">${title}</h1>
+  <div class="legal-shell">
+    <header class="legal-header">
+      <h1 class="legal-h1">${title}</h1>
+      ${themeControlClusterHtml()}
     </header>
     ${body}
-    <p class="landing-back"><a href="/">← Neues Dokument</a></p>
-    ${siteChromeFooter(" landing-footer--inline")}
+    <p class="legal-back"><a href="/" ${A_CHROME}>← Neues Dokument</a></p>
+    ${siteChromeFooter("chrome-footer-nav chrome-footer-nav--bordered-strong")}
   </div>
 `;
 }
 
-/** Symbol „Nur Ansicht“ (Auge) */
-const ICON_VIEW = `<svg class="hosted-toolbar__icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>`;
+/** Symbol „Nur Ansicht“ (Auge) — feste 16×16, nicht em-basiert (verhindert Riesen-Icons). */
+const ICON_VIEW = `<svg class="hosted-toolbar-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>`;
 
-const ICON_EDIT = `<svg class="hosted-toolbar__icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.003 1.003 0 0 0 0-1.41l-2.34-2.34a1.003 1.003 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>`;
+const ICON_EDIT = `<svg class="hosted-toolbar-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.003 1.003 0 0 0 0-1.41l-2.34-2.34a1.003 1.003 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>`;
+
+/** Scroll-Kopplung + Hell/Dunkel in der Kopfzeile (rechts neben der Dokumentnavigation). */
+function hostedChromeToolsHtml(): string {
+  return `
+    <div class="hosted-chrome-tools">
+      <div class="editor__sync-bar" id="editor-sync-bar" hidden>
+        <label class="editor__sync-label" for="scroll-link-toggle">
+          <input type="checkbox" id="scroll-link-toggle" checked />
+          Scroll koppeln
+        </label>
+      </div>
+      ${themeControlClusterHtml()}
+    </div>`;
+}
 
 function buildDocumentLayout(options: { mode: "view" | "edit" }): string {
   const editorClasses =
     options.mode === "view" ? "editor editor--readonly" : "editor";
   const shareEditBtn =
     options.mode === "edit"
-      ? `<button type="button" id="share-edit-btn" class="hosted-toolbar__btn">${ICON_EDIT}<span>Teilen: Bearbeiten</span></button>`
+      ? `<button type="button" id="share-edit-btn" class="ui-toolbar-btn ui-toolbar-btn--secondary">${ICON_EDIT}<span>Teilen: Bearbeiten</span></button>`
       : "";
-  const segLayout = `class="hosted-view-controls__seg" aria-pressed="false"`;
+  const segLayout = `class="ui-segment-btn" aria-pressed="false"`;
   const segMd =
     options.mode === "edit"
-      ? `class="hosted-view-controls__seg hosted-view-controls__seg--active" aria-pressed="true"`
-      : `class="hosted-view-controls__seg" aria-pressed="false"`;
+      ? `class="ui-segment-btn" aria-pressed="true"`
+      : `class="ui-segment-btn" aria-pressed="false"`;
   const segPv =
     options.mode === "view"
-      ? `class="hosted-view-controls__seg hosted-view-controls__seg--active" aria-pressed="true"`
-      : `class="hosted-view-controls__seg" aria-pressed="false"`;
+      ? `class="ui-segment-btn" aria-pressed="true"`
+      : `class="ui-segment-btn" aria-pressed="false"`;
   const hostedSingleInit =
     options.mode === "edit"
       ? "layout--view-single layout--focus-editor"
       : "layout--view-single layout--focus-preview";
   return `
-  <main class="layout layout--hosted ${hostedSingleInit}">
+  <main class="layout layout--hosted layout--hosted-bg ${hostedSingleInit}">
     <div class="hosted-banner">
-      <div class="hosted-banner__row">
-        <strong>DSABrew</strong>
-        <span class="hosted-banner__mode">${options.mode === "view" ? "Nur Lesen" : "Bearbeiten — Autosave"}</span>
+      <div class="hosted-banner__brand">
+        <div class="hosted-banner__title-row">
+          <h1 class="hosted-banner__title">DSABrew</h1>
+          <span class="hosted-banner__subtitle">${options.mode === "view" ? "Nur Lesen" : "Bearbeiten — Autosave"}</span>
+        </div>
       </div>
-      <div class="hosted-toolbar" role="toolbar" aria-label="Dokumentaktionen">
-        <button type="button" id="hosted-new-btn" class="hosted-toolbar__btn hosted-toolbar__btn--primary">
-          <span class="hosted-toolbar__plus" aria-hidden="true">+</span> Neues Dokument
-        </button>
-        <button type="button" id="share-view-btn" class="hosted-toolbar__btn">${ICON_VIEW}<span>Teilen: Nur Ansicht</span></button>
-        ${shareEditBtn}
-        <button type="button" id="pdf-btn-banner" class="hosted-toolbar__btn print-btn hosted-toolbar__btn--narrow-only" aria-label="PDF speichern">PDF speichern</button>
-      </div>
-      <div class="hosted-view-controls" role="region" aria-label="Darstellung bei schmalem Fenster">
-        <div class="hosted-view-controls__row">
-          <span class="hosted-view-controls__label" id="hosted-view-label">Darstellung</span>
-          <div class="hosted-view-controls__segment" role="radiogroup" aria-labelledby="hosted-view-label">
-            <button type="button" ${segLayout} id="hosted-view-layout">Layout</button>
-            <button type="button" ${segMd} id="hosted-view-md">Markdown</button>
-            <button type="button" ${segPv} id="hosted-view-preview">Vorschau</button>
+      <nav class="hosted-doc-nav" aria-label="Dokumentnavigation">
+        <div class="hosted-doc-nav__left" role="toolbar" aria-label="Teilen und Export">
+          <button type="button" id="share-view-btn" class="ui-toolbar-btn ui-toolbar-btn--secondary">${ICON_VIEW}<span>Teilen: Nur Ansicht</span></button>
+          ${shareEditBtn}
+          <button type="button" id="pdf-btn-banner" class="ui-toolbar-btn ui-toolbar-btn--secondary" aria-label="PDF speichern">PDF speichern</button>
+        </div>
+        <div class="hosted-doc-nav__center">
+          <button type="button" id="hosted-new-btn" class="ui-toolbar-btn ui-toolbar-btn--cta hosted-doc-nav__new-btn">
+            <span class="hosted-doc-nav__new-icon" aria-hidden="true">+</span>
+            <span>Neues Dokument</span>
+          </button>
+        </div>
+        <div class="hosted-doc-nav__right">${hostedChromeToolsHtml()}</div>
+      </nav>
+      <div class="hosted-view-controls" role="region" aria-label="Ansicht">
+        <div class="hosted-view-toolbar">
+          <span class="hosted-view-label" id="hosted-view-label">Ansicht</span>
+          <div class="hosted-view-radiogroup" role="radiogroup" aria-labelledby="hosted-view-label">
+            <button type="button" ${segLayout} id="hosted-view-layout">Beides</button>
+            <button type="button" ${segMd} id="hosted-view-md">Nur Markdown</button>
+            <button type="button" ${segPv} id="hosted-view-preview">Nur Vorschau</button>
           </div>
         </div>
       </div>
@@ -199,27 +267,26 @@ function buildDocumentLayout(options: { mode: "view" | "edit" }): string {
       <h2 class="editor__visually-hidden">Markdown</h2>
       <p id="save-status" class="editor__flash" aria-live="polite"></p>
       <div id="md-toolbar" class="md-toolbar-wrap"></div>
-      <div class="editor__sync-bar" id="editor-sync-bar" hidden>
-        <label class="editor__sync-label">
-          <input type="checkbox" id="scroll-link-toggle" checked />
-          Scroll koppeln
-        </label>
-      </div>
       <div class="editor__input-row">
+        <div class="editor__line-numbers-host" id="editor-line-numbers-host" aria-hidden="true">
+          <div class="editor__line-numbers-scroll" id="editor-line-numbers-scroll">
+            <pre class="editor__line-numbers-inner" id="editor-line-numbers-inner"></pre>
+          </div>
+        </div>
         <div class="editor__viewport-gutter" id="editor-viewport-gutter" hidden aria-hidden="true">
           <div class="editor__viewport-gutter-inner" id="editor-viewport-gutter-inner">
             <div class="editor__viewport-gutter-track" id="editor-viewport-gutter-track">
+              <div class="editor__viewport-gutter-pages" id="editor-viewport-gutter-pages" aria-hidden="true"></div>
               <div class="editor__viewport-gutter-range" id="editor-viewport-gutter-range"></div>
             </div>
           </div>
         </div>
         <textarea id="markdown-input" spellcheck="false"></textarea>
       </div>
-      <button id="pdf-btn" class="print-btn" type="button">PDF speichern</button>
     </section>
     <section class="preview" id="preview"></section>
     <footer class="hosted-doc-footer" role="contentinfo">
-      ${siteChromeFooter("")}
+      ${siteChromeFooter("chrome-footer-nav chrome-footer-nav--bordered")}
     </footer>
   </main>
 `;
@@ -270,7 +337,7 @@ const HOSTED_NARROW_MQ = "(max-width: 960px)";
 type HostedViewPref = "layout" | "markdown" | "preview";
 
 function defaultHostedView(docMode: "view" | "edit"): HostedViewPref {
-  return docMode === "edit" ? "markdown" : "preview";
+  return docMode === "edit" ? "layout" : "preview";
 }
 
 function migrateOldHostedPrefs(): HostedViewPref | null {
@@ -319,7 +386,6 @@ function wireHostedViewControls(layout: HTMLElement, docMode: "view" | "edit"): 
   function setSegActive(activeIndex: number): void {
     segBtns.forEach((b, i) => {
       const on = i === activeIndex;
-      b.classList.toggle("hosted-view-controls__seg--active", on);
       b.setAttribute("aria-pressed", on ? "true" : "false");
     });
   }
@@ -353,23 +419,20 @@ function wireHostedViewControls(layout: HTMLElement, docMode: "view" | "edit"): 
     setSegActive(viewToIndex(v));
   }
 
-  function applyNarrowState(): void {
-    const v = readHostedViewPref() ?? defaultHostedView(docMode);
-    if (!mq.matches) {
-      layout.classList.remove("layout--view-single", "layout--focus-editor", "layout--focus-preview");
-      setSegActive(viewToIndex(v));
-      notifyLayoutChanged();
-      return;
-    }
+  /**
+   * Nur-Ansicht-URL (Teilen: Nur Ansicht): immer „Nur Vorschau“, nicht die zuletzt im Bearbeiten-Modus
+   * gespeicherte Ansicht (z. B. Beides).
+   */
+  function applyHostedViewState(): void {
+    const v =
+      docMode === "view" ? "preview" : readHostedViewPref() ?? defaultHostedView(docMode);
     applyViewPref(v);
     notifyLayoutChanged();
   }
 
   function persistAndApply(v: HostedViewPref): void {
-    localStorage.setItem(LS_HOSTED_VIEW, v);
-    if (!mq.matches) {
-      notifyLayoutChanged();
-      return;
+    if (docMode !== "view") {
+      localStorage.setItem(LS_HOSTED_VIEW, v);
     }
     applyViewPref(v);
     notifyLayoutChanged();
@@ -379,8 +442,8 @@ function wireHostedViewControls(layout: HTMLElement, docMode: "view" | "edit"): 
   btnMd.addEventListener("click", () => persistAndApply("markdown"));
   btnPv.addEventListener("click", () => persistAndApply("preview"));
 
-  mq.addEventListener("change", applyNarrowState);
-  applyNarrowState();
+  mq.addEventListener("change", applyHostedViewState);
+  applyHostedViewState();
 }
 
 function initEditorAndPreview(
@@ -394,18 +457,25 @@ function initEditorAndPreview(
 ): void {
   setPublicPageScroll(false);
   app.innerHTML = buildDocumentLayout({ mode: options.mode });
+  syncThemeToggleButtons();
 
   const input = document.querySelector<HTMLTextAreaElement>("#markdown-input");
   const preview = document.querySelector<HTMLElement>("#preview");
-  const pdfButton = document.querySelector<HTMLButtonElement>("#pdf-btn");
   const toolbarRoot = document.querySelector<HTMLElement>("#md-toolbar");
   const saveStatus = document.querySelector<HTMLElement>("#save-status");
 
-  if (!input || !preview || !pdfButton || !toolbarRoot) {
+  if (!input || !preview || !toolbarRoot) {
     throw new Error("Failed to initialize app UI");
   }
 
   input.value = initialMarkdown;
+
+  const lineNumbersScroll = document.querySelector<HTMLElement>("#editor-line-numbers-scroll");
+  const lineNumbersInner = document.querySelector<HTMLElement>("#editor-line-numbers-inner");
+  const lineNumbersHost = document.querySelector<HTMLElement>("#editor-line-numbers-host");
+  if (lineNumbersScroll && lineNumbersInner && lineNumbersHost) {
+    setupEditorLineNumbers(input, lineNumbersScroll, lineNumbersInner, lineNumbersHost);
+  }
   if (options.mode === "view") {
     input.readOnly = true;
     input.setAttribute("aria-readonly", "true");
@@ -498,7 +568,7 @@ function initEditorAndPreview(
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      preview.innerHTML = `<aside class="preview-error" role="alert"><strong>Vorschau fehlgeschlagen</strong><pre>${escapeHtml(msg)}</pre></aside>`;
+      preview.innerHTML = `<aside class="${ERR_ASIDE}" role="alert"><strong>Vorschau fehlgeschlagen</strong><pre class="dsabrew-err-aside__pre">${escapeHtml(msg)}</pre></aside>`;
     }
   }
 
@@ -604,6 +674,7 @@ function initEditorAndPreview(
   input.addEventListener("input", () => {
     updatePreview(input.value);
     scheduleHostedSave();
+    refreshEditorPageStripes();
   });
 
   window.addEventListener("pagehide", flushHostedSave);
@@ -616,10 +687,7 @@ function initEditorAndPreview(
   const pdfBanner = document.querySelector<HTMLButtonElement>("#pdf-btn-banner");
 
   async function runPdfExport(): Promise<void> {
-    const prevMain = pdfButton.textContent;
     const prevBanner = pdfBanner?.textContent;
-    pdfButton.disabled = true;
-    pdfButton.textContent = "PDF wird erstellt…";
     if (pdfBanner) {
       pdfBanner.disabled = true;
       pdfBanner.textContent = "PDF wird erstellt…";
@@ -628,7 +696,6 @@ function initEditorAndPreview(
       await exportPreviewToPdf(preview, {
         onProgress: (cur, tot) => {
           const t = `PDF… Seite ${cur}/${tot}`;
-          pdfButton.textContent = t;
           if (pdfBanner) {
             pdfBanner.textContent = t;
           }
@@ -638,8 +705,6 @@ function initEditorAndPreview(
       const msg = err instanceof Error ? err.message : String(err);
       window.alert(`PDF-Export fehlgeschlagen:\n${msg}`);
     } finally {
-      pdfButton.disabled = false;
-      pdfButton.textContent = prevMain ?? "PDF speichern";
       if (pdfBanner) {
         pdfBanner.disabled = false;
         pdfBanner.textContent = prevBanner ?? "PDF speichern";
@@ -647,16 +712,18 @@ function initEditorAndPreview(
     }
   }
 
-  pdfButton.addEventListener("click", () => void runPdfExport());
   pdfBanner?.addEventListener("click", () => void runPdfExport());
 
   updatePreview(input.value);
+  refreshEditorPageStripes();
+  syncThemeToggleButtons();
 }
 
 function renderLegalPage(kind: "impressum" | "datenschutz"): void {
   document.title = kind === "impressum" ? "Impressum — DSABrew" : "Datenschutz — DSABrew";
   setPublicPageScroll(true);
   app.innerHTML = buildLegalPageLayout(kind);
+  syncThemeToggleButtons();
 }
 
 let pathNorm = window.location.pathname;
@@ -676,7 +743,7 @@ if (path === "/impressum") {
       if (!r.ok) {
         setPublicPageScroll(true);
         document.title = "DSABrew";
-        app.innerHTML = `<aside class="preview-error" role="alert"><strong>Neues Dokument fehlgeschlagen</strong><p>HTTP ${r.status}</p><p><a href="/">Erneut versuchen</a></p></aside>`;
+        app.innerHTML = `<aside class="${ERR_ASIDE}" role="alert"><strong>Neues Dokument fehlgeschlagen</strong><p>HTTP ${r.status}</p><p><a href="/" ${A_ERR}>Erneut versuchen</a></p></aside>`;
         return;
       }
       const j = (await r.json()) as { slugEdit: string };
@@ -684,7 +751,7 @@ if (path === "/impressum") {
     } catch {
       setPublicPageScroll(true);
       document.title = "DSABrew";
-      app.innerHTML = `<aside class="preview-error" role="alert"><strong>API nicht erreichbar</strong><p><a href="/">Erneut versuchen</a></p></aside>`;
+      app.innerHTML = `<aside class="${ERR_ASIDE}" role="alert"><strong>API nicht erreichbar</strong><p><a href="/" ${A_ERR}>Erneut versuchen</a></p></aside>`;
     }
   })();
 } else {
@@ -697,12 +764,12 @@ if (path === "/impressum") {
         res = await fetch(apiUrl(`/api/documents/${encodeURIComponent(token)}`));
       } catch {
         setPublicPageScroll(true);
-        app.innerHTML = `<aside class="preview-error" role="alert"><strong>Netzwerkfehler</strong><p>API nicht erreichbar.</p><p><a href="/">Neues Dokument</a></p></aside>`;
+        app.innerHTML = `<aside class="${ERR_ASIDE}" role="alert"><strong>Netzwerkfehler</strong><p>API nicht erreichbar.</p><p><a href="/" ${A_ERR}>Neues Dokument</a></p></aside>`;
         return;
       }
       if (!res.ok) {
         setPublicPageScroll(true);
-        app.innerHTML = `<aside class="preview-error" role="alert"><strong>Dokument nicht verfügbar</strong><p>(${res.status})</p><p><a href="/">Neues Dokument</a></p></aside>`;
+        app.innerHTML = `<aside class="${ERR_ASIDE}" role="alert"><strong>Dokument nicht verfügbar</strong><p>(${res.status})</p><p><a href="/" ${A_ERR}>Neues Dokument</a></p></aside>`;
         return;
       }
       const data = (await res.json()) as {
@@ -721,7 +788,7 @@ if (path === "/impressum") {
   } else {
     document.title = "Seite nicht gefunden — DSABrew";
     setPublicPageScroll(true);
-    app.innerHTML = `<aside class="preview-error" role="alert"><strong>Seite nicht gefunden</strong><p><a href="/">Neues Dokument anlegen</a></p></aside>`;
+    app.innerHTML = `<aside class="${ERR_ASIDE}" role="alert"><strong>Seite nicht gefunden</strong><p><a href="/" ${A_ERR}>Neues Dokument anlegen</a></p></aside>`;
   }
 }
 

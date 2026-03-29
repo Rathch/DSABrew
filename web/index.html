@@ -10,6 +10,22 @@
       href="https://fonts.googleapis.com/css2?family=Gentium+Book+Plus:ital,wght@0,400;0,700;1,400&display=swap"
       rel="stylesheet"
     />
+    <script>
+      (function () {
+        try {
+          var k = "dsabrew-theme";
+          var v = localStorage.getItem(k);
+          if (v !== "light" && v !== "dark" && v !== "system") v = "system";
+          var dark =
+            v === "dark" ||
+            (v === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          document.documentElement.classList.toggle("dark", dark);
+          document.documentElement.style.colorScheme = dark ? "dark" : "light";
+        } catch (e) {
+          /* ignore */
+        }
+      })();
+    </script>
   </head>
   <body>
     <svg width="0" height="0" aria-hidden="true" style="position: absolute">
