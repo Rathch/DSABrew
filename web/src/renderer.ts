@@ -459,7 +459,7 @@ function collectDifficultyRatingMacros(raw: string): {
       if (!parsed) {
         const snippet = [label, rest].filter(Boolean).join(" | ").trim().slice(0, 96);
         warnings.push(
-          `[WARN] difficulty: ungültig „${snippet}“ (z. B. \`Kampf: | grün 2\` oder \`rot 3\`)`
+          `[WARN] difficulty: ungültig „${snippet}“ (z. B. \`Kampf: | grün 2\` oder \`rot 3\`)`
         );
         items.push({ token, mode: "red", points: 0, label });
         return token;

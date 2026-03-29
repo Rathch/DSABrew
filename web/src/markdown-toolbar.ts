@@ -53,7 +53,7 @@ function insertAtCursor(textarea: HTMLTextAreaElement, text: string): void {
 }
 
 function getLineRange(value: string, selStart: number, selEnd: number): { start: number; end: number } {
-  let lineStart = value.lastIndexOf("\n", selStart - 1) + 1;
+  const lineStart = value.lastIndexOf("\n", selStart - 1) + 1;
   let lineEnd = value.indexOf("\n", Math.max(selEnd - 1, 0));
   if (lineEnd === -1) {
     lineEnd = value.length;

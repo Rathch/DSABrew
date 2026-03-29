@@ -18,7 +18,7 @@ export function applyHeadingAnchorPlugin(
       }
       const inline = state.tokens[i + 1];
       const text = inline?.type === "inline" ? inline.content : "";
-      let base = slugForHeading(text);
+      const base = slugForHeading(text);
       let id = base;
       if (used.has(id)) {
         let n = 2;

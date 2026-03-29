@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_MARKDOWN_DEMO } from "../src/default-markdown-demo";
-import { buildPageChromeClasses, renderDocument } from "../src/renderer";
+import { renderDocument } from "../src/renderer";
 
 describe("renderer functional", () => {
   it("renders exactly one page for empty or whitespace-only input", () => {

@@ -37,14 +37,17 @@ jobs:
             web/package-lock.json
             server/package-lock.json
 
+      # Schritt-working-directory überschreibt defaults.run.working-directory (web/).
+      # github.workspace = Checkout-Root — Root-package.json + scripts/lint-ts.mjs liegen dort.
       - name: npm ci (repository root — ESLint)
-        working-directory: .
+        working-directory: ${{ github.workspace }}
         run: npm ci
 
       - run: npm ci
 
-      - name: ESLint (TypeScript)
-        working-directory: .
+      # lint-ts.mjs setzt cwd selbst aufs Repo-Root und lintet web/, shared/, server/ (eslint.config.mjs).
+      - name: ESLint (TypeScript — web, shared, server)
+        working-directory: ${{ github.workspace }}
         run: npm run lint:ts
 
       - name: TypeScript (strict)
@@ -134,7 +137,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: gitleaks/gitleaks-action@v2
+      # Major v2 ist aktuell (Stand 2026); es gibt kein offizielles gitleaks-action@v3.
+      - uses: gitleaks/gitleaks-action@v2.3.9
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

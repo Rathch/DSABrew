@@ -8,8 +8,8 @@
   "scripts": {
     "ci": "npm run ci:install && npm run ci:verify && npm run ci:audit",
     "ci:install": "npm ci && npm ci --prefix web && npm ci --prefix server",
-    "lint:ts": "eslint web/src web/tests web/vite.config.ts shared server",
-    "lint:ts:fix": "eslint web/src web/tests web/vite.config.ts shared server --fix",
+    "lint:ts": "node scripts/lint-ts.mjs",
+    "lint:ts:fix": "node scripts/lint-ts.mjs --fix",
     "ci:verify": "npm run lint:ts && npm run typecheck --prefix web && npm run lint:css --prefix web && npm run test:coverage --prefix web && npm run build --prefix web && npm run typecheck --prefix server",
     "ci:audit": "npm audit --audit-level=high --prefix web && npm audit --audit-level=high --prefix server",
     "ci:gitleaks": "gitleaks detect --source . --verbose --exit-code 1",
