@@ -16,6 +16,16 @@ export default {
       {
         ignoreProperties: ["-webkit-font-smoothing", "-moz-osx-font-smoothing"]
       }
-    ]
+    ],
+    /**
+     * Projekt nutzt BEM-artige Klassen (z. B. `.theme-segmented__btn`, `--single`);
+     * `stylelint-config-standard` erwartet reines kebab-case ohne `__`/`--`.
+     */
+    "selector-class-pattern": null,
+    /**
+     * Große Single-File-Stylesheet: Reihenfolge nach Spezifität wäre hier
+     * ein massives Refactor ohne funktionalen Gewinn.
+     */
+    "no-descending-specificity": null
   }
 };

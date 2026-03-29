@@ -73,6 +73,7 @@ Entspricht im Wesentlichen `.github/workflows/ci.yml` (Root: **ESLint** für TS;
 | --- | --- |
 | `npm run lint:ts` | ESLint für `web/`, `server/`, `shared/` (Root ausfuehren, nach `npm install` im Root) |
 | `npm run ci` | `npm ci` im Root, dann `web/` und `server/`, dann alle Checks + Audit (wie CI ohne Gitleaks) |
+| `npm run ci:fix` | Wie **`ci`**, zuvor **`lint:ts:fix`** und **`lint:css:fix`** (Web), damit sich ESLint/Stylelint auto-fixen lassen |
 | `npm run ci:quick` | Kein `npm ci` — nur Checks + Audit (schneller, wenn Abhaengigkeiten schon installiert sind); inkl. **`npm run lint:ts`**, **`npm run lint:css`** (Web) |
 | `npm run ci:all` | Wie `ci`, zusaetzlich **Gitleaks** (Binary muss installiert sein, z. B. [releases](https://github.com/zricethezav/gitleaks/releases)) |
 | `npm run ci:gitleaks` | Nur Secret-Scan mit Gitleaks |

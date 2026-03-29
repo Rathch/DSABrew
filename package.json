@@ -7,6 +7,7 @@
   },
   "scripts": {
     "ci": "npm run ci:install && npm run ci:verify && npm run ci:audit",
+    "ci:fix": "npm run ci:install && npm run lint:ts:fix && npm run lint:css:fix --prefix web && npm run ci:verify && npm run ci:audit",
     "ci:install": "npm ci && npm ci --prefix web && npm ci --prefix server",
     "lint:ts": "node scripts/lint-ts.mjs",
     "lint:ts:fix": "node scripts/lint-ts.mjs --fix",

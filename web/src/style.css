@@ -42,20 +42,19 @@ html.dark #app {
 /* —— Theme toggle —— */
 .theme-segmented {
   display: inline-flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
+  flex-flow: row nowrap;
   align-items: stretch;
   gap: 0.125rem;
   padding: 0.25rem;
   border-radius: 1.125rem;
-  background: rgb(228 228 231 / 0.95);
-  box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.06);
-  border: 1px solid rgb(212 212 216 / 0.8);
+  background: rgb(228 228 231 / 95%);
+  box-shadow: inset 0 2px 4px rgb(0 0 0 / 6%);
+  border: 1px solid rgb(212 212 216 / 80%);
 }
 
 html.dark .theme-segmented {
-  background: rgb(39 39 42 / 0.95);
-  border-color: rgb(82 82 91 / 0.8);
+  background: rgb(39 39 42 / 95%);
+  border-color: rgb(82 82 91 / 80%);
 }
 
 .theme-segmented--single {
@@ -74,8 +73,7 @@ html.dark .theme-segmented {
   display: inline-flex;
   min-height: 2.5rem;
   flex: none;
-  flex-direction: row;
-  flex-wrap: nowrap;
+  flex-flow: row nowrap;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
@@ -122,16 +120,16 @@ html.dark .theme-segmented__btn:hover {
   color: #18181b;
   background: #fff;
   box-shadow:
-    0 1px 2px rgb(0 0 0 / 0.06),
-    0 0 0 1px rgb(228 228 231 / 0.9);
+    0 1px 2px rgb(0 0 0 / 6%),
+    0 0 0 1px rgb(228 228 231 / 90%);
 }
 
 html.dark .theme-segmented__btn[aria-pressed="true"] {
   color: #fff;
   background: #52525b;
   box-shadow:
-    0 1px 2px rgb(0 0 0 / 0.2),
-    0 0 0 1px rgb(82 82 91 / 0.8);
+    0 1px 2px rgb(0 0 0 / 20%),
+    0 0 0 1px rgb(82 82 91 / 80%);
 }
 
 /* —— Toolbar buttons (hosted) —— */
@@ -148,7 +146,7 @@ html.dark .theme-segmented__btn[aria-pressed="true"] {
   font-weight: 500;
   line-height: 1;
   color: #27272a;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 5%);
   cursor: pointer;
   transition:
     border-color 0.15s ease,
@@ -174,7 +172,7 @@ html.dark .ui-toolbar-btn {
 
 html.dark .ui-toolbar-btn:hover {
   border-color: #71717a;
-  background: rgb(63 63 70 / 0.8);
+  background: rgb(63 63 70 / 80%);
 }
 
 .ui-toolbar-btn--primary {
@@ -205,16 +203,16 @@ html.dark .ui-toolbar-btn--primary:hover {
   background: #059669;
   color: #fff;
   box-shadow:
-    0 1px 2px rgb(6 78 59 / 0.25),
-    0 0 0 1px rgb(52 211 153 / 0.4);
+    0 1px 2px rgb(6 78 59 / 25%),
+    0 0 0 1px rgb(52 211 153 / 40%);
 }
 
 .ui-toolbar-btn--cta:hover {
   border-color: #059669;
   background: #10b981;
   box-shadow:
-    0 1px 2px rgb(6 78 59 / 0.25),
-    0 0 0 1px rgb(110 231 183 / 0.5);
+    0 1px 2px rgb(6 78 59 / 25%),
+    0 0 0 1px rgb(110 231 183 / 50%);
 }
 
 .ui-toolbar-btn--cta:focus-visible {
@@ -225,8 +223,8 @@ html.dark .ui-toolbar-btn--cta {
   border-color: #10b981;
   background: #059669;
   box-shadow:
-    0 1px 2px rgb(0 0 0 / 0.4),
-    0 0 0 1px rgb(52 211 153 / 0.35);
+    0 1px 2px rgb(0 0 0 / 40%),
+    0 0 0 1px rgb(52 211 153 / 35%);
 }
 
 html.dark .ui-toolbar-btn--cta:hover {
@@ -261,12 +259,12 @@ html.dark .ui-toolbar-btn--cta:hover {
   margin-top: 0.25rem;
   padding: 0.375rem 0.5rem;
   border-radius: 0;
-  border: 1px solid rgb(228 228 231 / 0.7);
-  background: rgb(244 244 245 / 0.9);
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+  border: 1px solid rgb(228 228 231 / 70%);
+  background: rgb(244 244 245 / 90%);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 5%);
 }
 
-@media (min-width: 640px) {
+@media (width >= 640px) {
   .hosted-doc-nav {
     gap: 0.5rem;
     padding: 0.5rem;
@@ -274,9 +272,9 @@ html.dark .ui-toolbar-btn--cta:hover {
 }
 
 html.dark .hosted-doc-nav {
-  border-color: rgb(63 63 70 / 0.9);
-  background: rgb(9 9 11 / 0.7);
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
+  border-color: rgb(63 63 70 / 90%);
+  background: rgb(9 9 11 / 70%);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 20%);
 }
 
 .hosted-doc-nav__left {
@@ -294,7 +292,7 @@ html.dark .hosted-doc-nav {
   scrollbar-width: thin;
 }
 
-@media (min-width: 640px) {
+@media (width >= 640px) {
   .hosted-doc-nav__left {
     gap: 0.5rem;
   }
@@ -309,7 +307,7 @@ html.dark .hosted-doc-nav {
   gap: 0.375rem;
 }
 
-@media (min-width: 640px) {
+@media (width >= 640px) {
   .hosted-doc-nav__left .ui-toolbar-btn--secondary {
     gap: 0.5rem;
   }
@@ -324,7 +322,7 @@ html.dark .hosted-doc-nav {
   padding-right: 0.125rem;
 }
 
-@media (min-width: 640px) {
+@media (width >= 640px) {
   .hosted-doc-nav__center {
     padding-left: 0.5rem;
     padding-right: 0.5rem;
@@ -357,16 +355,16 @@ html.dark .hosted-doc-nav {
   border: 1px solid rgb(199 199 207);
   background: linear-gradient(180deg, #fff 0%, #f4f4f5 100%);
   box-shadow:
-    0 1px 2px rgb(0 0 0 / 0.07),
-    inset 0 1px 0 rgb(255 255 255 / 0.95);
+    0 1px 2px rgb(0 0 0 / 7%),
+    inset 0 1px 0 rgb(255 255 255 / 95%);
 }
 
 html.dark .hosted-doc-nav .editor__sync-bar {
-  border-color: rgb(99 102 241 / 0.65);
-  background: linear-gradient(180deg, rgb(49 46 129 / 0.45) 0%, rgb(30 27 75 / 0.55) 100%);
+  border-color: rgb(99 102 241 / 65%);
+  background: linear-gradient(180deg, rgb(49 46 129 / 45%) 0%, rgb(30 27 75 / 55%) 100%);
   box-shadow:
-    0 1px 3px rgb(0 0 0 / 0.4),
-    inset 0 1px 0 rgb(255 255 255 / 0.08);
+    0 1px 3px rgb(0 0 0 / 40%),
+    inset 0 1px 0 rgb(255 255 255 / 8%);
 }
 
 .hosted-doc-nav .editor__sync-label {
@@ -399,10 +397,10 @@ html.dark .hosted-doc-nav .editor__sync-label input[type="checkbox"] {
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
   font-weight: 600;
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 10%);
 }
 
-@media (min-width: 640px) {
+@media (width >= 640px) {
   .hosted-doc-nav__new-btn {
     min-width: 12rem;
     padding: 0.625rem 1.5rem;
@@ -416,7 +414,7 @@ html.dark .hosted-doc-nav .editor__sync-label input[type="checkbox"] {
   line-height: 1;
 }
 
-@media (min-width: 640px) {
+@media (width >= 640px) {
   .hosted-doc-nav__new-icon {
     font-size: 1.25rem;
   }
@@ -436,7 +434,7 @@ html.dark .hosted-doc-nav .editor__sync-label input[type="checkbox"] {
 }
 
 .ui-segment-btn:hover {
-  background: rgb(228 228 231 / 0.8);
+  background: rgb(228 228 231 / 80%);
 }
 
 .ui-segment-btn:focus-visible {
@@ -449,7 +447,7 @@ html.dark .ui-segment-btn {
 }
 
 html.dark .ui-segment-btn:hover {
-  background: rgb(63 63 70 / 0.8);
+  background: rgb(63 63 70 / 80%);
 }
 
 .ui-segment-btn[aria-pressed="true"] {
@@ -466,7 +464,7 @@ html.dark .ui-segment-btn[aria-pressed="true"] {
   overflow: hidden;
   border-radius: 0;
   border: 1px solid #d4d4d8;
-  background: rgb(255 255 255 / 0.8);
+  background: rgb(255 255 255 / 80%);
 }
 
 .hosted-view-radiogroup .ui-segment-btn {
@@ -489,7 +487,7 @@ html.dark .ui-segment-btn[aria-pressed="true"] {
 
 html.dark .hosted-view-radiogroup {
   border-color: #52525b;
-  background: rgb(39 39 42 / 0.8);
+  background: rgb(39 39 42 / 80%);
 }
 
 html.dark .hosted-view-radiogroup .ui-segment-btn {
@@ -498,7 +496,7 @@ html.dark .hosted-view-radiogroup .ui-segment-btn {
 
 /* —— Hosted layout background & banner —— */
 .layout--hosted-bg {
-  background-image: linear-gradient(to bottom right, rgb(241 245 249 / 0.9) 0%, rgb(250 250 250 / 0.8) 50%, rgb(245 245 244 / 0.9) 100%);
+  background-image: linear-gradient(to bottom right, rgb(241 245 249 / 90%) 0%, rgb(250 250 250 / 80%) 50%, rgb(245 245 244 / 90%) 100%);
 }
 
 html.dark .layout--hosted-bg {
@@ -513,36 +511,36 @@ html.dark .layout--hosted-bg {
   margin-bottom: 0.75rem;
   padding: 0.75rem;
   border-radius: 0;
-  border: 1px solid rgb(228 228 231 / 0.9);
-  background: rgb(255 255 255 / 0.9);
+  border: 1px solid rgb(228 228 231 / 90%);
+  background: rgb(255 255 255 / 90%);
   font-size: 0.875rem;
   box-shadow:
-    0 4px 6px -1px rgb(0 0 0 / 0.06),
-    0 0 0 1px rgb(24 24 27 / 0.04);
+    0 4px 6px -1px rgb(0 0 0 / 6%),
+    0 0 0 1px rgb(24 24 27 / 4%);
   backdrop-filter: blur(8px);
 }
 
-@media (min-width: 640px) {
+@media (width >= 640px) {
   .hosted-banner {
     padding: 1rem;
   }
 }
 
 html.dark .hosted-banner {
-  border-color: rgb(82 82 91 / 0.9);
-  background: rgb(24 24 27 / 0.95);
+  border-color: rgb(82 82 91 / 90%);
+  background: rgb(24 24 27 / 95%);
   box-shadow:
-    0 4px 6px -1px rgb(0 0 0 / 0.4),
-    0 0 0 1px rgb(82 82 91 / 0.2);
+    0 4px 6px -1px rgb(0 0 0 / 40%),
+    0 0 0 1px rgb(82 82 91 / 20%);
 }
 
 .hosted-banner__brand {
   padding: 0 0.125rem 0.5rem;
-  border-bottom: 1px solid rgb(228 228 231 / 0.7);
+  border-bottom: 1px solid rgb(228 228 231 / 70%);
 }
 
 html.dark .hosted-banner__brand {
-  border-bottom-color: rgb(82 82 91 / 0.7);
+  border-bottom-color: rgb(82 82 91 / 70%);
 }
 
 .hosted-banner__title-row {
@@ -552,7 +550,7 @@ html.dark .hosted-banner__brand {
   gap: 0.125rem;
 }
 
-@media (min-width: 640px) {
+@media (width >= 640px) {
   .hosted-banner__title-row {
     flex-direction: row;
     align-items: baseline;
@@ -578,7 +576,7 @@ html.dark .hosted-banner__title {
   color: #71717a;
 }
 
-@media (min-width: 640px) {
+@media (width >= 640px) {
   .hosted-banner__subtitle {
     font-size: 0.875rem;
   }
@@ -594,14 +592,13 @@ html.dark .hosted-banner__subtitle {
   gap: 0.5rem;
   margin-top: 0.375rem;
   padding-top: 0.5rem;
-  border-top: 1px solid rgb(228 228 231 / 0.8);
+  border-top: 1px solid rgb(228 228 231 / 80%);
 }
 
-@media (min-width: 961px) {
+@media (width >= 961px) {
   .hosted-view-toolbar {
-    flex-direction: row;
+    flex-flow: row wrap;
     align-items: center;
-    flex-wrap: wrap;
   }
 }
 
@@ -631,7 +628,7 @@ html.dark .hosted-view-label {
 
 .hosted-doc-footer {
   padding-top: 0.5rem;
-  border-top: 1px solid rgb(212 212 216 / 0.9);
+  border-top: 1px solid rgb(212 212 216 / 90%);
 }
 
 html.dark .hosted-doc-footer {
@@ -686,12 +683,12 @@ html.dark .chrome-link--danger:hover {
   background: #fef2f2;
   font-size: 0.875rem;
   color: #7f1d1d;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 5%);
 }
 
 html.dark .dsabrew-err-aside {
-  border-color: rgb(127 29 29 / 0.55);
-  background: rgb(69 10 10 / 0.4);
+  border-color: rgb(127 29 29 / 55%);
+  background: rgb(69 10 10 / 40%);
   color: #fecaca;
 }
 
@@ -724,7 +721,7 @@ html.dark .legal-shell {
   margin-bottom: 1.5rem;
 }
 
-@media (min-width: 640px) {
+@media (width >= 640px) {
   .legal-header {
     flex-direction: row;
     align-items: flex-start;
@@ -800,7 +797,7 @@ html.dark .legal-impressum-name {
 
 html.dark .legal-callout {
   border-color: #52525b;
-  background: rgb(24 24 27 / 0.5);
+  background: rgb(24 24 27 / 50%);
   color: #d4d4d8;
 }
 
@@ -951,7 +948,7 @@ html.dark .fan-notice__credit {
   color: #a1a1aa;
 }
 
-@media (max-width: 520px) {
+@media (width <= 520px) {
   .fan-notice__sep {
     display: none;
   }
@@ -967,16 +964,16 @@ html.dark .fan-notice__credit {
   box-sizing: border-box;
   padding: 0.65rem 1rem;
   padding-bottom: max(0.65rem, env(safe-area-inset-bottom));
-  background: rgb(24 24 27 / 0.95);
+  background: rgb(24 24 27 / 95%);
   color: #f4f4f5;
-  box-shadow: 0 -2px 12px rgb(0 0 0 / 0.18);
+  box-shadow: 0 -2px 12px rgb(0 0 0 / 18%);
 }
 
 html.dark .privacy-strip {
-  background: rgb(9 9 11 / 0.98);
+  background: rgb(9 9 11 / 98%);
   box-shadow:
-    0 -2px 12px rgb(0 0 0 / 0.25),
-    0 0 0 1px rgb(63 63 70 / 0.5);
+    0 -2px 12px rgb(0 0 0 / 25%),
+    0 0 0 1px rgb(63 63 70 / 50%);
 }
 
 .privacy-strip__inner {
@@ -1011,8 +1008,8 @@ html.dark .privacy-strip {
   flex-shrink: 0;
   cursor: pointer;
   border-radius: 0.375rem;
-  border: 1px solid rgb(255 255 255 / 0.35);
-  background: rgb(255 255 255 / 0.15);
+  border: 1px solid rgb(255 255 255 / 35%);
+  background: rgb(255 255 255 / 15%);
   padding: 0.375rem 0.875rem;
   font-size: 0.85rem;
   font-family: inherit;
@@ -1020,7 +1017,7 @@ html.dark .privacy-strip {
 }
 
 .privacy-strip__btn:hover {
-  background: rgb(255 255 255 / 0.25);
+  background: rgb(255 255 255 / 25%);
 }
 
 .privacy-strip__btn:focus-visible {
@@ -1040,15 +1037,17 @@ html.dark .privacy-strip {
 :root {
   /* Two-column layout: input min 400px, preview fills the rest and scales A4 proportionally */
   --layout-editor-min: 400px;
+
   /* Scriptorium template: see specs/001-dsa-brew-renderer/contracts/typography.md */
-  --font-andalus: Andalus, "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
-  --font-gentium: "Gentium Book Plus", "Gentium Book Basic", Gentium, "Noto Serif", serif;
+  --font-andalus: andalus, "Palatino Linotype", "Book Antiqua", palatino, georgia, serif;
+  --font-gentium: "Gentium Book Plus", "Gentium Book Basic", gentium, "Noto Serif", serif;
   --fs-kapitel: 23.5pt;
   --fs-unterkapitel: 14pt;
   --fs-abschnitt: 13pt;
   --fs-unterabschnitt: 10pt;
   --fs-text: 10pt;
   --einband-title: #c8ccd4;
+
   /* Gap from last text line to footer strip (.book-footer-strip) */
   --page-footer-gap-above-strip: 5mm;
   --book-footer-strip-clearance: 5mm;
@@ -1056,8 +1055,7 @@ html.dark .privacy-strip {
 
 /* Public pages (impressum, privacy), error/404 views: page may scroll with content */
 body.dsabrew-body--scrollable {
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden auto;
   min-height: 100%;
 }
 
@@ -1072,7 +1070,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   box-sizing: border-box;
 }
 
-@media (min-width: 600px) {
+@media (width >= 600px) {
   body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
     padding-bottom: 3.75rem;
   }
@@ -1084,6 +1082,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 
 .layout {
   display: grid;
+
   /* Column 1: at least 400px, shrinks first to the floor; column 2: takes remaining space, content scales */
   grid-template-columns: minmax(var(--layout-editor-min), 1fr) minmax(0, 1fr);
   gap: 12px;
@@ -1123,8 +1122,8 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   border: 1px solid #b8c5d4;
   border-left: 5px solid #8b9cae;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.65),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.04);
+    inset 0 1px 0 rgb(255 255 255 / 65%),
+    inset 0 -1px 0 rgb(0 0 0 / 4%);
   opacity: 1;
 }
 
@@ -1140,7 +1139,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: #4a5568;
-  background: rgba(255, 255, 255, 0.55);
+  background: rgb(255 255 255 / 55%);
   border: 1px solid #a8b4c4;
   border-radius: 4px;
 }
@@ -1171,12 +1170,12 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   color: #3d4d5f !important;
   border-color: #9aaaba !important;
   cursor: not-allowed;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.07);
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 7%);
 }
 
 .editor--readonly textarea:focus {
   outline: none;
-  box-shadow: inset 0 0 0 1px rgba(100, 116, 139, 0.45);
+  box-shadow: inset 0 0 0 1px rgb(100 116 139 / 45%);
 }
 
 .md-toolbar-wrap {
@@ -1244,7 +1243,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   width: 30px;
   height: 22px;
   border-radius: 3px;
-  border: 1px solid rgba(0, 0, 0, 0.14);
+  border: 1px solid rgb(0 0 0 / 14%);
   box-sizing: border-box;
   position: relative;
   overflow: hidden;
@@ -1282,12 +1281,12 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 
 .md-toolbar-preview--read-aloud {
   background: linear-gradient(165deg, #f8edd8 0%, #e8d4b0 50%, #dcc9a0 100%);
-  box-shadow: inset 0 0 0 1px rgba(120, 85, 45, 0.12);
+  box-shadow: inset 0 0 0 1px rgb(120 85 45 / 12%);
 }
 
 .md-toolbar-preview--gm {
   background: linear-gradient(180deg, #4a4038 0%, #2a221c 100%);
-  border-color: rgba(90, 75, 60, 0.85);
+  border-color: rgb(90 75 60 / 85%);
 }
 
 .md-toolbar-preview--roulbox {
@@ -1339,7 +1338,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   height: 5px;
   transform: rotate(45deg);
   flex-shrink: 0;
-  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 0 0.5px rgb(0 0 0 / 10%);
 }
 
 /* NPC: same dummy portrait as in the box (SVG), round as in play */
@@ -1357,19 +1356,19 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 /* Mini grid 2×2 */
 .md-toolbar-preview--table {
   background-color: #faf8f5;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 10%);
   background-image: linear-gradient(
       to right,
       transparent calc(50% - 0.5px),
-      rgba(0, 0, 0, 0.12) calc(50% - 0.5px),
-      rgba(0, 0, 0, 0.12) calc(50% + 0.5px),
+      rgb(0 0 0 / 12%) calc(50% - 0.5px),
+      rgb(0 0 0 / 12%) calc(50% + 0.5px),
       transparent calc(50% + 0.5px)
     ),
     linear-gradient(
       to bottom,
       transparent calc(50% - 0.5px),
-      rgba(0, 0, 0, 0.12) calc(50% - 0.5px),
-      rgba(0, 0, 0, 0.12) calc(50% + 0.5px),
+      rgb(0 0 0 / 12%) calc(50% - 0.5px),
+      rgb(0 0 0 / 12%) calc(50% + 0.5px),
       transparent calc(50% + 0.5px)
     );
 }
@@ -1478,7 +1477,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   min-width: 14px;
   position: relative;
   border-radius: 0;
-  background: rgba(0, 0, 0, 0.06);
+  background: rgb(0 0 0 / 6%);
   overflow: hidden;
 }
 
@@ -1486,8 +1485,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 .editor__viewport-gutter-inner {
   position: relative;
   height: 100%;
-  overflow-x: hidden;
-  overflow-y: scroll;
+  overflow: hidden scroll;
   scrollbar-width: none;
   pointer-events: none;
   will-change: scroll-position;
@@ -1520,11 +1518,11 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 
 /* Alternating blue / green (logical lines until \\page) */
 .editor__viewport-gutter-page--a {
-  background: rgb(59 130 246 / 0.38);
+  background: rgb(59 130 246 / 38%);
 }
 
 .editor__viewport-gutter-page--b {
-  background: rgb(34 197 94 / 0.34);
+  background: rgb(34 197 94 / 34%);
 }
 
 .editor__viewport-gutter-range {
@@ -1536,22 +1534,22 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   pointer-events: none;
   background: transparent;
   box-shadow:
-    inset 0 0 0 1px rgb(46 160 67 / 0.55),
-    inset 0 0 0 2px rgb(255 255 255 / 0.35);
+    inset 0 0 0 1px rgb(46 160 67 / 55%),
+    inset 0 0 0 2px rgb(255 255 255 / 35%);
 }
 
 .dark .editor__viewport-gutter-page--a {
-  background: rgb(96 165 250 / 0.42);
+  background: rgb(96 165 250 / 42%);
 }
 
 .dark .editor__viewport-gutter-page--b {
-  background: rgb(74 222 128 / 0.38);
+  background: rgb(74 222 128 / 38%);
 }
 
 .dark .editor__viewport-gutter-range {
   box-shadow:
-    inset 0 0 0 1px rgb(74 222 128 / 0.65),
-    inset 0 0 0 2px rgb(0 0 0 / 0.35);
+    inset 0 0 0 1px rgb(74 222 128 / 65%),
+    inset 0 0 0 2px rgb(0 0 0 / 35%);
 }
 
 .preview {
@@ -1561,8 +1559,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   align-items: center;
   min-height: 0;
   min-width: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden auto;
   -webkit-overflow-scrolling: touch;
   container-type: inline-size;
   container-name: dsapreview;
@@ -1572,7 +1569,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 
 /* App chrome dark mode: editor chrome, textarea, preview background — not .a4-page / print */
 .dark .md-toolbar {
-  background: rgb(39 39 42 / 0.92);
+  background: rgb(39 39 42 / 92%);
   border-color: rgb(63 63 70);
 }
 
@@ -1606,7 +1603,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 
 .dark .editor textarea:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgb(99 102 241 / 0.45);
+  box-shadow: 0 0 0 2px rgb(99 102 241 / 45%);
 }
 
 .dark .editor__sync-bar,
@@ -1619,7 +1616,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 }
 
 .dark .editor__viewport-gutter {
-  background: rgb(24 24 27 / 0.9);
+  background: rgb(24 24 27 / 90%);
 }
 
 .dark .md-toolbar-disabled-hint {
@@ -1631,13 +1628,13 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   border-color: #3f3f46;
   border-left-color: #6366f1;
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.04),
-    inset 0 -1px 0 rgb(0 0 0 / 0.2);
+    inset 0 1px 0 rgb(255 255 255 / 4%),
+    inset 0 -1px 0 rgb(0 0 0 / 20%);
 }
 
 .dark .editor--readonly::before {
   color: #d4d4d8;
-  background: rgb(39 39 42 / 0.9);
+  background: rgb(39 39 42 / 90%);
   border-color: #52525b;
 }
 
@@ -1677,6 +1674,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   background: #fff;
   box-sizing: border-box;
   margin: 0 auto;
+
   /* No page padding here — otherwise ::before/::after sit only in the inner box; margin stays white */
   padding: 0;
   position: relative;
@@ -1687,6 +1685,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
  * Content (even/odd/final): cover = full bleed without distortion.
  * Cover: image13 = top banner, image14 = bottom frame (wide, center transparent).
  * Do not stack as two full-bleed layers — otherwise the art looks huge and wrongly cropped. */
+
 /* Dark cover (default, \\map{einband} / \\map{einband dunkel}) */
 .a4-page.page-bg-einband:not(.page-einband-hell)::before {
   content: "";
@@ -1695,7 +1694,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   z-index: 0;
   pointer-events: none;
   background-color: #0d1520;
-  background-image: url(/dsa/image13.png), url(/dsa/image14.png);
+  background-image: url("/dsa/image13.png"), url("/dsa/image14.png");
   background-size: 100% auto, 100% auto;
   background-position: top center, bottom center;
   background-repeat: no-repeat, no-repeat;
@@ -1708,12 +1707,13 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   inset: 0;
   z-index: 0;
   pointer-events: none;
+
   /* Tone matched to read-aloud parchment — fills transparent/very light image edges */
   background-color: #f7f5f2;
   background-image:
-    url(/dsa/image13.png),
-    url(/dsa/image14.png),
-    url(/dsa/note-read-aloud-parchment.png);
+    url("/dsa/image13.png"),
+    url("/dsa/image14.png"),
+    url("/dsa/note-read-aloud-parchment.png");
   background-size: 120%, 120%;
   background-position: top center, bottom center, center center;
   background-repeat: no-repeat, no-repeat, no-repeat;
@@ -1724,7 +1724,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background-image: url(/dsa/image12.jpeg);
+  background-image: url("/dsa/image12.jpeg");
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
@@ -1735,7 +1735,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background-image: url(/dsa/image17.jpeg);
+  background-image: url("/dsa/image17.jpeg");
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
@@ -1749,7 +1749,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   z-index: 0;
   pointer-events: none;
   background-color: #1a1614;
-  background-image: url(/dsa/image32.png);
+  background-image: url("/dsa/image32.png");
   background-size: 100% 100%;
   background-position: center center;
   background-repeat: no-repeat;
@@ -1803,9 +1803,10 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 /* Target document: body text in two columns; no column-span — everything (headings, hr, boxes) stays in one column */
 .page-body {
   box-sizing: border-box;
-  padding: 20mm 15mm 20mm;
+  padding: 20mm 15mm;
   column-count: 2;
   column-gap: 5mm;
+
   /* balance: large boxes (e.g. {{npcBlock}}) often land in column 2 while the heading stays left — unwanted */
   column-fill: auto;
   orphans: 2;
@@ -1876,6 +1877,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 .page-body ul > li {
   position: relative;
   margin: 0.2em 0;
+
   /* Room for wide icon + ~2–3 characters gap to text */
   padding-left: 1.75em;
 }
@@ -1884,12 +1886,13 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   content: "";
   position: absolute;
   left: 0;
+
   /* Center of icon aligned to the first text line */
   top: 0.38em;
   top: calc(0.5lh - 0.34em);
   width: 1.12em;
   height: 0.68em;
-  background-image: var(--dsa-list-bullet-url, url(/dsa/list-bullet.png));
+  background-image: var(--dsa-list-bullet-url, url("/dsa/list-bullet.png"));
   background-repeat: no-repeat;
   background-position: left center;
   background-size: contain;
@@ -1920,7 +1923,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   width: 100%;
   max-width: 100%;
   aspect-ratio: 800 / 48;
-  background-image: url(/dsa/note-gm-meister-trennlinie.png);
+  background-image: url("/dsa/note-gm-meister-trennlinie.png");
   background-repeat: no-repeat;
   background-position: center center;
   background-size: 100% auto;
@@ -2124,8 +2127,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 /* \\pageSingle: do not stretch diamond macro past column width — label + symbols centered together */
 .a4-page.a4-page--single-column .page-body .dsa-difficulty-rating-line {
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
+  flex-flow: row wrap;
   justify-content: center;
   align-items: center;
   gap: 0.35em 0.65em;
@@ -2155,7 +2157,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 
 /* Dark cover: title silvery; body text light (complement to background) */
 .a4-page.page-bg-einband:not(.page-einband-hell) .page-body {
-  color: rgba(245, 242, 236, 0.95);
+  color: rgb(245 242 236 / 95%);
 }
 
 .a4-page.page-bg-einband:not(.page-einband-hell) .page-body a {
@@ -2167,8 +2169,8 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   font-size: var(--fs-kapitel);
   color: var(--einband-title);
   text-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.75),
-    0 1px 0 rgba(255, 255, 255, 0.06);
+    0 2px 4px rgb(0 0 0 / 75%),
+    0 1px 0 rgb(255 255 255 / 6%);
   letter-spacing: 0.03em;
   text-align: center;
   margin-top: clamp(14mm, 18vh, 58mm);
@@ -2185,7 +2187,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   font-family: var(--font-andalus);
   font-size: var(--fs-unterkapitel);
   color: var(--einband-title);
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.65);
+  text-shadow: 0 2px 4px rgb(0 0 0 / 65%);
   text-align: center;
   margin: 0.15em 0 0.5em;
   font-weight: 400;
@@ -2199,7 +2201,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   font-family: var(--font-andalus);
   font-size: var(--fs-unterkapitel);
   color: var(--einband-title);
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.65);
+  text-shadow: 0 2px 4px rgb(0 0 0 / 65%);
   text-align: center;
   margin-top: clamp(14mm, 18vh, 58mm);
   margin-bottom: 0.4em;
@@ -2207,7 +2209,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 
 .a4-page.page-bg-einband:not(.page-einband-hell) .page-body:not(:has(> h1, > h2)) > h3:first-of-type {
   color: var(--einband-title);
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 2px 4px rgb(0 0 0 / 60%);
   text-align: center;
   margin-top: clamp(14mm, 18vh, 58mm);
   margin-bottom: 0.4em;
@@ -2226,7 +2228,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   font-family: var(--font-andalus);
   font-size: var(--fs-kapitel);
   color: #1e140c;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+  text-shadow: 0 1px 0 rgb(255 255 255 / 45%);
   letter-spacing: 0.03em;
   text-align: center;
   margin-top: clamp(14mm, 18vh, 58mm);
@@ -2241,7 +2243,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   font-family: var(--font-andalus);
   font-size: var(--fs-unterkapitel);
   color: #2a1c14;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+  text-shadow: 0 1px 0 rgb(255 255 255 / 35%);
   text-align: center;
   margin: 0.15em 0 0.5em;
   font-weight: 400;
@@ -2255,7 +2257,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   font-family: var(--font-andalus);
   font-size: var(--fs-unterkapitel);
   color: #2a1c14;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+  text-shadow: 0 1px 0 rgb(255 255 255 / 35%);
   text-align: center;
   margin-top: clamp(14mm, 18vh, 58mm);
   margin-bottom: 0.4em;
@@ -2263,7 +2265,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 
 .a4-page.page-bg-einband.page-einband-hell .page-body:not(:has(> h1, > h2)) > h3:first-of-type {
   color: #2a1c14;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+  text-shadow: 0 1px 0 rgb(255 255 255 / 30%);
   text-align: center;
   margin-top: clamp(14mm, 18vh, 58mm);
   margin-bottom: 0.4em;
@@ -2289,8 +2291,8 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   letter-spacing: 0.04em;
   color: #fff;
   text-shadow:
-    0 1px 4px rgba(0, 0, 0, 0.6),
-    0 0 8px rgba(0, 0, 0, 0.35);
+    0 1px 4px rgb(0 0 0 / 60%),
+    0 0 8px rgb(0 0 0 / 35%);
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
 }
@@ -2310,6 +2312,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 }
 
 /* Scriptorium-style footer strip: running title + page number (after impressum) */
+
 /* Flex: .page-body stretches to page height (footer strip is position:absolute). */
 .a4-page.a4-page--with-book-footer {
   display: flex;
@@ -2322,10 +2325,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   min-height: 0;
   width: 100%;
   box-sizing: border-box;
-  padding-top: 20mm;
-  padding-left: 15mm;
-  padding-right: 15mm;
-  padding-bottom: calc(var(--page-footer-gap-above-strip) + var(--book-footer-strip-clearance));
+  padding: 20mm 15mm calc(var(--page-footer-gap-above-strip) + var(--book-footer-strip-clearance));
 }
 
 /*
@@ -2335,7 +2335,6 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
  */
 .a4-page--with-book-footer .page-body footer.footnotes {
   column-span: all;
-  -webkit-column-span: all;
   margin-top: 0.75em;
 }
 
@@ -2355,8 +2354,8 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   font-family: var(--font-gentium);
   font-size: 9.5pt;
   line-height: 1.2;
-  background: linear-gradient(to top, rgba(40, 32, 22, 0.18) 0%, rgba(40, 32, 22, 0.05) 55%, transparent 100%);
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  background: linear-gradient(to top, rgb(40 32 22 / 18%) 0%, rgb(40 32 22 / 5%) 55%, transparent 100%);
+  border-top: 1px solid rgb(0 0 0 / 10%);
 }
 
 /* Even page number: number left (outside), title to its right — as before */
@@ -2417,8 +2416,8 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
   text-shadow:
-    0 1px 4px rgba(0, 0, 0, 0.6),
-    0 0 8px rgba(0, 0, 0, 0.35);
+    0 1px 4px rgb(0 0 0 / 60%),
+    0 0 8px rgb(0 0 0 / 35%);
   transform: translate(0, var(--footer-num-nudge-y));
 }
 
@@ -2468,9 +2467,9 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   font-size: var(--fs-text);
   line-height: 1.35;
   color: inherit;
-  background: rgba(252, 246, 232, 0.42);
+  background: rgb(252 246 232 / 42%);
   border-radius: 2px;
-  box-shadow: inset 0 0 0 1px rgba(80, 60, 35, 0.1);
+  box-shadow: inset 0 0 0 1px rgb(80 60 35 / 10%);
 }
 
 .page-body .toc-heading {
@@ -2562,7 +2561,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   flex: 1 1 0;
   min-width: 0.35em;
   margin: 0 0.15em 0.25em;
-  border-bottom: 1px dotted currentColor;
+  border-bottom: 1px dotted currentcolor;
   opacity: 0.5;
   height: 0.55em;
   align-self: flex-end;
@@ -2585,8 +2584,8 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 }
 
 .a4-page.page-bg-einband:not(.page-einband-hell) .page-body .toc {
-  background: rgba(35, 40, 48, 0.35);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  background: rgb(35 40 48 / 35%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 6%);
 }
 
 .footnote-ref {
@@ -2608,7 +2607,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  filter: drop-shadow(1px 3px 8px rgba(20, 22, 26, 0.22));
+  filter: drop-shadow(1px 3px 8px rgb(20 22 26 / 22%));
 }
 
 .dsa-roulbox {
@@ -2622,7 +2621,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 }
 
 .dsa-roulbox__header {
-  background: rgba(0, 0, 0, 0.4);
+  background: rgb(0 0 0 / 40%);
   color: #f7f7f5;
   padding: 0.55em 0.75em 0.6em;
   margin: 0;
@@ -2645,11 +2644,11 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   font-style: italic;
   font-weight: 400;
   line-height: 1.35;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgb(255 255 255 / 70%);
 }
 
 .dsa-roulbox__body {
-  background: rgba(185, 190, 196, 0.2);
+  background: rgb(185 190 196 / 20%);
   color: #121418;
   padding: 0.65em 0.85em 0.75em;
   margin: 0;
@@ -2694,7 +2693,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 
 /* Read-aloud box: drop shadow only; no outer dark border (parchment art without extra frame) */
 .dsa-note-wrap--read-aloud {
-  filter: drop-shadow(2px 5px 11px rgba(30, 22, 12, 0.35));
+  filter: drop-shadow(2px 5px 11px rgb(30 22 12 / 35%));
 }
 
 /* GM note: three-part (bars + growing middle), stays in one column */
@@ -2703,7 +2702,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   border-radius: 0;
   background: transparent;
   box-shadow: none;
-  filter: drop-shadow(2px 6px 12px rgba(0, 0, 0, 0.38));
+  filter: drop-shadow(2px 6px 12px rgb(0 0 0 / 38%));
 }
 
 .dsa-gm-frame {
@@ -2742,7 +2741,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   box-sizing: border-box;
   position: relative;
   z-index: 0;
-  background-image: url(/dsa/note-gm-meister-bg.png);
+  background-image: url("/dsa/note-gm-meister-bg.png");
   background-repeat: no-repeat;
   background-position: center center;
   background-size: 100% 100%;
@@ -2750,13 +2749,13 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 }
 
 .dsa-note {
-  clip-path: url(#dsa-note-torn-clip);
+  clip-path: url("#dsa-note-torn-clip");
   box-sizing: border-box;
   width: 100%;
   min-height: 0;
   height: auto;
   overflow: visible;
-  padding: 5.5mm 6mm 5.5mm;
+  padding: 5.5mm 6mm;
   font-family: var(--font-gentium);
   font-size: var(--fs-text);
   line-height: 1.45;
@@ -2783,20 +2782,20 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 .dsa-note--read-aloud {
   color: #0f0c08;
   background-image:
-    radial-gradient(ellipse 75% 55% at 50% 45%, rgba(255, 252, 245, 0.42) 0%, transparent 62%),
-    url(/dsa/note-read-aloud-parchment.png);
+    radial-gradient(ellipse 75% 55% at 50% 45%, rgb(255 252 245 / 42%) 0%, transparent 62%),
+    url("/dsa/note-read-aloud-parchment.png");
   background-size: 100% 100%, 100% 100%;
   background-position: center center;
   background-repeat: no-repeat;
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.35),
-    inset 0 0 50px rgba(120, 90, 50, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    inset 0 0 0 1px rgb(255 255 255 / 35%),
+    inset 0 0 50px rgb(120 90 50 / 8%),
+    inset 0 1px 0 rgb(255 255 255 / 40%);
 }
 
 .dsa-note--read-aloud .dsa-note__title {
   color: #000;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+  text-shadow: 0 1px 0 rgb(255 255 255 / 25%);
 }
 
 .dsa-note--read-aloud .dsa-note__body {
@@ -2817,14 +2816,14 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 .dsa-note--gm {
   color: #faf6f0;
   background-image:
-    linear-gradient(185deg, rgba(45, 38, 34, 0.88) 0%, rgba(32, 28, 26, 0.94) 100%),
-    url(/dsa/note-gm-parchment.png);
+    linear-gradient(185deg, rgb(45 38 34 / 88%) 0%, rgb(32 28 26 / 94%) 100%),
+    url("/dsa/note-gm-parchment.png");
   background-size: 100% 100%, 100% 100%;
   background-position: center center;
   background-repeat: no-repeat;
   box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.07),
-    inset 0 -3px 12px rgba(0, 0, 0, 0.35);
+    inset 0 2px 0 rgb(255 255 255 / 7%),
+    inset 0 -3px 12px rgb(0 0 0 / 35%);
 }
 
 .dsa-note--gm-framed {
@@ -2836,12 +2835,12 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 
 .dsa-note--gm .dsa-note__title {
   color: #fffefb;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+  text-shadow: 0 1px 3px rgb(0 0 0 / 45%);
 }
 
 .dsa-note--gm .dsa-note__body {
   color: #f2ebe3;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 1px 1px rgb(0 0 0 / 20%);
 }
 
 .dsa-note--gm .dsa-note__body a {
@@ -2883,15 +2882,18 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   width: 100%;
   max-width: 100%;
   isolation: isolate;
-  filter: drop-shadow(2px 6px 14px rgba(20, 14, 8, 0.38));
+  filter: drop-shadow(2px 6px 14px rgb(20 14 8 / 38%));
+
   --npc-txt-l: 6.5%;
   --npc-txt-r: 31%;
   --npc-txt-t: 10.5%;
   --npc-txt-b: 15.5%;
+
   /* Portrait circle center (% of frame) — aligned to golden reference */
   --npc-p-cx: 82.5%;
   --npc-p-cy: 16%;
   --npc-p-w: 25%;
+
   /* Fine tune vs reference: e.g. 1mm / -0.5mm */
   --npc-p-nudge-x: 0mm;
   --npc-p-nudge-y: 0mm;
@@ -2906,19 +2908,16 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
-  padding-top: var(--npc-txt-t);
-  padding-right: var(--npc-txt-r);
-  padding-bottom: var(--npc-txt-b);
-  padding-left: var(--npc-txt-l);
+  padding: var(--npc-txt-t) var(--npc-txt-r) var(--npc-txt-b) var(--npc-txt-l);
 }
 
 .dsa-npc__template {
   grid-column: 1;
   grid-row: 1;
+
   /* Above portrait: ornament frame/circle from PNG; portrait hole transparent → image below shows through */
   z-index: 2;
-  align-self: stretch;
-  justify-self: stretch;
+  place-self: stretch stretch;
   display: block;
   width: 100%;
   height: 100%;
@@ -2954,7 +2953,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   font-weight: 700;
   line-height: 1.12;
   color: #000;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+  text-shadow: 0 1px 0 rgb(255 255 255 / 20%);
 }
 
 .dsa-npc__meta {
@@ -3039,7 +3038,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 .dsa-npc__extras {
   margin-top: 0.45em;
   padding-top: 0.35em;
-  border-top: 1px solid rgba(60, 45, 28, 0.12);
+  border-top: 1px solid rgb(60 45 28 / 12%);
 }
 
 .dsa-npc__line {
@@ -3114,7 +3113,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   text-align: center;
   margin-top: 1.1em;
   padding-top: 0.85em;
-  border-top: 1px solid rgba(0, 0, 0, 0.18);
+  border-top: 1px solid rgb(0 0 0 / 18%);
 }
 
 .page-body .impressum-disclaimer-heading {
@@ -3279,8 +3278,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 }
 
 .layout.layout--hosted > .preview {
-  overflow-y: auto;
-  overflow-x: auto;
+  overflow: auto;
 }
 
 /* Status line under global toolbar, above macro bar */
