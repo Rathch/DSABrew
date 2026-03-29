@@ -163,6 +163,10 @@ The user needs standard book navigation aids: page numbers, footnotes, and a tab
 - **SC-008**: For empty or whitespace-only input, the rendered output contains exactly one page and PDF export yields a file with exactly one page.
 - **SC-009**: For a representative large document (up to ~200 pages / ~100k characters), rendering completes within 15 seconds and produces a correct page structure without crashes/hangs.
 
+## E2E-Tests (Playwright)
+
+Browser-End-to-End-Tests sind **zusätzlich** zu Vitest geplant; Werkzeug **Playwright**, Selektoren-Konvention (`id` wo vorhanden, ergänzend `data-testid` mit Präfix `dsabrew-…`), Phasenplan und Szenarien: **`contracts/e2e-playwright.md`**. Aufgaben: **`tasks.md`** (Phase E2E).
+
 ## Assumptions
 
 - Users run the tool in a modern web browser.

@@ -46,3 +46,14 @@
 - [X] **T024** Client: Route `/d/:slug`, Autosave (Debounce + `beforeunload`/Beacon), kein Pflicht-Speichern-Button; View-only vs. Edit
 - [X] **T025** TTL 24 h für unverändertes Standarddokument; Job **oder** lazy deletion — dokumentierte Strategie
 - [X] **T026** Deployment-Doku: HTTPS, Umgebungsvariablen, Speicherpfad (`quickstart.md` oder eigenes `docs/hosting.md`)
+
+## Phase: E2E (Playwright)
+
+**Vertrag / Plan:** `contracts/e2e-playwright.md` (inkl. `data-testid`-Konvention und Phasen 0–4).
+
+- [ ] **T027** Playwright im Web-Paket einrichten (`playwright.config.ts`, Ordner `e2e/`, Skripte `test:e2e`, CI-Strategie dokumentiert)
+- [ ] **T028** `data-testid` gemäß Vertrag in `main.ts` / `index.html` / `theme.ts` (mindestens: hosted-main, editor-section, preview-root, hosted-banner; optional weitere aus Tabelle 3.3)
+- [ ] **T029** Smoke-E2E: App lädt (`/`), `#app` sichtbar; optional Privacy-Dismiss
+- [ ] **T030** Editor-E2E: Eingabe in `#markdown-input`, sichtbarer Inhalt in `#preview`
+- [ ] **T031** CI: E2E-Job oder Schritt (z. B. `vite preview` + Playwright `webServer`) auf `main`/`master`
+- [ ] **T032** (optional) API-E2E: Dokument anlegen/Autosave mit laufendem `server/` und `VITE_PUBLIC_API_BASE`

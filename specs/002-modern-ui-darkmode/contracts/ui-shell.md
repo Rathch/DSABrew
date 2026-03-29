@@ -20,6 +20,10 @@ Dieses Dokument definiert **verbindliche Konventionen** für den **App-Chrome** 
 - **Root**: `document.documentElement` (`<html>`) trägt optional **`class="dark"`** für dunkle UI-Regeln (Selektoren **`html.dark …`** in `style.css`).
 - **Shell container**: `#app` bleibt Mount-Point; Kind-Elemente des Chrome nutzen **semantische Klassen** (z. B. `.hosted-banner`, `.theme-segmented`, `.chrome-link`).
 
+### E2E-Selektoren (Playwright)
+
+Zusätzlich zu stabilen **`id`**-Attributen (siehe `main.ts`) können **`data-testid`**-Attribute mit Präfix **`dsabrew-…`** gesetzt werden — Konvention und Umsetzungsphasen: **`specs/001-dsa-brew-renderer/contracts/e2e-playwright.md`**.
+
 ## Design-Tokens
 
 Konkrete Werte werden als **CSS Custom Properties** in `style.css` gepflegt, z. B.:
