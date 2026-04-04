@@ -1,9 +1,14 @@
 # Semantische Versionen + CHANGELOG (konventionelle Commits) + GitHub Release
+# Läuft erst nach erfolgreichem Workflow „CI“ (Tests/Lint/Build/Audit — ohne VPS-Deploy).
+# Deploy ist `.github/workflows/deploy.yml` und beeinflusst weder CI noch dieses Release.
+# Hinweis: `needs` gilt nur innerhalb eines Workflows — übergreifend: `workflow_run` + Bedingungen.
 name: Release
 
 on:
-  push:
-    branches: [main, master]
+  workflow_run:
+    workflows: [CI]
+    types:
+      - completed
 
 permissions:
   contents: write
@@ -14,11 +19,17 @@ jobs:
   release:
     name: semantic-release
     runs-on: ubuntu-latest
-    # Kein Release aus Forks
-    if: github.repository == 'Rathch/DSABrew'
+    if: >-
+      github.repository == 'Rathch/DSABrew' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      (github.event.workflow_run.head_branch == 'main' ||
+       github.event.workflow_run.head_branch == 'master') &&
+      github.event.workflow_run.head_repository.full_name == github.repository
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
           persist-credentials: true
 
