@@ -7,15 +7,14 @@
 #   ./scripts/deploy-vps.sh
 #
 # Optional (Umgebungsvariablen):
-#   DEPLOY_BRANCH=main          — Remote-Branch (Default: master)
+#   DEPLOY_BRANCH=main          — Remote-Branch überschreiben; wenn unset → Default-Branch von origin (wie CI: gepuschter Branch main/master)
 #   DEPLOY_SYSTEMD_UNIT=dsabrew-api — systemd-Unit der API (Default: dsabrew-api)
 #   DEPLOY_PATH=/pfad/zum/repo  — Repo-Root; wenn unset: ein Verzeichnis über diesem Skript
 #
-# Hinweis: Entspricht inhaltlich dem SSH-Deploy in .github/workflows/ci.yml.
+# Hinweis: Entspricht dem SSH-Deploy in .github/workflows/ci.yml (reset auf origin/<Branch>, Branch = Ref des Events bzw. hier Default von origin).
 
 set -euo pipefail
 
-DEPLOY_BRANCH="${DEPLOY_BRANCH:-master}"
 DEPLOY_SYSTEMD_UNIT="${DEPLOY_SYSTEMD_UNIT:-dsabrew-api}"
 
 if [[ -n "${DEPLOY_PATH:-}" ]]; then
@@ -27,10 +26,26 @@ else
 fi
 
 cd "$REPO_ROOT"
+
+git fetch origin
+
+# Wie CI (github.ref_name): Branch = main oder master — hier Default-Branch von origin, falls DEPLOY_BRANCH nicht gesetzt.
+if [[ -z "${DEPLOY_BRANCH:-}" ]]; then
+  DEPLOY_BRANCH="$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')"
+  if [[ -z "$DEPLOY_BRANCH" ]]; then
+    if git show-ref --verify --quiet refs/remotes/origin/main 2>/dev/null; then
+      DEPLOY_BRANCH=main
+    elif git show-ref --verify --quiet refs/remotes/origin/master 2>/dev/null; then
+      DEPLOY_BRANCH=master
+    else
+      DEPLOY_BRANCH=main
+    fi
+  fi
+fi
+
 echo "==> Deploy: $REPO_ROOT (Branch: $DEPLOY_BRANCH)"
 
-echo "==> git fetch + reset --hard origin/$DEPLOY_BRANCH"
-git fetch origin
+echo "==> git reset --hard origin/$DEPLOY_BRANCH"
 git reset --hard "origin/$DEPLOY_BRANCH"
 
 echo "==> npm ci (root, web, server)"
