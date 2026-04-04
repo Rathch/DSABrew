@@ -13,7 +13,7 @@
     "sync-server-lock": "node scripts/update-server-lock.mjs",
     "lint:ts": "node scripts/lint-ts.mjs",
     "lint:ts:fix": "node scripts/lint-ts.mjs --fix",
-    "ci:verify": "npm run lint:ts && npm run typecheck --prefix web && npm run lint:css --prefix web && npm run test:coverage --prefix web && npm run build --prefix web && npm run typecheck --prefix server",
+    "ci:verify": "npm run lint:ts && npm run typecheck --prefix web && npm run lint:css --prefix web && npm run test:coverage --prefix web && npm run build --prefix web && npm run typecheck --prefix server && npm run test --prefix server",
     "ci:precommit": "npm run lint:ts && npm run typecheck --prefix web && npm run lint:css --prefix web && npm run typecheck --prefix server",
     "ci:audit": "npm audit --audit-level=high --prefix web && npm audit --audit-level=high --prefix server",
     "ci:gitleaks": "gitleaks detect --source . --verbose --exit-code 1",

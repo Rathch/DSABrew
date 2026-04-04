@@ -104,6 +104,9 @@ jobs:
       - name: TypeScript
         run: npm run typecheck
 
+      - name: Tests (Node)
+        run: npm run test
+
   # Hinweis: GitHub „Dependency Review“ (actions/dependency-review-action) braucht Dependency Graph
   # + bei privaten Repos GitHub Advanced Security — nicht dasselbe wie Dependabot. CVE-Check: dieser Job.
   dependency-audit:

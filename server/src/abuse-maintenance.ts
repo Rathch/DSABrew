@@ -3,9 +3,10 @@
  * Keine Tokens/IPs — nur Zeitstempel erfolgreicher POST /api/documents.
  */
 
-const WINDOW_MS = Number(process.env.ABUSE_DOC_CREATE_WINDOW_MS ?? 600_000);
-const MAX_CREATES = Number(process.env.ABUSE_DOC_CREATE_MAX ?? 500);
-const COOLDOWN_MS = Number(process.env.ABUSE_MAINTENANCE_COOLDOWN_MS ?? 900_000);
+import { parseAbuseEnv } from "./abuse-env.js";
+
+const { windowMs: WINDOW_MS, maxCreates: MAX_CREATES, cooldownMs: COOLDOWN_MS } =
+  parseAbuseEnv(process.env);
 
 /** Mindestens 1, sonst Entsperrung unmöglich */
 const HALF_MAX = Math.max(1, Math.floor(MAX_CREATES / 2));

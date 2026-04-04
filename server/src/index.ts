@@ -74,7 +74,8 @@ async function main(): Promise<void> {
   const rootLogger = createServerLogger(logDir);
 
   const app = Fastify({
-    logger: rootLogger,
+    // Fastify 5: fertige Pino-Instanz → loggerInstance, nicht logger (nur Konfig-Objekt)
+    loggerInstance: rootLogger,
     trustProxy: process.env.TRUST_PROXY === "1"
   });
 
