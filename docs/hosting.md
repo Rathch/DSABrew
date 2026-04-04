@@ -32,7 +32,7 @@ Optional: `VITE_PUBLIC_API_BASE=https://api.example.com` setzen, wenn Frontend u
 
 ## Umgebungsvariablen (Server)
 
-Geheimnisse gehören **nicht** ins Git — nur die Vorlage **`.env.example`** im Repository anpassen; lokal **`cp .env.example .env`** und Werte setzen.
+Geheimnisse gehören **nicht** ins Git — Vorlage **`.env.example`** im Repo-Root; lokal **`cp .env.example .env`** und Werte setzen. Beim Start lädt die API die Datei **`.env` im Repo-Root** automatisch: **`npm run start` / `npm run dev`** rufen Node mit **`--import ./src/load-dotenv.mjs`** auf (vor `tsx` und allen Modulen). Alternativ Variablen in der Shell / unter systemd setzen (dort kein Preload nötig, wenn die Variablen ohnehin gesetzt sind).
 
 | Variable | Standard | Beschreibung |
 |----------|----------|--------------|

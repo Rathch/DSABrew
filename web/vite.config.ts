@@ -24,6 +24,9 @@ export default defineConfig({
   },
   test: {
     globals: true,
+    // Nur tests/: Vitest. e2e/ ist Playwright (keine *.spec.ts hier, sonst Konflikt mit test.describe).
+    include: ["tests/**/*.test.ts"],
+    exclude: ["**/node_modules/**", "**/dist/**", "**/e2e/**"],
     coverage: {
       provider: "v8",
       reportsDirectory: "./coverage",

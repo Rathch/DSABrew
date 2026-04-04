@@ -7,6 +7,9 @@ web/node_modules/
 server/node_modules/
 web/dist/
 web/coverage/
+web/playwright-report/
+web/test-results/
+web/blob-report/
 .eslintcache
 *.log
 *.tmp
@@ -14,4 +17,5 @@ web/coverage/
 .env.*
 !.env.example
 server/data/
+tmp/
 ops-mail-state.json
