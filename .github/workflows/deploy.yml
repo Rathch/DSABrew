@@ -91,4 +91,5 @@ jobs:
             npm ci --prefix web
             npm ci --prefix server
             npm run build --prefix web
+            # sudo -n: nur ohne Passwort, wenn NOPASSWD für diese Unit gesetzt ist — docs/hosting.md (Abschnitt GitHub Actions / VPS-Deploy)
             sudo -n systemctl restart "${{ vars.DEPLOY_SYSTEMD_UNIT || 'dsabrew-api' }}"

@@ -2,6 +2,10 @@
 # Läuft erst nach erfolgreichem Workflow „CI“ (Tests/Lint/Build/Audit — ohne VPS-Deploy).
 # Deploy ist `.github/workflows/deploy.yml` und beeinflusst weder CI noch dieses Release.
 # Hinweis: `needs` gilt nur innerhalb eines Workflows — übergreifend: `workflow_run` + Bedingungen.
+#
+# Geschützter main: Repository Secret `RELEASE_GITHUB_TOKEN` anlegen (Fine-grained PAT mit
+# Contents: Read/Write auf dieses Repo; Metadata read). Wird für checkout + semantic-release
+# genutzt; ohne Secret fällt der Workflow auf `GITHUB_TOKEN` zurück (reicht nur ohne Push-Block).
 name: Release
 
 on:
@@ -36,12 +40,19 @@ jobs:
     concurrency:
       group: release-production
       cancel-in-progress: false
+    env:
+      # Husky pre-push führt lokal „ci:quick“ aus (inkl. Playwright). Beim SR-git push läuft
+      # derselbe Hook — im Release-Job gibt es keine Browser-Installation; CI ist ohnehin grün.
+      HUSKY: "0"
+      # Ein Token für Checkout (persist-credentials) und SR — sonst blockiert geschützter main.
+      SR_GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
           persist-credentials: true
+          token: ${{ env.SR_GITHUB_TOKEN }}
 
       - uses: actions/setup-node@v4
         with:
@@ -60,5 +71,6 @@ jobs:
 
       - name: semantic-release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ env.SR_GITHUB_TOKEN }}
+          GH_TOKEN: ${{ env.SR_GITHUB_TOKEN }}
         run: npx semantic-release

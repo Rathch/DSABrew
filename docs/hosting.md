@@ -134,6 +134,24 @@ location / {
 }
 ```
 
+## GitHub Actions / VPS-Deploy
+
+Der Workflow **„Deploy (VPS)“** (`.github/workflows/deploy.yml`) führt auf dem Zielhost per SSH u. a. **`sudo -n systemctl restart …`** aus. **`sudo -n`** bedeutet **ohne Passwortabfrage**; schlägt die Authentifizierung fehl, erscheint **`sudo: a password is required`** und der Job bricht ab.
+
+**Erforderlich auf dem Server:** Für den SSH-Benutzer (GitHub-Secret **`DEPLOY_USER`**) muss **passwortloses sudo nur für die nötigen `systemctl`-Aufrufe** erlaubt sein — nicht für beliebige Befehle. Unit-Name per GitHub-Variable **`DEPLOY_SYSTEMD_UNIT`** (Standard **`dsabrew-api`**).
+
+Beispiel (als root, Pfad und Benutzer anpassen):
+
+```text
+# /etc/sudoers.d/dsabrew-deploy
+Defaults!/usr/bin/systemctl !requiretty
+deployuser ALL=(root) NOPASSWD: /usr/bin/systemctl restart dsabrew-api, /usr/bin/systemctl status dsabrew-api
+```
+
+Prüfen: Als derselbe User per SSH **`sudo -n systemctl status dsabrew-api`** — darf **kein** Passwort verlangen. Wenn `systemctl` woanders liegt: **`which systemctl`** auf dem VPS verwenden und die Pfade in der sudoers-Zeile exakt so setzen.
+
+Siehe auch **`scripts/deploy-vps.sh`** (manuelles Deploy mit denselben Voraussetzungen).
+
 ## Sicherheit
 
 - Edit-Tokens nicht in Logs ausgeben; **keine** Client-**IPs** in Logdateien (**FR-030**); Fehlermeldungen generisch halten.
