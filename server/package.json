@@ -1,13 +1,14 @@
 {
   "name": "dsabrew-server",
-  "version": "0.1.0",
+  "version": "0.38.2",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "node --import ./src/load-dotenv.mjs ./node_modules/tsx/dist/cli.mjs watch src/index.ts",
     "start": "node --import ./src/load-dotenv.mjs ./node_modules/tsx/dist/cli.mjs src/index.ts",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/abuse-env.test.ts",
+    "test": "tsx --test src/abuse-env.test.ts src/logger-config.test.ts src/ops-status.test.ts",
+    "test:coverage": "node --experimental-test-coverage --import tsx --test src/abuse-env.test.ts src/logger-config.test.ts src/ops-status.test.ts",
     "env:print": "node --import ./src/load-dotenv.mjs -e \"console.log('[dsabrew] PORT=', process.env.PORT, 'PUBLIC_ORIGIN=', process.env.PUBLIC_ORIGIN)\""
   },
   "dependencies": {

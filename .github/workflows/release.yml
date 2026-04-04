@@ -1,0 +1,63 @@
+# Semantische Versionen + CHANGELOG (konventionelle Commits) + GitHub Release
+# Läuft erst nach erfolgreichem Workflow „CI“ (Tests/Lint/Build/Audit — ohne VPS-Deploy).
+# Deploy ist `.github/workflows/deploy.yml` und beeinflusst weder CI noch dieses Release.
+# Hinweis: `needs` gilt nur innerhalb eines Workflows — übergreifend: `workflow_run` + Bedingungen.
+name: Release
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types:
+      - completed
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+env:
+  npm_config_fetch_retries: "7"
+  npm_config_fetch_retry_mintimeout: "15000"
+  npm_config_fetch_retry_maxtimeout: "120000"
+
+jobs:
+  release:
+    name: semantic-release
+    runs-on: ubuntu-latest
+    if: >-
+      github.repository == 'Rathch/DSABrew' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      (github.event.workflow_run.head_branch == 'main' ||
+       github.event.workflow_run.head_branch == 'master') &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    # Wie deploy-production: nur eine Release-Instanz gleichzeitig (Tags/Commits/GitHub Release).
+    concurrency:
+      group: release-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+          persist-credentials: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            web/package-lock.json
+            server/package-lock.json
+
+      - name: Install (root + web + server)
+        run: |
+          npm ci
+          npm ci --prefix web
+          npm ci --prefix server
+
+      - name: semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release

@@ -1,11 +1,19 @@
+import { readFileSync } from "node:fs";
 import { defineConfig } from "vite";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, "..");
+const rootPkg = JSON.parse(readFileSync(resolve(repoRoot, "package.json"), "utf8")) as {
+  version?: string;
+};
+const appVersion = rootPkg.version ?? "0.0.0";
 
 export default defineConfig({
+  define: {
+    "import.meta.env.VITE_APP_VERSION": JSON.stringify(appVersion)
+  },
   resolve: {
     alias: {
       "@media": resolve(repoRoot, "media")
@@ -18,7 +26,15 @@ export default defineConfig({
     proxy: {
       "/api": {
         target: "http://127.0.0.1:3001",
-        changeOrigin: true
+        changeOrigin: true,
+        configure(proxy) {
+          proxy.on("proxyReq", (proxyReq, req) => {
+            const auth = req.headers.authorization;
+            if (auth) {
+              proxyReq.setHeader("Authorization", auth);
+            }
+          });
+        }
       }
     }
   },

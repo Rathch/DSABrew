@@ -47,6 +47,10 @@ describe("pageSegmentsZeroBased", () => {
     expect(segs.length).toBe(2);
     expect(segs[1]).toEqual({ start: 2, end: 2 });
   });
+
+  it("nur Seitenumbruch-Zeilen: Fallback ein Segment", () => {
+    expect(pageSegmentsZeroBased("\\page")).toEqual([{ start: 0, end: 0 }]);
+  });
 });
 
 describe("textareaLineMetrics / minimapSegmentLayout (getComputedStyle mocked)", () => {
@@ -98,44 +102,7 @@ describe("textareaLineMetrics / minimapSegmentLayout (getComputedStyle mocked)",
 });
 
 describe("updateEditorPageStripeBackground", () => {
-  beforeEach(() => {
-    vi.stubGlobal(
-      "getComputedStyle",
-      vi.fn(() => ({
-        lineHeight: "10px",
-        fontSize: "10px",
-        paddingTop: "0px",
-        paddingBottom: "0px"
-      }))
-    );
-    vi.stubGlobal("document", {
-      documentElement: {
-        classList: {
-          contains: (name: string) => name === "dark"
-        }
-      }
-    });
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
-  it("clears stripes for a single page", () => {
-    const classList = { add: vi.fn(), remove: vi.fn() };
-    const style = { removeProperty: vi.fn(), backgroundImage: "" };
-    const ta = {
-      value: "only one page",
-      scrollHeight: 50,
-      classList,
-      style
-    } as unknown as HTMLTextAreaElement;
-    updateEditorPageStripeBackground(ta);
-    expect(classList.remove).toHaveBeenCalledWith("editor-textarea--page-stripes");
-    expect(style.removeProperty).toHaveBeenCalledWith("background-image");
-  });
-
-  it("applies gradient when multiple segments exist", () => {
+  it("always clears textarea page stripes (minimap-only)", () => {
     const classList = { add: vi.fn(), remove: vi.fn() };
     const style = { removeProperty: vi.fn(), backgroundImage: "" };
     const ta = {
@@ -145,7 +112,8 @@ describe("updateEditorPageStripeBackground", () => {
       style
     } as unknown as HTMLTextAreaElement;
     updateEditorPageStripeBackground(ta);
-    expect(classList.add).toHaveBeenCalledWith("editor-textarea--page-stripes");
-    expect(style.backgroundImage).toContain("linear-gradient");
+    expect(classList.remove).toHaveBeenCalledWith("editor-textarea--page-stripes");
+    expect(style.removeProperty).toHaveBeenCalledWith("background-image");
+    expect(classList.add).not.toHaveBeenCalled();
   });
 });

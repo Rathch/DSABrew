@@ -4,6 +4,53 @@
 #   . "$(git rev-parse --show-toplevel)/scripts/husky-wsl.sh"
 #   husky_run_in_wsl "npm run ci:precommit"
 
+# Git übergibt COMMIT_EDITMSG u. a. als Windows- oder UNC-Pfad; in WSL braucht commitlint einen Linux-Pfad.
+husky_path_for_wsl() {
+  _p=$(printf '%s' "$1" | tr '\\' '/')
+  case "$_p" in
+    "") printf '%s\n' "$_p"; return ;;
+  esac
+  case "$_p" in
+    /home/* | /mnt/* | /usr/* | /opt/*)
+      printf '%s\n' "$_p"
+      return
+      ;;
+  esac
+  case "$_p" in
+    //wsl.localhost/*/*)
+      _rest=$(printf '%s' "$_p" | sed 's|^//wsl\.localhost/[^/]*/||')
+      printf '/%s\n' "$_rest"
+      return
+      ;;
+    //wsl\$/*/*)
+      _rest=$(printf '%s' "$_p" | sed 's|^//wsl\$[^/]*/||')
+      printf '/%s\n' "$_rest"
+      return
+      ;;
+  esac
+  case "$_p" in
+    /[a-z]/[Mm][Nn][Tt]/*)
+      printf '%s\n' "$_p"
+      return
+      ;;
+    /[a-z]/*)
+      _dl=$(printf '%s' "$_p" | sed -n 's|^/\([^/]*\)/.*|\1|p')
+      _rest=$(printf '%s' "$_p" | sed 's|^/[^/]*/||')
+      printf '/mnt/%s/%s\n' "$_dl" "$_rest"
+      return
+      ;;
+  esac
+  case "$_p" in
+    [a-zA-Z]:*)
+      _d=$(printf '%s' "$_p" | cut -c1 | tr '[:upper:]' '[:lower:]')
+      _rest=${_p#?:}
+      printf '/mnt/%s%s\n' "$_d" "$_rest"
+      return
+      ;;
+  esac
+  printf '%s\n' "$_p"
+}
+
 husky_run_in_wsl() {
   _cmd=$1
   REPO_TOP=$(git rev-parse --show-toplevel)

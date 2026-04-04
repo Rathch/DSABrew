@@ -16,7 +16,12 @@ permissions:
   pull-requests: read
 
 env:
-  NODE_VERSION: "20"
+  NODE_VERSION: "22"
+  # Transiente Registry-Fehler (ECONNRESET) auf Runnern: mehr Retries + längere Backoffs
+  # siehe npm-Doku „Config“ (fetch-retries, fetch-retry-mintimeout, fetch-retry-maxtimeout)
+  npm_config_fetch_retries: "7"
+  npm_config_fetch_retry_mintimeout: "15000"
+  npm_config_fetch_retry_maxtimeout: "120000"
 
 jobs:
   web:
@@ -213,87 +218,5 @@ jobs:
           fi
           echo "DEPLOYMENT_SECRET ist gesetzt."
 
-  # --- Deploy (VPS): nur bei Push auf main/master, nach erfolgreichen Web- + Server-Jobs ---
-  # Repository → Settings → Secrets and variables → Actions:
-  #   SSH_PRIVATE_KEY   — privater SSH-Key (Deploy-User auf dem VPS)
-  #   DEPLOY_HOST       — Hostname oder IP des VPS
-  #   DEPLOY_USER       — z. B. deployer
-  #   DEPLOY_PATH       — absoluter Pfad zum Repo, z. B. /home/deployer/dsabrew
-  # Optional (Variables):
-  #   DEPLOY_SYSTEMD_UNIT — Default: dsabrew-api
-  #   DEPLOY_SSH_PORT — SSH-Port (Default: 22)
-  #   DEPLOY_SSH_PROTOCOL — tcp | tcp4 | tcp6 (Default: tcp) — bei IPv6-Problemen z. B. tcp4 testen
-  # Auf dem Server: sudoers für „systemctl restart …“ ohne Passwort; git remote muss pull können.
-  deploy:
-    name: Deploy (VPS)
-    needs: [web, server]
-    if: >-
-      github.event_name == 'push' &&
-      (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
-    runs-on: ubuntu-latest
-    concurrency:
-      group: deploy-production
-      cancel-in-progress: false
-    environment: production
-    steps:
-      - name: Deploy — Diagnose (Runner-IP, DNS, TCP zum SSH-Port)
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_SSH_PORT: ${{ vars.DEPLOY_SSH_PORT || '22' }}
-        run: |
-          set -euo pipefail
-          echo "::group::Runner / Job"
-          echo "GITHUB_RUN_ID=$GITHUB_RUN_ID GITHUB_REF=$GITHUB_REF"
-          uname -a || true
-          echo "Outbound-IP (Runner, öffentlich): $(curl -fsS --max-time 10 https://api.ipify.org || echo 'n/a')"
-          echo "::endgroup::"
-
-          echo "::group::DEPLOY_HOST — Länge & DNS"
-          if [ -z "${DEPLOY_HOST:-}" ]; then
-            echo "::error::Secret DEPLOY_HOST ist leer."
-            exit 1
-          fi
-          echo "Zeichenlänge DEPLOY_HOST: ${#DEPLOY_HOST}"
-          echo "Ersten 12 Zeichen (zur Plausibilisierung): ${DEPLOY_HOST:0:12}…"
-          getent ahosts "$DEPLOY_HOST" 2>/dev/null || true
-          getent hosts "$DEPLOY_HOST" 2>/dev/null || true
-          if command -v dig >/dev/null 2>&1; then
-            dig +timeout=5 +tries=1 "$DEPLOY_HOST" A 2>/dev/null || true
-            dig +timeout=5 +tries=1 "$DEPLOY_HOST" AAAA 2>/dev/null || true
-          fi
-          echo "::endgroup::"
-
-          echo "::group::TCP $DEPLOY_HOST:$DEPLOY_SSH_PORT (wie drone-ssh / SSH-Client)"
-          if command -v nc >/dev/null 2>&1; then
-            if nc -zv -w 15 "$DEPLOY_HOST" "$DEPLOY_SSH_PORT" 2>&1; then
-              echo "nc: Verbindungsaufbau OK"
-            else
-              echo "::warning::nc -zv fehlgeschlagen (Exit $?) — typisch Firewall/Provider oder falsche IP/Hostname."
-            fi
-          else
-            echo "nc fehlt; versuche bash /dev/tcp"
-            timeout 15 bash -c "echo >/dev/tcp/${DEPLOY_HOST}/${DEPLOY_SSH_PORT}" && echo "bash /dev/tcp: OK" || echo "::warning::bash /dev/tcp fehlgeschlagen"
-          fi
-          echo "::endgroup::"
-
-      - name: SSH — Checkout, Build, API neu starten
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ vars.DEPLOY_SSH_PORT || '22' }}
-          protocol: ${{ vars.DEPLOY_SSH_PROTOCOL || 'tcp' }}
-          timeout: 2m
-          debug: true
-          script_stop: true
-          script: |
-            set -euo pipefail
-            cd "${{ secrets.DEPLOY_PATH }}"
-            git fetch origin
-            git reset --hard "origin/${{ github.ref_name }}"
-            npm ci
-            npm ci --prefix web
-            npm ci --prefix server
-            npm run build --prefix web
-            sudo -n systemctl restart "${{ vars.DEPLOY_SYSTEMD_UNIT || 'dsabrew-api' }}"
+  # Deploy (VPS): eigener Workflow `.github/workflows/deploy.yml` — läuft nach erfolgreichem „CI“,
+  # blockiert aber weder den CI-Status noch semantic-release (Release).

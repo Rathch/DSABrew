@@ -6,7 +6,7 @@ import {
 } from "../src/fan-product-notice";
 
 describe("fanProductNoticeHtml", () => {
-  it("renders aside with escaped URLs and trademark text", () => {
+  it("renders Markenhinweis-Block mit escaped URLs und Trademark-Text", () => {
     const html = fanProductNoticeHtml();
     expect(html).toContain("fan-notice");
     expect(html).toContain("fan-notice__img");

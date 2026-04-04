@@ -4,6 +4,11 @@ export function isSmtpConfigured(): boolean {
   return Boolean(process.env.SMTP_HOST?.trim() && process.env.SMTP_FROM?.trim());
 }
 
+/** Passwort gesetzt → `GET /api/ops/status` (Basic Auth) liefert Betriebsinfos statt/alternativ zu E-Mail. */
+export function isOpsStatusPageEnabled(): boolean {
+  return Boolean(process.env.OPS_STATUS_PASSWORD?.trim());
+}
+
 export function getAlertRecipients(): string[] {
   const raw = process.env.OPS_ALERT_EMAIL?.trim();
   if (!raw) {

@@ -1,0 +1,27 @@
+#!/usr/bin/env sh
+# Konventionelle Commits (feat:, fix:, chore:, …) — siehe commitlint.config.cjs
+set -e
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$REPO_ROOT" || exit 1
+# shellcheck disable=SC1091
+. "$REPO_ROOT/scripts/husky-env.sh"
+# shellcheck disable=SC1091
+. "$REPO_ROOT/scripts/husky-wsl.sh"
+
+COMMIT_MSG_FILE="$1"
+# Git (Win) übergibt oft Windows- oder UNC-Pfade; commitlint in WSL braucht einen Linux-Pfad (siehe husky_path_for_wsl).
+COMMIT_MSG_WSL=$(husky_path_for_wsl "$COMMIT_MSG_FILE")
+
+# UNC //wsl… (inkl. //wsl.localhost, //wsl$/…): Windows-Node öffnet die Datei oft nicht → WSL + Linux-Pfad
+use_wsl_for_msg=false
+case "$COMMIT_MSG_FILE" in
+  //wsl*)
+    use_wsl_for_msg="true"
+    ;;
+esac
+
+if [ "$use_wsl_for_msg" = "true" ] || ! command -v npm >/dev/null 2>&1; then
+  husky_run_in_wsl "npx --no -- commitlint --edit $(printf '%q' "$COMMIT_MSG_WSL")"
+else
+  npx --no -- commitlint --edit "$COMMIT_MSG_FILE"
+fi

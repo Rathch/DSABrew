@@ -1,7 +1,7 @@
 /**
- * Page stripes in the editor and minimap: count raw text line by line
- * up to a dedicated line with \\page / \\pageSingle (or {{page}} / {{pageSingle}}).
- * Line height = computed textarea line-height (fixed per line), then scaled to scrollHeight.
+ * Page boundaries for the minimap: count raw text line by line up to \\page / \\pageSingle
+ * (or {{page}} / {{pageSingle}}). Line metrics → `minimapSegmentLayout` in scroll-sync.
+ * Textarea background stripes are disabled — only the viewport gutter shows pages.
  */
 
 const PAGE_OR_SINGLE_BREAK = /(?:^|\n)\s*\\page(Single)?\s*\n/g;
@@ -107,48 +107,9 @@ export function minimapSegmentLayout(
   return out;
 }
 
-function stripeColorsEditorBg(): { a: string; b: string } {
-  const dark = document.documentElement.classList.contains("dark");
-  if (dark) {
-    return {
-      a: "rgb(30 58 138 / 0.35)",
-      b: "rgb(20 83 45 / 0.32)"
-    };
-  }
-  return {
-    a: "rgb(239 246 255)",
-    b: "rgb(240 253 244)"
-  };
-}
-
-/**
- * Background stripes only when there are multiple pages; same line logic as the minimap.
- */
+/** Clears any legacy page-stripe styling on the textarea (pages only in the minimap). */
 export function updateEditorPageStripeBackground(textarea: HTMLTextAreaElement): void {
-  const segments = pageSegmentsZeroBased(textarea.value);
-  if (segments.length <= 1) {
-    textarea.classList.remove("editor-textarea--page-stripes");
-    textarea.style.removeProperty("background-image");
-    return;
-  }
-
-  textarea.classList.add("editor-textarea--page-stripes");
-
-  const sh = textarea.scrollHeight;
-  const { a: c0, b: c1 } = stripeColorsEditorBg();
-  const layout = minimapSegmentLayout(textarea, segments);
-
-  const stops: string[] = [];
-  for (let i = 0; i < layout.length; i++) {
-    const seg = layout[i]!;
-    const c = i % 2 === 0 ? c0 : c1;
-    stops.push(`${c} ${seg.top}px`, `${c} ${seg.top + seg.height}px`);
-  }
-  const last = layout[layout.length - 1]!;
-  const bottom = last.top + last.height;
-  const lastC = (layout.length - 1) % 2 === 0 ? c0 : c1;
-  stops.push(`${lastC} ${bottom}px`, `${lastC} ${sh + 80}px`);
-
-  textarea.style.backgroundImage = `linear-gradient(to bottom, ${stops.join(", ")})`;
+  textarea.classList.remove("editor-textarea--page-stripes");
+  textarea.style.removeProperty("background-image");
 }
 

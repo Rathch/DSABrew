@@ -8,7 +8,7 @@ import { minimapSegmentLayout, pageSegmentsZeroBased } from "./editor-page-strip
 
 const LS_SCROLL_LINK = "dsabrew-scroll-link";
 
-function scrollRatio(el: HTMLElement): number {
+export function scrollRatio(el: HTMLElement): number {
   const max = el.scrollHeight - el.clientHeight;
   if (max <= 0) {
     return 0;
@@ -16,7 +16,7 @@ function scrollRatio(el: HTMLElement): number {
   return el.scrollTop / max;
 }
 
-function setScrollRatio(el: HTMLElement, r: number): void {
+export function setScrollRatio(el: HTMLElement, r: number): void {
   const max = el.scrollHeight - el.clientHeight;
   if (max <= 0) {
     return;
@@ -24,7 +24,7 @@ function setScrollRatio(el: HTMLElement, r: number): void {
   el.scrollTop = Math.max(0, Math.min(max, r * max));
 }
 
-function previewIsVisible(preview: HTMLElement): boolean {
+export function previewIsVisible(preview: HTMLElement): boolean {
   return getComputedStyle(preview).display !== "none";
 }
 

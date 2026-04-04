@@ -17,11 +17,11 @@ type ToolbarPreviewKind =
   | "table"
   | "abschnitt";
 
-function dispatchInput(textarea: HTMLTextAreaElement): void {
+export function dispatchInput(textarea: HTMLTextAreaElement): void {
   textarea.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
-function wrapSelection(
+export function wrapSelection(
   textarea: HTMLTextAreaElement,
   before: string,
   after: string,
@@ -43,7 +43,7 @@ function wrapSelection(
   dispatchInput(textarea);
 }
 
-function insertAtCursor(textarea: HTMLTextAreaElement, text: string): void {
+export function insertAtCursor(textarea: HTMLTextAreaElement, text: string): void {
   const { selectionStart: start, selectionEnd: end, value } = textarea;
   textarea.value = value.slice(0, start) + text + value.slice(end);
   const pos = start + text.length;
@@ -52,7 +52,7 @@ function insertAtCursor(textarea: HTMLTextAreaElement, text: string): void {
   dispatchInput(textarea);
 }
 
-function getLineRange(value: string, selStart: number, selEnd: number): { start: number; end: number } {
+export function getLineRange(value: string, selStart: number, selEnd: number): { start: number; end: number } {
   const lineStart = value.lastIndexOf("\n", selStart - 1) + 1;
   let lineEnd = value.indexOf("\n", Math.max(selEnd - 1, 0));
   if (lineEnd === -1) {
@@ -64,7 +64,7 @@ function getLineRange(value: string, selStart: number, selEnd: number): { start:
   return { start: lineStart, end: lineEnd };
 }
 
-function transformSelectedLines(
+export function transformSelectedLines(
   textarea: HTMLTextAreaElement,
   mapLine: (line: string, index: number) => string
 ): void {
@@ -80,7 +80,7 @@ function transformSelectedLines(
   dispatchInput(textarea);
 }
 
-function setHeadingLevel(textarea: HTMLTextAreaElement, level: 1 | 2 | 3 | 4): void {
+export function setHeadingLevel(textarea: HTMLTextAreaElement, level: 1 | 2 | 3 | 4): void {
   const prefix = `${"#".repeat(level)} `;
   transformSelectedLines(textarea, (line) => {
     const t = line.replace(/^#{1,6}\s+/, "").trimEnd();
@@ -88,7 +88,7 @@ function setHeadingLevel(textarea: HTMLTextAreaElement, level: 1 | 2 | 3 | 4): v
   });
 }
 
-function toggleBulletList(textarea: HTMLTextAreaElement): void {
+export function toggleBulletList(textarea: HTMLTextAreaElement): void {
   transformSelectedLines(textarea, (line) => {
     const t = line.replace(/^(\s*[-*]|\s*\d+\.)\s+/, "").trimEnd();
     if (line.trim() === "") {
@@ -98,7 +98,7 @@ function toggleBulletList(textarea: HTMLTextAreaElement): void {
   });
 }
 
-function toggleOrderedList(textarea: HTMLTextAreaElement): void {
+export function toggleOrderedList(textarea: HTMLTextAreaElement): void {
   let n = 1;
   transformSelectedLines(textarea, (line) => {
     const t = line.replace(/^(\s*[-*]|\s*\d+\.)\s+/, "").trimEnd();
@@ -111,7 +111,7 @@ function toggleOrderedList(textarea: HTMLTextAreaElement): void {
   });
 }
 
-function toggleBlockquote(textarea: HTMLTextAreaElement): void {
+export function toggleBlockquote(textarea: HTMLTextAreaElement): void {
   transformSelectedLines(textarea, (line) => {
     if (line.trim() === "") {
       return line;
@@ -121,7 +121,7 @@ function toggleBlockquote(textarea: HTMLTextAreaElement): void {
   });
 }
 
-function insertCodeBlock(textarea: HTMLTextAreaElement): void {
+export function insertCodeBlock(textarea: HTMLTextAreaElement): void {
   const start = textarea.selectionStart;
   const fence = "```\n\n```";
   insertAtCursor(textarea, fence);
@@ -129,7 +129,7 @@ function insertCodeBlock(textarea: HTMLTextAreaElement): void {
   textarea.setSelectionRange(inner, inner);
 }
 
-function insertLink(textarea: HTMLTextAreaElement): void {
+export function insertLink(textarea: HTMLTextAreaElement): void {
   const url = window.prompt("Link-Ziel (URL):", "https://");
   if (url === null) {
     return;
@@ -151,7 +151,7 @@ function insertLink(textarea: HTMLTextAreaElement): void {
   insertAtCursor(textarea, `[${label || "Text"}](${url})`);
 }
 
-function insertAbschnittMacro(textarea: HTMLTextAreaElement): void {
+export function insertAbschnittMacro(textarea: HTMLTextAreaElement): void {
   const nRaw = window.prompt("Abschnittsnummer N (Ziel: ## N Titel oder ## N. Titel):", "15");
   if (nRaw === null) {
     return;
@@ -407,7 +407,7 @@ talente=Schwimmen 3, Klettern 2
   }
 ];
 
-function isSeparator(id: string): boolean {
+export function isSeparator(id: string): boolean {
   return id.startsWith("sep");
 }
 

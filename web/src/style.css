@@ -8,6 +8,8 @@ body,
 
 html {
   min-height: 100%;
+  overflow-x: clip;
+  max-width: 100%;
 }
 
 body {
@@ -199,8 +201,8 @@ html.dark .ui-toolbar-btn--primary:hover {
 }
 
 .ui-toolbar-btn--cta {
-  border-color: #047857;
-  background: #059669;
+  border-color: #065f46;
+  background: #047857;
   color: #fff;
   box-shadow:
     0 1px 2px rgb(6 78 59 / 25%),
@@ -208,8 +210,8 @@ html.dark .ui-toolbar-btn--primary:hover {
 }
 
 .ui-toolbar-btn--cta:hover {
-  border-color: #059669;
-  background: #10b981;
+  border-color: #047857;
+  background: #059669;
   box-shadow:
     0 1px 2px rgb(6 78 59 / 25%),
     0 0 0 1px rgb(110 231 183 / 50%);
@@ -220,16 +222,16 @@ html.dark .ui-toolbar-btn--primary:hover {
 }
 
 html.dark .ui-toolbar-btn--cta {
-  border-color: #10b981;
-  background: #059669;
+  border-color: #34d399;
+  background: #047857;
   box-shadow:
     0 1px 2px rgb(0 0 0 / 40%),
     0 0 0 1px rgb(52 211 153 / 35%);
 }
 
 html.dark .ui-toolbar-btn--cta:hover {
-  border-color: #34d399;
-  background: #10b981;
+  border-color: #6ee7b7;
+  background: #065f46;
 }
 
 .ui-toolbar-btn--secondary {
@@ -564,10 +566,29 @@ html.dark .hosted-banner__brand {
   font-weight: 700;
   letter-spacing: -0.025em;
   color: #18181b;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem;
 }
 
 html.dark .hosted-banner__title {
   color: #fafafa;
+}
+
+.hosted-banner__product {
+  white-space: nowrap;
+}
+
+.hosted-banner__version {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: #71717a;
+}
+
+html.dark .hosted-banner__version {
+  color: #a1a1aa;
 }
 
 .hosted-banner__subtitle {
@@ -786,6 +807,103 @@ html.dark .legal-impressum-name {
   margin: 2rem 0 1.5rem;
 }
 
+/* Route /ops — Betriebsstatus (API: GET /api/ops/status) */
+.ops-status-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 22rem;
+}
+
+.ops-status-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.ops-status-form input {
+  padding: 0.5rem 0.65rem;
+  border-radius: 0.375rem;
+  border: 1px solid #d4d4d8;
+  background: #fff;
+  color: #18181b;
+}
+
+html.dark .ops-status-form input {
+  border-color: #52525b;
+  background: #27272a;
+  color: #fafafa;
+}
+
+.ops-status-form button[type="submit"] {
+  margin-top: 0.25rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  background: #2563eb;
+  color: #fff;
+}
+
+.ops-status-form button[type="submit"]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ops-status-err {
+  margin: 0.75rem 0 0;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+html.dark .ops-status-err {
+  border-color: #7f1d1d;
+  background: rgb(69 10 10 / 40%);
+  color: #fecaca;
+}
+
+.ops-status-meta {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  color: #71717a;
+}
+
+.ops-status-table-wrap {
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+
+.ops-status-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.ops-status-table th,
+.ops-status-table td {
+  padding: 0.4rem 0.75rem 0.4rem 0;
+  border-bottom: 1px solid #e4e4e7;
+  text-align: left;
+  vertical-align: top;
+}
+
+html.dark .ops-status-table th,
+html.dark .ops-status-table td {
+  border-color: #3f3f46;
+}
+
+.ops-status-table th {
+  font-weight: 600;
+  white-space: nowrap;
+  padding-right: 1rem;
+}
+
 .legal-callout {
   margin: 0;
   padding: 0.75rem;
@@ -832,6 +950,9 @@ html.dark .legal-h2 {
 .chrome-footer-nav {
   box-sizing: border-box;
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 
 .chrome-footer-nav--bordered {
@@ -1035,7 +1156,7 @@ html.dark .privacy-strip {
 }
 
 :root {
-  /* Two-column layout: input min 400px, preview fills the rest and scales A4 proportionally */
+  /* Two-column layout: input min 400px; `.layout` caps with `100%` to avoid horizontal scroll. */
   --layout-editor-min: 400px;
 
   /* Scriptorium template: see specs/001-dsa-brew-renderer/contracts/typography.md */
@@ -1078,9 +1199,32 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 
 #app {
   min-height: 0;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+/* Gehosteter Editor: Footer (contentinfo) als Geschwister von <main> — axe landmark-contentinfo-is-top-level */
+.layout-host--hosted {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  height: 100vh;
+  max-height: 100vh;
+  min-height: 0;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.layout-host--hosted > .layout.layout--hosted {
+  height: 100%;
+  max-height: 100%;
 }
 
 .layout {
+  /* Narrow viewports: min(400px, …) keeps grid + gap + padding within parent width (not 100vw — avoids scrollbar gap). */
+  --layout-editor-min: min(400px, calc(100% - 2.25rem));
+
   display: grid;
 
   /* Column 1: at least 400px, shrinks first to the floor; column 2: takes remaining space, content scales */
@@ -1092,7 +1236,8 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   max-height: 100vh;
   min-height: 0;
   min-width: 0;
-  overflow-x: auto;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 .layout > * {
@@ -1396,12 +1541,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   border-radius: 0;
 }
 
-/* Page stripes only in source (background image via JS); omit base fill color */
-.editor textarea.editor-textarea--page-stripes {
-  background-color: transparent;
-}
-
-/* Two columns: scroll sync + page stripes (preview pages, alternating colors + frame = visible slice) */
+/* Two columns: scroll sync + minimap page segments (alternating colors + range = visible slice) */
 .editor__sync-bar {
   flex: 0 0 auto;
   display: flex;
@@ -1642,7 +1782,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   opacity: 1;
 }
 
-.dark .editor--readonly textarea:not(.editor-textarea--page-stripes) {
+.dark .editor--readonly textarea {
   background: repeating-linear-gradient(
     -12deg,
     #27272a 0,
@@ -3263,9 +3403,9 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   min-width: 0;
 }
 
-/* Row 1: banner; row 2: editor + preview; row 3: footer links */
+/* Row 1: banner; row 2: editor + preview (Site-Footer liegt außerhalb von main) */
 .layout.layout--hosted {
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr);
   align-items: stretch;
 }
 

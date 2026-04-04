@@ -16,9 +16,19 @@ export function redactRequestUrl(url: string | undefined): string {
 
 export type ServerLogger = pino.Logger;
 
+/** rotating-file-stream erwartet B/K/M/G groß; `.env`-Typo `10m` würde sonst „Unknown unit: m“ werfen. */
+export function normalizeRotatingSize(raw: string): string {
+  const t = raw.trim();
+  const m = /^(\d+)\s*([bkmg])$/i.exec(t);
+  if (m) {
+    return `${m[1]}${m[2]!.toUpperCase()}`;
+  }
+  return t;
+}
+
 export function createServerLogger(logDir: string): ServerLogger {
   mkdirSync(logDir, { recursive: true });
-  const maxSize = process.env.LOG_MAX_SIZE ?? "10M";
+  const maxSize = normalizeRotatingSize(process.env.LOG_MAX_SIZE ?? "10M");
   const maxFiles = Number(process.env.LOG_MAX_FILES ?? 14);
   const level = (process.env.LOG_LEVEL ?? "info") as pino.LevelWithSilent;
 

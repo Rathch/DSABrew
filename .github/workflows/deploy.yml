@@ -1,0 +1,94 @@
+# VPS-Deploy nach erfolgreichem Workflow „CI“ — unabhängig von Release/semantic-release.
+# Bei Deploy-Fehlern bleibt der CI-Lauf grün; nur dieser Workflow schlägt fehl.
+#
+# Checkout per `workflow_run.head_sha` (nicht `origin/<branch>`): sonst könnte ein späterer
+# Push auf main/master den Branch-Tipp vor dem Deploy-Rennen verändern — dann würde ungetesteter Code live gehen.
+name: Deploy (VPS)
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types:
+      - completed
+
+# Kein Schreibzugriff aufs Repo nötig — nur SSH zum Server
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy (VPS)
+    runs-on: ubuntu-latest
+    if: >-
+      github.repository == 'Rathch/DSABrew' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      (github.event.workflow_run.head_branch == 'main' ||
+       github.event.workflow_run.head_branch == 'master') &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    environment: production
+    steps:
+      - name: Deploy — Diagnose (Runner-IP, DNS, TCP zum SSH-Port)
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_SSH_PORT: ${{ vars.DEPLOY_SSH_PORT || '22' }}
+        run: |
+          set -euo pipefail
+          echo "::group::Runner / Job"
+          echo "GITHUB_RUN_ID=$GITHUB_RUN_ID GITHUB_REF=$GITHUB_REF"
+          uname -a || true
+          echo "Outbound-IP (Runner, öffentlich): $(curl -fsS --max-time 10 https://api.ipify.org || echo 'n/a')"
+          echo "::endgroup::"
+
+          echo "::group::DEPLOY_HOST — Länge & DNS"
+          if [ -z "${DEPLOY_HOST:-}" ]; then
+            echo "::error::Secret DEPLOY_HOST ist leer."
+            exit 1
+          fi
+          echo "Zeichenlänge DEPLOY_HOST: ${#DEPLOY_HOST}"
+          echo "Ersten 12 Zeichen (zur Plausibilisierung): ${DEPLOY_HOST:0:12}…"
+          getent ahosts "$DEPLOY_HOST" 2>/dev/null || true
+          getent hosts "$DEPLOY_HOST" 2>/dev/null || true
+          if command -v dig >/dev/null 2>&1; then
+            dig +timeout=5 +tries=1 "$DEPLOY_HOST" A 2>/dev/null || true
+            dig +timeout=5 +tries=1 "$DEPLOY_HOST" AAAA 2>/dev/null || true
+          fi
+          echo "::endgroup::"
+
+          echo "::group::TCP $DEPLOY_HOST:$DEPLOY_SSH_PORT (wie drone-ssh / SSH-Client)"
+          if command -v nc >/dev/null 2>&1; then
+            if nc -zv -w 15 "$DEPLOY_HOST" "$DEPLOY_SSH_PORT" 2>&1; then
+              echo "nc: Verbindungsaufbau OK"
+            else
+              echo "::warning::nc -zv fehlgeschlagen (Exit $?) — typisch Firewall/Provider oder falsche IP/Hostname."
+            fi
+          else
+            echo "nc fehlt; versuche bash /dev/tcp"
+            timeout 15 bash -c "echo >/dev/tcp/${DEPLOY_HOST}/${DEPLOY_SSH_PORT}" && echo "bash /dev/tcp: OK" || echo "::warning::bash /dev/tcp fehlgeschlagen"
+          fi
+          echo "::endgroup::"
+
+      - name: SSH — Checkout, Build, API neu starten
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ vars.DEPLOY_SSH_PORT || '22' }}
+          protocol: ${{ vars.DEPLOY_SSH_PROTOCOL || 'tcp' }}
+          timeout: 2m
+          debug: true
+          script_stop: true
+          script: |
+            set -euo pipefail
+            cd "${{ secrets.DEPLOY_PATH }}"
+            git fetch origin
+            git reset --hard ${{ github.event.workflow_run.head_sha }}
+            npm ci
+            npm ci --prefix web
+            npm ci --prefix server
+            npm run build --prefix web
+            sudo -n systemctl restart "${{ vars.DEPLOY_SYSTEMD_UNIT || 'dsabrew-api' }}"

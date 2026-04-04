@@ -1,4 +1,5 @@
-function countLines(text: string): number {
+/** Zeilen zählen wie in der Zeilennummern-Gutter (leerer Editor = eine Zeile). */
+export function countLines(text: string): number {
   if (!text) {
     return 1;
   }

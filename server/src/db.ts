@@ -81,3 +81,8 @@ export function countDocumentsCreatedBetween(
     .get(startMs, endMsExclusive) as { c: number };
   return Number(row.c);
 }
+
+export function countAllDocuments(db: Database.Database): number {
+  const row = db.prepare(`SELECT COUNT(*) AS c FROM documents`).get() as { c: number };
+  return Number(row.c);
+}
