@@ -3,9 +3,9 @@
 # Deploy ist `.github/workflows/deploy.yml` und beeinflusst weder CI noch dieses Release.
 # Hinweis: `needs` gilt nur innerhalb eines Workflows — übergreifend: `workflow_run` + Bedingungen.
 #
-# Geschützter main: Repository Secret `RELEASE_GITHUB_TOKEN` anlegen (Fine-grained PAT mit
-# Contents: Read/Write auf dieses Repo; Metadata read). Wird für checkout + semantic-release
-# genutzt; ohne Secret fällt der Workflow auf `GITHUB_TOKEN` zurück (reicht nur ohne Push-Block).
+# Release-Commit geht per PR in den Default-Branch (geschützter main: kein Direktpush).
+# Secret `RELEASE_GITHUB_TOKEN`: Fine-grained PAT mit Contents + Pull requests (Read/Write),
+# Metadata read — sonst schlagen Push/PR/Merge fehl. Fallback: `GITHUB_TOKEN` (oft nicht ausreichend).
 name: Release
 
 on:
@@ -68,6 +68,11 @@ jobs:
           npm ci
           npm ci --prefix web
           npm ci --prefix server
+
+      - name: Git-Identität (Release-Commit)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: semantic-release
         env:
