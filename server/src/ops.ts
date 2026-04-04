@@ -3,9 +3,6 @@ import { readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import cron from "node-cron";
 import { DateTime, Settings } from "luxon";
-
-/** ISO-Woche: Montag als Wochenbeginn (Europe/Berlin). */
-Settings.defaultWeekSettings = { firstDay: 1, minimalDays: 4 };
 import type { ServerLogger } from "./logger-config.js";
 import { countDocumentsCreatedBetween } from "./db.js";
 import {
@@ -14,6 +11,9 @@ import {
   isSmtpConfigured,
   sendSmtpMail
 } from "./mail.js";
+
+/** ISO-Woche: Montag als Wochenbeginn (Europe/Berlin). */
+Settings.defaultWeekSettings = { firstDay: 1, minimalDays: 4 };
 
 type OpsState = {
   sqliteSizeAlertLatched?: boolean;
@@ -48,7 +48,7 @@ export function startSqliteSizeWatch(
   const tick = (): void => {
     try {
       let state = readOpsState(pathState);
-      let latched = Boolean(state.sqliteSizeAlertLatched);
+      const latched = Boolean(state.sqliteSizeAlertLatched);
       const st = statSync(sqlitePath);
       const size = st.size;
 
