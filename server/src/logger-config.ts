@@ -17,7 +17,7 @@ export function redactRequestUrl(url: string | undefined): string {
 export type ServerLogger = pino.Logger;
 
 /** rotating-file-stream erwartet B/K/M/G groß; `.env`-Typo `10m` würde sonst „Unknown unit: m“ werfen. */
-function normalizeRotatingSize(raw: string): string {
+export function normalizeRotatingSize(raw: string): string {
   const t = raw.trim();
   const m = /^(\d+)\s*([bkmg])$/i.exec(t);
   if (m) {

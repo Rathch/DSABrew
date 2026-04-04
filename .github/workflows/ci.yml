@@ -17,6 +17,11 @@ permissions:
 
 env:
   NODE_VERSION: "20"
+  # Transiente Registry-Fehler (ECONNRESET) auf Runnern: mehr Retries + längere Backoffs
+  # siehe npm-Doku „Config“ (fetch-retries, fetch-retry-mintimeout, fetch-retry-maxtimeout)
+  npm_config_fetch_retries: "7"
+  npm_config_fetch_retry_mintimeout: "15000"
+  npm_config_fetch_retry_maxtimeout: "120000"
 
 jobs:
   web:

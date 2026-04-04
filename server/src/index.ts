@@ -18,7 +18,13 @@ import {
   updateMarkdown
 } from "./db.js";
 import { createServerLogger, resolveLogDir } from "./logger-config.js";
+import { isOpsStatusPageEnabled } from "./mail.js";
 import { normalizeMarkdown, sha256Hex } from "./normalize.js";
+import {
+  buildOpsStatusPayload,
+  renderOpsStatusHtml,
+  verifyOpsStatusBasicAuth
+} from "./ops-status.js";
 import { scheduleWeeklyReport, startSqliteSizeWatch } from "./ops.js";
 import { getSharedDefaultMarkdown } from "./shared-default-markdown.js";
 
@@ -103,7 +109,10 @@ async function main(): Promise<void> {
     trustProxy: process.env.TRUST_PROXY === "1"
   });
 
-  await app.register(cors, { origin: true });
+  await app.register(cors, {
+    origin: true,
+    allowedHeaders: ["Authorization", "Content-Type"]
+  });
   await app.register(rateLimit, {
     global: false
   });
@@ -116,6 +125,34 @@ async function main(): Promise<void> {
       abuseCreatesInWindow: m.createsInWindow
     };
   });
+
+  if (isOpsStatusPageEnabled()) {
+    app.get(
+      "/api/ops/status",
+      {
+        config: {
+          rateLimit: {
+            max: 30,
+            timeWindow: "1 minute",
+            keyGenerator: (req) => (req.ip ? String(req.ip) : "unknown")
+          }
+        }
+      },
+      async (req, reply) => {
+        if (!verifyOpsStatusBasicAuth(req, reply)) {
+          return;
+        }
+        const payload = buildOpsStatusPayload(db, SQLITE_PATH);
+        const q = req.query as { format?: string };
+        const accept = req.headers.accept ?? "";
+        if (q.format === "html" || accept.includes("text/html")) {
+          reply.type("text/html; charset=utf-8");
+          return renderOpsStatusHtml(payload);
+        }
+        return payload;
+      }
+    );
+  }
 
   setInterval(() => {
     evaluateUnlock();
@@ -244,7 +281,8 @@ async function main(): Promise<void> {
   await app.listen({ port: PORT, host: "0.0.0.0" });
   const bound = app.server.address();
   const listenPort = typeof bound === "object" && bound ? bound.port : PORT;
-  console.log(`dsabrew API listening on 0.0.0.0:${listenPort} — GET /api/health`);
+  const opsStatus = isOpsStatusPageEnabled() ? " GET /api/ops/status (Basic Auth)" : "";
+  console.log(`dsabrew API listening on 0.0.0.0:${listenPort} — GET /api/health${opsStatus}`);
   app.log.info({ SQLITE_PATH, logDir, ttlHours: TTL_MS / (60 * 60 * 1000) }, "dsabrew public API listening");
 }
 

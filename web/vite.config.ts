@@ -26,7 +26,15 @@ export default defineConfig({
     proxy: {
       "/api": {
         target: "http://127.0.0.1:3001",
-        changeOrigin: true
+        changeOrigin: true,
+        configure(proxy) {
+          proxy.on("proxyReq", (proxyReq, req) => {
+            const auth = req.headers.authorization;
+            if (auth) {
+              proxyReq.setHeader("Authorization", auth);
+            }
+          });
+        }
       }
     }
   },

@@ -807,6 +807,103 @@ html.dark .legal-impressum-name {
   margin: 2rem 0 1.5rem;
 }
 
+/* Route /ops — Betriebsstatus (API: GET /api/ops/status) */
+.ops-status-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 22rem;
+}
+
+.ops-status-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.ops-status-form input {
+  padding: 0.5rem 0.65rem;
+  border-radius: 0.375rem;
+  border: 1px solid #d4d4d8;
+  background: #fff;
+  color: #18181b;
+}
+
+html.dark .ops-status-form input {
+  border-color: #52525b;
+  background: #27272a;
+  color: #fafafa;
+}
+
+.ops-status-form button[type="submit"] {
+  margin-top: 0.25rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  background: #2563eb;
+  color: #fff;
+}
+
+.ops-status-form button[type="submit"]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ops-status-err {
+  margin: 0.75rem 0 0;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+html.dark .ops-status-err {
+  border-color: #7f1d1d;
+  background: rgb(69 10 10 / 40%);
+  color: #fecaca;
+}
+
+.ops-status-meta {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  color: #71717a;
+}
+
+.ops-status-table-wrap {
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+
+.ops-status-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.ops-status-table th,
+.ops-status-table td {
+  padding: 0.4rem 0.75rem 0.4rem 0;
+  border-bottom: 1px solid #e4e4e7;
+  text-align: left;
+  vertical-align: top;
+}
+
+html.dark .ops-status-table th,
+html.dark .ops-status-table td {
+  border-color: #3f3f46;
+}
+
+.ops-status-table th {
+  font-weight: 600;
+  white-space: nowrap;
+  padding-right: 1rem;
+}
+
 .legal-callout {
   margin: 0;
   padding: 0.75rem;

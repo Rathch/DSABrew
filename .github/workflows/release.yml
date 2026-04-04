@@ -15,6 +15,11 @@ permissions:
   issues: write
   pull-requests: write
 
+env:
+  npm_config_fetch_retries: "7"
+  npm_config_fetch_retry_mintimeout: "15000"
+  npm_config_fetch_retry_maxtimeout: "120000"
+
 jobs:
   release:
     name: semantic-release
@@ -26,6 +31,10 @@ jobs:
       (github.event.workflow_run.head_branch == 'main' ||
        github.event.workflow_run.head_branch == 'master') &&
       github.event.workflow_run.head_repository.full_name == github.repository
+    # Wie deploy-production: nur eine Release-Instanz gleichzeitig (Tags/Commits/GitHub Release).
+    concurrency:
+      group: release-production
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
         with:

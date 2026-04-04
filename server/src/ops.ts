@@ -8,6 +8,7 @@ import { countDocumentsCreatedBetween } from "./db.js";
 import {
   getAlertRecipients,
   getWeeklyReportRecipients,
+  isOpsStatusPageEnabled,
   isSmtpConfigured,
   sendSmtpMail
 } from "./mail.js";
@@ -19,16 +20,16 @@ Settings.defaultWeekSettings = {
   weekend: [6, 7]
 };
 
-type OpsState = {
+export type OpsState = {
   sqliteSizeAlertLatched?: boolean;
   lastWeeklyReportWeekKey?: string;
 };
 
-function statePathForSqlite(sqlitePath: string): string {
+export function statePathForSqlite(sqlitePath: string): string {
   return join(dirname(sqlitePath), "ops-mail-state.json");
 }
 
-function readOpsState(path: string): OpsState {
+export function readOpsState(path: string): OpsState {
   try {
     return JSON.parse(readFileSync(path, "utf8")) as OpsState;
   } catch {
@@ -59,7 +60,9 @@ export function startSqliteSizeWatch(
       if (size >= threshold) {
         if (!latched) {
           const recipients = getAlertRecipients();
-          if (recipients.length > 0 && isSmtpConfigured()) {
+          const smtpOk = isSmtpConfigured();
+          const statusPage = isOpsStatusPageEnabled();
+          if (recipients.length > 0 && smtpOk) {
             const text = [
               `Die SQLite-Datei hat die konfigurierte Schwelle erreicht oder überschritten.`,
               ``,
@@ -85,7 +88,13 @@ export function startSqliteSizeWatch(
               .catch((err: unknown) => {
                 log.error({ err }, "ops_sqlite_alert_mail_failed");
               });
-          } else if (recipients.length > 0 && !isSmtpConfigured()) {
+          } else if (statusPage) {
+            log.info({ sqliteSizeBytes: size }, "ops_sqlite_alert_latched_status_page");
+            writeOpsState(pathState, {
+              ...readOpsState(pathState),
+              sqliteSizeAlertLatched: true
+            });
+          } else if (recipients.length > 0 && !smtpOk) {
             log.warn("ops_sqlite_alert_skipped_smtp_not_configured");
           }
         }

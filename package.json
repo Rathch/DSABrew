@@ -2,7 +2,7 @@
   "name": "dsabrew",
   "version": "0.38.2",
   "private": true,
-  "description": "Root scripts mirroring .github/workflows/ci.yml (run before push)",
+  "description": "Root scripts mirroring .github/workflows/ci.yml (run before push). Alle Unit-Tests inkl. Coverage: npm run test:coverage",
   "repository": {
     "type": "git",
     "url": "https://github.com/Rathch/DSABrew.git"
@@ -33,7 +33,7 @@
     "sync-server-lock": "node scripts/update-server-lock.mjs",
     "lint:ts": "node scripts/lint-ts.mjs",
     "lint:ts:fix": "node scripts/lint-ts.mjs --fix",
-    "ci:verify": "npm run lint:ts && npm run typecheck --prefix web && npm run lint:css --prefix web && npm run test:coverage --prefix web && npm run build --prefix web && npm run test:e2e:ci --prefix web && npm run typecheck --prefix server && npm run test --prefix server",
+    "ci:verify": "npm run lint:ts && npm run typecheck --prefix web && npm run lint:css --prefix web && npm run test:coverage --prefix web && npm run build --prefix web && npm run test:e2e:ci --prefix web && npm run typecheck --prefix server && npm run test:coverage --prefix server",
     "ci:precommit": "npm run lint:ts && npm run typecheck --prefix web && npm run lint:css --prefix web && npm run typecheck --prefix server",
     "ci:audit": "npm audit --audit-level=high --production && npm audit --audit-level=high --prefix web && npm audit --audit-level=high --prefix server",
     "ci:gitleaks": "gitleaks detect --source . --verbose --exit-code 1",
@@ -41,7 +41,8 @@
     "ci:quick": "npm run ci:verify && npm run ci:audit",
     "audit:all": "npm audit --audit-level=high",
     "changelog:sync": "node scripts/changelog-from-git.mjs",
-    "lock:patch-npm-embed": "node scripts/patch-npm-embed-lock.mjs"
+    "lock:patch-npm-embed": "node scripts/patch-npm-embed-lock.mjs",
+    "test:coverage": "npm run test:coverage --prefix web && npm run test:coverage --prefix server"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",

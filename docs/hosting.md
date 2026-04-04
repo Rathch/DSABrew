@@ -46,6 +46,8 @@ Geheimnisse gehören **nicht** ins Git — Vorlage **`.env.example`** im Repo-Ro
 | `DEFAULT_DOC_TTL_HOURS` | `24` | Aufbewahrung unveränderter Standard-Dokumente vor Löschung (**FR-023b**); siehe Abschnitt TTL unten |
 | `OPS_ALERT_EMAIL` | — | Empfänger für Betriebsmails (SQLite-Größe, Wochenreport); bei mehreren kommagetrennt (**FR-031**–**FR-033**) |
 | `OPS_WEEKLY_REPORT_EMAIL` | — | Optional: nur Wochenreport; wenn leer → `OPS_ALERT_EMAIL` (**FR-032**) |
+| `OPS_STATUS_USER` | `ops` | Benutzername für **HTTP Basic Auth** auf der Betriebsstatusseite (nur wenn `OPS_STATUS_PASSWORD` gesetzt) |
+| `OPS_STATUS_PASSWORD` | — | Wenn gesetzt: **`GET /api/ops/status`** liefert SQLite-/Missbrauchs-/Report-Kennzahlen (JSON oder HTML); **TLS am Proxy empfohlen** |
 | `SQLITE_SIZE_ALERT_BYTES` | `2147483648` (**2 GiB**) | Ab dieser Dateigröße der SQLite-Datei wird **einmalig** eine Warnmail ausgelöst, sobald die Schwelle **von unten nach oben** überschritten wird (**FR-031**) |
 | `SQLITE_SIZE_CHECK_MS` | `3600000` | Intervall für Größenprüfung (Standard **1 h**) |
 | `OPS_TIMEZONE` | `Europe/Berlin` | Zeitzone für den wöchentlichen Report (**FR-032**) |
@@ -86,6 +88,14 @@ Der Projektroot enthält **`LICENSE`**: Kurz **Copyright (C) 2026 Christian Rath
 - Versand erfolgt per **SMTP** (Zugangsdaten nur über Umgebungsvariablen).
 - **SQLite-Größe**: E-Mail **einmal**, wenn die Datei **zum ersten Mal** über **`SQLITE_SIZE_ALERT_BYTES`** (Standard **2 GiB**) steigt; fällt sie später wieder darunter, kann beim nächsten Überschreiten erneut eine Mail gesendet werden (kein täglicher Reminder). Zustand dazu liegt in **`ops-mail-state.json`** neben der SQLite-Datei (gitignored).
 - **Wöchentlicher Report**: Standard **Montag 08:00** (`OPS_TIMEZONE`, Standard **Europe/Berlin**), Inhalt: Anzahl **neu angelegter** Dokumente in der **vorherigen ISO-Kalenderwoche** (Montag–Sonntag). Doppelversand pro Woche wird über dieselbe **`ops-mail-state.json`** verhindert.
+
+## Betriebsstatus (ohne SMTP)
+
+- Ist **`OPS_STATUS_PASSWORD`** gesetzt, registriert die API **`GET /api/ops/status`** (nur mit **HTTP Basic Auth**, Benutzername **`OPS_STATUS_USER`** (Standard **`ops`**) und diesem Passwort).
+- **Frontend**: dieselbe URL unter **`/ops`** (Vite-App) — Formular für Benutzername/Passwort, Abruf per `fetch` gegen **`/api/ops/status`**. Dafür muss die gebaute Web-App unter derselben Origin wie die API erreichbar sein (oder `VITE_PUBLIC_API_BASE` auf die API zeigen und CORS beachten).
+- Antwort: **JSON** (Standard) oder **HTML** mit `?format=html` bzw. **`Accept: text/html`** — u. a. SQLite-Pfad und -größe (**MiB**), Schwellwert (**MiB**), Dokumentanzahl (gesamt / neu in der Vorwoche), Missbrauchssperre.
+- **SQLite-Warnung**: Wenn **keine** Mail gesendet werden kann (kein SMTP) aber die Statusseite aktiv ist, wird der **Latch** trotzdem gesetzt (kein stündliches Log-Spam), analog zur erfolgreichen Warnmail.
+- **Sicherheit**: Nur über **HTTPS** aufrufen (TLS am Reverse Proxy); Basic Auth ohne TLS ist unsicher.
 
 ## Fehlerlogging (Dateien, Redaktion)
 

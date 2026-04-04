@@ -47,6 +47,10 @@ describe("pageSegmentsZeroBased", () => {
     expect(segs.length).toBe(2);
     expect(segs[1]).toEqual({ start: 2, end: 2 });
   });
+
+  it("nur Seitenumbruch-Zeilen: Fallback ein Segment", () => {
+    expect(pageSegmentsZeroBased("\\page")).toEqual([{ start: 0, end: 0 }]);
+  });
 });
 
 describe("textareaLineMetrics / minimapSegmentLayout (getComputedStyle mocked)", () => {

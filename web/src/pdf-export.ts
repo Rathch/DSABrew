@@ -16,7 +16,7 @@ export interface ExportPdfOptions {
   onProgress?: (current: number, total: number) => void;
 }
 
-function defaultFilename(): string {
+export function defaultPdfFilename(): string {
   const d = new Date();
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -24,7 +24,7 @@ function defaultFilename(): string {
   return `dsabrew-${y}-${m}-${day}.pdf`;
 }
 
-function buildAnchorToPageMap(pages: NodeListOf<HTMLElement>): Map<string, number> {
+export function buildAnchorToPageMap(pages: NodeListOf<HTMLElement>): Map<string, number> {
   const map = new Map<string, number>();
   pages.forEach((page, idx) => {
     const n = idx + 1;
@@ -46,7 +46,7 @@ interface ImgBoxMm {
 }
 
 /** DOM rect relative to the page → mm in the image frame (letterbox). */
-function rectToPdfMm(
+export function rectToPdfMm(
   elRect: DOMRect,
   pageRect: DOMRect,
   box: ImgBoxMm
@@ -66,11 +66,11 @@ function rectToPdfMm(
   };
 }
 
-function sanitizePdfText(s: string): string {
+export function sanitizePdfText(s: string): string {
   return s.replace(/\0/g, "").replace(/\r/g, "").trim();
 }
 
-function isAllowedLinkHref(href: string): boolean {
+export function isAllowedLinkHref(href: string): boolean {
   const t = href.trim().toLowerCase();
   if (t.startsWith("javascript:") || t.startsWith("data:")) {
     return false;
@@ -78,7 +78,7 @@ function isAllowedLinkHref(href: string): boolean {
   return true;
 }
 
-function pxToPt(px: number): number {
+export function pxToPt(px: number): number {
   return (px * 72) / 96;
 }
 
@@ -116,7 +116,7 @@ function drawInvisibleTextInRect(
   }
 }
 
-function inferFontStyle(el: HTMLElement): "normal" | "bold" | "italic" | "bolditalic" {
+export function inferFontStyle(el: HTMLElement): "normal" | "bold" | "italic" | "bolditalic" {
   const cs = getComputedStyle(el);
   const w = cs.fontWeight;
   const bold = w === "bold" || Number.parseInt(w, 10) >= 600;
@@ -292,7 +292,7 @@ export async function exportPreviewToPdf(
     overlayLinksAndInvisibleText(pdf, el, pageRect, { x, y, w: imgW, h: imgH }, anchorToPage);
   }
 
-  let name = options?.filename?.trim() || defaultFilename();
+  let name = options?.filename?.trim() || defaultPdfFilename();
   if (!name.toLowerCase().endsWith(".pdf")) {
     name += ".pdf";
   }
