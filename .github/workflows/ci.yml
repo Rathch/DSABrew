@@ -20,7 +20,7 @@ env:
 
 jobs:
   web:
-    name: Web (Typecheck, Test, Build)
+    name: Web (Typecheck, Test, Build, E2E)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -83,6 +83,48 @@ jobs:
 
       - name: Production build
         run: npm run build
+
+      - name: Playwright (Browser installieren)
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E (Playwright)
+        run: npm run test:e2e:ci
+
+  e2e-integration:
+    name: E2E (Integration — API-Server)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            web/package-lock.json
+            server/package-lock.json
+
+      - name: npm ci (root, web, server)
+        working-directory: ${{ github.workspace }}
+        run: |
+          npm ci
+          npm ci --prefix web
+          npm ci --prefix server
+
+      - name: Web-Build (VITE_PUBLIC_API_BASE für API)
+        env:
+          VITE_PUBLIC_API_BASE: http://127.0.0.1:3001
+        run: npm run build
+
+      - name: Playwright (Browser installieren)
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E Integration (ohne route-Mocks)
+        run: npm run test:e2e:integration:ci
 
   server:
     name: Server (Typecheck)

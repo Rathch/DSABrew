@@ -244,3 +244,6 @@ Dieser Bereich liegt in der Vorschau **links neben der Karte** und **unter dem L
 
 Interner Sprung: [zu „Anker Linkziel“ auf Seite 4](#p4-anker-linkziel)
 `;
+
+/** Gleicher Inhalt wie {@link DEFAULT_MARKDOWN_DEMO} — für Node/tsx-Default-Import (Server). */
+export default DEFAULT_MARKDOWN_DEMO;

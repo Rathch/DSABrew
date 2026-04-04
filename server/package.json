@@ -4,10 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "start": "tsx src/index.ts",
+    "dev": "node --import ./src/load-dotenv.mjs ./node_modules/tsx/dist/cli.mjs watch src/index.ts",
+    "start": "node --import ./src/load-dotenv.mjs ./node_modules/tsx/dist/cli.mjs src/index.ts",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/abuse-env.test.ts"
+    "test": "tsx --test src/abuse-env.test.ts",
+    "env:print": "node --import ./src/load-dotenv.mjs -e \"console.log('[dsabrew] PORT=', process.env.PORT, 'PUBLIC_ORIGIN=', process.env.PUBLIC_ORIGIN)\""
   },
   "dependencies": {
     "@fastify/cors": "^10.0.1",

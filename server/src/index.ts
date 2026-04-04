@@ -1,9 +1,9 @@
+import { repoRoot } from "./env-bootstrap.js";
 import cors from "@fastify/cors";
 import rateLimit from "@fastify/rate-limit";
 import Fastify from "fastify";
 import { nanoid } from "nanoid";
 import { join } from "node:path";
-import { fileURLToPath } from "node:url";
 import {
   evaluateUnlock,
   isMaintenanceMode,
@@ -20,13 +20,37 @@ import {
 import { createServerLogger, resolveLogDir } from "./logger-config.js";
 import { normalizeMarkdown, sha256Hex } from "./normalize.js";
 import { scheduleWeeklyReport, startSqliteSizeWatch } from "./ops.js";
-import { DEFAULT_MARKDOWN_DEMO } from "../../shared/default-markdown-demo.js";
+import { getSharedDefaultMarkdown } from "./shared-default-markdown.js";
 
-const __dirname = fileURLToPath(new URL(".", import.meta.url));
-const repoRoot = join(__dirname, "../..");
+function isAbsolutePath(p: string): boolean {
+  return p.startsWith("/") || /^[A-Za-z]:[\\/]/.test(p);
+}
 
-const PORT = Number(process.env.PORT ?? "3001");
-const SQLITE_PATH = process.env.SQLITE_PATH ?? join(repoRoot, "server", "data", "dsabrew.db");
+/** Relativ zum Repo-Root wie in `docs/hosting.md` (nicht relativ zu `cwd`). */
+function resolveSqlitePath(): string {
+  const raw = process.env.SQLITE_PATH?.trim();
+  if (raw === undefined || raw === "") {
+    return join(repoRoot, "server", "data", "dsabrew.db");
+  }
+  if (isAbsolutePath(raw)) {
+    return raw;
+  }
+  return join(repoRoot, raw);
+}
+
+/** Leeres `PORT=` in der Shell ist nicht nullish → `Number("") === 0` (Zufallsport). Explizit normalisieren. */
+const PORT = ((): number => {
+  const raw = process.env.PORT;
+  if (raw === undefined || raw.trim() === "") {
+    return 3001;
+  }
+  const n = Number(raw);
+  if (!Number.isInteger(n) || n < 1 || n > 65535) {
+    throw new Error(`Ungültiger PORT (1–65535): ${JSON.stringify(raw)}`);
+  }
+  return n;
+})();
+const SQLITE_PATH = resolveSqlitePath();
 const PUBLIC_ORIGIN = (process.env.PUBLIC_ORIGIN ?? "").replace(/\/$/, "");
 
 const TTL_HOURS = Number(process.env.DEFAULT_DOC_TTL_HOURS ?? 24);
@@ -51,7 +75,7 @@ let canonicalMarkdown = "";
 let canonicalHash = "";
 
 function loadCanonical(): void {
-  canonicalMarkdown = DEFAULT_MARKDOWN_DEMO;
+  canonicalMarkdown = getSharedDefaultMarkdown();
   canonicalHash = sha256Hex(normalizeMarkdown(canonicalMarkdown));
 }
 
@@ -218,6 +242,9 @@ async function main(): Promise<void> {
   );
 
   await app.listen({ port: PORT, host: "0.0.0.0" });
+  const bound = app.server.address();
+  const listenPort = typeof bound === "object" && bound ? bound.port : PORT;
+  console.log(`dsabrew API listening on 0.0.0.0:${listenPort} — GET /api/health`);
   app.log.info({ SQLITE_PATH, logDir, ttlHours: TTL_MS / (60 * 60 * 1000) }, "dsabrew public API listening");
 }
 

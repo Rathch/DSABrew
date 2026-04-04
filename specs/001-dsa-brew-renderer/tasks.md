@@ -51,7 +51,7 @@
 
 **Vertrag / Plan:** `contracts/e2e-playwright.md` (inkl. `data-testid`-Konvention und Phasen 0–4).
 
-- [ ] **T027** Playwright im Web-Paket einrichten (`playwright.config.ts`, Ordner `e2e/`, Skripte `test:e2e`, CI-Strategie dokumentiert)
+- [x] **T027** Playwright im Web-Paket einrichten (`playwright.config.ts`, Ordner `e2e/`, Skripte `test:e2e` / `test:e2e:ci`, CI in `.github/workflows/ci.yml`)
 - [ ] **T028** `data-testid` gemäß Vertrag in `main.ts` / `index.html` / `theme.ts` (mindestens: hosted-main, editor-section, preview-root, hosted-banner; optional weitere aus Tabelle 3.3)
 - [ ] **T029** Smoke-E2E: App lädt (`/`), `#app` sichtbar; optional Privacy-Dismiss
 - [ ] **T030** Editor-E2E: Eingabe in `#markdown-input`, sichtbarer Inhalt in `#preview`
