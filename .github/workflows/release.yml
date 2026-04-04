@@ -1,6 +1,5 @@
 # Semantische Versionen + CHANGELOG (konventionelle Commits) + GitHub Release
-# Läuft erst nach erfolgreichem Workflow „CI“ (Tests/Lint/Build/Audit — ohne VPS-Deploy).
-# Deploy ist `.github/workflows/deploy.yml` und beeinflusst weder CI noch dieses Release.
+# Läuft nach erfolgreichem Workflow „CI“. VPS-Deploy (deploy.yml) startet danach bei erfolgreichem „Release“.
 # Hinweis: `needs` gilt nur innerhalb eines Workflows — übergreifend: `workflow_run` + Bedingungen.
 #
 # Release-Commit geht per PR in den Default-Branch (geschützter main: kein Direktpush).
