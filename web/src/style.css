@@ -8,6 +8,8 @@ body,
 
 html {
   min-height: 100%;
+  overflow-x: clip;
+  max-width: 100%;
 }
 
 body {
@@ -1035,7 +1037,7 @@ html.dark .privacy-strip {
 }
 
 :root {
-  /* Two-column layout: input min 400px, preview fills the rest and scales A4 proportionally */
+  /* Two-column layout: input min 400px; `.layout` caps with `100%` to avoid horizontal scroll. */
   --layout-editor-min: 400px;
 
   /* Scriptorium template: see specs/001-dsa-brew-renderer/contracts/typography.md */
@@ -1078,9 +1080,15 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 
 #app {
   min-height: 0;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 .layout {
+  /* Narrow viewports: min(400px, …) keeps grid + gap + padding within parent width (not 100vw — avoids scrollbar gap). */
+  --layout-editor-min: min(400px, calc(100% - 2.25rem));
+
   display: grid;
 
   /* Column 1: at least 400px, shrinks first to the floor; column 2: takes remaining space, content scales */
@@ -1092,7 +1100,8 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   max-height: 100vh;
   min-height: 0;
   min-width: 0;
-  overflow-x: auto;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 .layout > * {
@@ -1396,12 +1405,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   border-radius: 0;
 }
 
-/* Page stripes only in source (background image via JS); omit base fill color */
-.editor textarea.editor-textarea--page-stripes {
-  background-color: transparent;
-}
-
-/* Two columns: scroll sync + page stripes (preview pages, alternating colors + frame = visible slice) */
+/* Two columns: scroll sync + minimap page segments (alternating colors + range = visible slice) */
 .editor__sync-bar {
   flex: 0 0 auto;
   display: flex;
@@ -1642,7 +1646,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   opacity: 1;
 }
 
-.dark .editor--readonly textarea:not(.editor-textarea--page-stripes) {
+.dark .editor--readonly textarea {
   background: repeating-linear-gradient(
     -12deg,
     #27272a 0,
