@@ -86,7 +86,7 @@ jobs:
             set -euo pipefail
             cd "${{ secrets.DEPLOY_PATH }}"
             git fetch origin
-            git reset --hard '${{ github.event.workflow_run.head_sha }}'
+            git reset --hard ${{ github.event.workflow_run.head_sha }}
             npm ci
             npm ci --prefix web
             npm ci --prefix server
