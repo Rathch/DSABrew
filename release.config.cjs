@@ -1,6 +1,10 @@
 /**
  * semantic-release: Version + CHANGELOG aus konventionellen Commits (feat/fix/BREAKING etc.).
- * Erster Release: optional aktuellen Stand mit `git tag v0.1.0` markieren, sonst wertet SR die Historie aus.
+ *
+ * Letzte Version kommt aus Git-Tags (tagFormat v${version}), nicht aus package.json. Ohne erkannten
+ * letzten Tag setzt semantic-release die nächste Version fest auf 1.0.0 (Konstante FIRST_RELEASE).
+ * Bestehende 0.x-Linie: höchsten Stand z. B. mit `git tag v0.38.2 <sha> && git push origin v0.38.2` setzen.
+ *
  * @see https://semantic-release.gitbook.io/
  */
 /** @type {import('semantic-release').GlobalConfig} */

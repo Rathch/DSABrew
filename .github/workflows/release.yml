@@ -51,6 +51,8 @@ jobs:
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
+          # Sonst sieht semantic-release ggf. keine v*-Tags → „erster Release“ = immer 1.0.0, obwohl schon Tags auf GitHub existieren.
+          fetch-tags: true
           persist-credentials: true
           token: ${{ env.SR_GITHUB_TOKEN }}
 
