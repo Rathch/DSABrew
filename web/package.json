@@ -33,17 +33,18 @@
     "markdown-it": "^14.1.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.1",
+    "@playwright/test": "^1.50.1",
     "@types/markdown-it": "^14.1.2",
     "@types/node": "^22.13.10",
-    "@playwright/test": "^1.50.1",
     "@vitest/coverage-v8": "^3.2.4",
+    "happy-dom": "^15.11.7",
     "sharp": "^0.33.5",
     "stylelint": "^16.14.1",
     "stylelint-config-standard": "^36.0.1",
     "typescript": "^5.9.2",
     "vite": "^6.2.0",
-    "vitest": "^3.2.4",
-    "happy-dom": "^15.11.7"
+    "vitest": "^3.2.4"
   },
   "overrides": {
     "glob": "^11.1.0"

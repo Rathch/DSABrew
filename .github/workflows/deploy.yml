@@ -1,5 +1,8 @@
 # VPS-Deploy nach erfolgreichem Workflow „CI“ — unabhängig von Release/semantic-release.
 # Bei Deploy-Fehlern bleibt der CI-Lauf grün; nur dieser Workflow schlägt fehl.
+#
+# Checkout per `workflow_run.head_sha` (nicht `origin/<branch>`): sonst könnte ein späterer
+# Push auf main/master den Branch-Tipp vor dem Deploy-Rennen verändern — dann würde ungetesteter Code live gehen.
 name: Deploy (VPS)
 
 on:
@@ -83,7 +86,7 @@ jobs:
             set -euo pipefail
             cd "${{ secrets.DEPLOY_PATH }}"
             git fetch origin
-            git reset --hard "origin/${{ github.event.workflow_run.head_branch }}"
+            git reset --hard '${{ github.event.workflow_run.head_sha }}'
             npm ci
             npm ci --prefix web
             npm ci --prefix server

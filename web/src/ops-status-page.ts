@@ -61,25 +61,27 @@ export function buildOpsStatusPageLayout(): string {
   return `
   <div class="legal-shell">
     <header class="legal-header">
-      <h1 class="legal-h1">Betrieb</h1>
+      <h1 class="legal-h1" id="legal-page-title">Betrieb</h1>
       ${themeControlClusterHtml()}
     </header>
-    <div class="legal-prose">
-      <form id="ops-status-form" class="ops-status-form" autocomplete="on">
-        <label>
-          Benutzername
-          <input name="user" type="text" required autocomplete="username" spellcheck="false" />
-        </label>
-        <label>
-          Passwort
-          <input name="password" type="password" required autocomplete="current-password" />
-        </label>
-        <button type="submit" id="ops-status-submit">Status laden</button>
-      </form>
-      <div id="ops-status-error" class="ops-status-err" hidden></div>
-      <div id="ops-status-result" hidden></div>
-    </div>
-    <p class="legal-back"><a href="/" class="chrome-link">← Neues Dokument</a></p>
+    <main class="legal-main" aria-labelledby="legal-page-title">
+      <div class="legal-prose">
+        <form id="ops-status-form" class="ops-status-form" autocomplete="on">
+          <label>
+            Benutzername
+            <input name="user" type="text" required autocomplete="username" spellcheck="false" />
+          </label>
+          <label>
+            Passwort
+            <input name="password" type="password" required autocomplete="current-password" />
+          </label>
+          <button type="submit" id="ops-status-submit">Status laden</button>
+        </form>
+        <div id="ops-status-error" class="ops-status-err" hidden></div>
+        <div id="ops-status-result" hidden></div>
+      </div>
+      <p class="legal-back"><a href="/" class="chrome-link">← Neues Dokument</a></p>
+    </main>
     ${siteChromeFooter("chrome-footer-nav chrome-footer-nav--bordered-strong")}
   </div>`;
 }

@@ -9,7 +9,7 @@ Mit **laufender API** (`server/`) und **Web-App** (`web/`) Dokumente anlegen, un
 
 ## Prerequisites
 
-- **Node.js 20+** (see `web/package.json` → `engines`; optional `.nvmrc` for `nvm use`).
+- **Node.js**: **22.14+** for the **repo root** (Husky, Commitlint, semantic-release; see root `package.json` → `engines` and `.nvmrc`). **Web/server** still list **20+** in `engines`; using `.nvmrc` matches CI.
 - npm (ships with Node)
 - A modern browser (Chrome/Edge/Firefox)
 

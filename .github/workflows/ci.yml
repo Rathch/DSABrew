@@ -16,7 +16,7 @@ permissions:
   pull-requests: read
 
 env:
-  NODE_VERSION: "20"
+  NODE_VERSION: "22"
   # Transiente Registry-Fehler (ECONNRESET) auf Runnern: mehr Retries + längere Backoffs
   # siehe npm-Doku „Config“ (fetch-retries, fetch-retry-mintimeout, fetch-retry-maxtimeout)
   npm_config_fetch_retries: "7"

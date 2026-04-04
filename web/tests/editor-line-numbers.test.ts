@@ -72,7 +72,7 @@ describe("setupEditorLineNumbers", () => {
     const textarea = {
       value: "",
       scrollTop: 0,
-      addEventListener: vi.fn((type: string, fn: () => void, _opts?: unknown) => {
+      addEventListener: vi.fn((type: string, fn: () => void) => {
         if (type === "input") {
           inputHandlers.push(fn);
         }

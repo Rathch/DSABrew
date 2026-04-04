@@ -93,17 +93,19 @@ export function buildMaintenancePageLayout(): string {
   return `
   <div class="legal-shell maintenance-shell">
     <header class="legal-header">
-      <h1 class="legal-h1">Wartung</h1>
+      <h1 class="legal-h1" id="legal-page-title">Wartung</h1>
       ${themeControlClusterHtml()}
     </header>
-    <div class="legal-prose maintenance-prose">
-      <p>
-        Neue Dokumente können derzeit <strong>nicht angelegt</strong> werden — die Dienstlast ist zu hoch.
-        Bestehende Dokumente sind weiterhin über Ihren Link erreichbar.
-      </p>
-      <p class="maintenance-hint">Bitte versuchen Sie es in einigen Minuten erneut.</p>
-    </div>
-    <p class="legal-back"><a href="/" class="chrome-link">Seite aktualisieren</a></p>
+    <main class="legal-main" aria-labelledby="legal-page-title">
+      <div class="legal-prose maintenance-prose">
+        <p>
+          Neue Dokumente können derzeit <strong>nicht angelegt</strong> werden — die Dienstlast ist zu hoch.
+          Bestehende Dokumente sind weiterhin über Ihren Link erreichbar.
+        </p>
+        <p class="maintenance-hint">Bitte versuchen Sie es in einigen Minuten erneut.</p>
+      </div>
+      <p class="legal-back"><a href="/" class="chrome-link">Seite aktualisieren</a></p>
+    </main>
     ${siteChromeFooter("chrome-footer-nav chrome-footer-nav--bordered-strong")}
   </div>
 `;
@@ -126,11 +128,13 @@ export function buildLegalPageLayout(kind: "impressum" | "datenschutz"): string 
   return `
   <div class="legal-shell">
     <header class="legal-header">
-      <h1 class="legal-h1">${title}</h1>
+      <h1 class="legal-h1" id="legal-page-title">${title}</h1>
       ${themeControlClusterHtml()}
     </header>
-    ${body}
-    <p class="legal-back"><a href="/" ${A_CHROME}>← Neues Dokument</a></p>
+    <main class="legal-main" aria-labelledby="legal-page-title">
+      ${body}
+      <p class="legal-back"><a href="/" ${A_CHROME}>← Neues Dokument</a></p>
+    </main>
     ${siteChromeFooter("chrome-footer-nav chrome-footer-nav--bordered-strong")}
   </div>
 `;
@@ -170,6 +174,7 @@ export function buildDocumentLayout(options: { mode: "view" | "edit" }, appVersi
       ? "layout--view-single layout--focus-editor"
       : "layout--view-single layout--focus-preview";
   return `
+  <div class="layout-host layout-host--hosted">
   <main class="layout layout--hosted layout--hosted-bg ${hostedSingleInit}">
     <div class="hosted-banner">
       <div class="hosted-banner__brand">
@@ -224,14 +229,15 @@ export function buildDocumentLayout(options: { mode: "view" | "edit" }, appVersi
             </div>
           </div>
         </div>
-        <textarea id="markdown-input" spellcheck="false"></textarea>
+        <textarea id="markdown-input" spellcheck="false" aria-label="Markdown-Quelltext"></textarea>
       </div>
     </section>
-    <section class="preview" id="preview"></section>
+    <section class="preview" id="preview" tabindex="0" aria-label="Dokumentvorschau"></section>
+  </main>
     <footer class="hosted-doc-footer" role="contentinfo">
       ${siteChromeFooter("chrome-footer-nav chrome-footer-nav--bordered")}
     </footer>
-  </main>
+  </div>
 `;
 }
 
