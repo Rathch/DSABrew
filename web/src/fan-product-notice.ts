@@ -1,11 +1,8 @@
 /**
  * Trademark notice (Ulisses / Significant Fantasy) and fan-product logo for the app chrome footer.
- * Logo source: https://myrana.de/wp-content/uploads/2017/06/fan-produkt-logo.png
- * Optional local: place the same file at `web/public/dsa/fan-produkt-logo.png` and set
- * `FAN_PRODUKT_LOGO_SRC` to `/dsa/fan-produkt-logo.png`.
+ * Asset: `web/public/fan-produkt-logo.png` → `/fan-produkt-logo.png` (Vite public root).
  */
-export const FAN_PRODUKT_LOGO_SRC =
-  "https://myrana.de/wp-content/uploads/2017/06/fan-produkt-logo.png";
+export const FAN_PRODUKT_LOGO_SRC = "/fan-produkt-logo.png";
 
 export const ULISSES_MARKEN_HINWEIS =
   "DAS SCHWARZE AUGE, AVENTURIEN, DERE, MYRANOR, THARUN, UTHURIA und RIESLAND sind eingetragene Marken der Significant Fantasy Medienrechte GbR. Ohne vorherige schriftliche Genehmigung der Ulisses Medien und Spiel Distribution GmbH ist eine Verwendung der genannten Markenzeichen nicht gestattet.";

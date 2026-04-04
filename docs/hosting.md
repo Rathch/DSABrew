@@ -64,7 +64,9 @@ Hinweis: **Log-Ausgabe** darf **keine** Edit-/View-**Tokens** und **keine Client
 
 ## HTTPS
 
-In Produktion liegt die TLS-Terminierung typischerweise am **Reverse Proxy** (nginx, Caddy, Traefik). Die API selbst spricht nur HTTP auf localhost — nicht exponieren ohne Proxy.
+In Produktion liegt die TLS-Terminierung typischerweise am **Reverse Proxy** (Apache, nginx, Caddy, Traefik). Die API selbst spricht nur HTTP auf localhost — nicht exponieren ohne Proxy.
+
+Referenz-Apache-VirtualHosts (statisches `web/dist`, `/api` → `127.0.0.1:3001`) liegen im Repo unter **`sites-enabled/brew.rath-ulrich.de.conf`** und **`brew.rath-ulrich.de-le-ssl.conf`** — auf dem Server nach **`/etc/apache2/sites-available/`** kopieren, `a2ensite`, `DocumentRoot`/Zertifikatspfade prüfen, **`a2enmod ssl proxy proxy_http headers rewrite`**, dann `systemctl reload apache2`. Wenn parallel **nginx** auf demselben Host lauscht, nur **einen** Dienst auf Port **443** verwenden (sonst falsche VirtualHost-Auswahl).
 
 ## TTL / Löschen (FR-023, FR-023b, FR-027)
 
@@ -98,6 +100,10 @@ Der Projektroot enthält **`LICENSE`**: Kurz **Copyright (C) 2026 Christian Rath
 - **`GET` / `PUT`** mit gültigem View-/Edit-Token → **unverändert** (bestehende Nutzer werden nicht ausgesperrt).
 
 **Entsperrung:** Automatisch, wenn im gleitenden Fenster die Zahl der Neuanlagen wieder unter **die Hälfte** von `ABUSE_DOC_CREATE_MAX` fällt und mindestens **`ABUSE_MAINTENANCE_COOLDOWN_MS`** (15 Min.) vergangen sind — optional kann ein Operator die Env-Werte anpassen oder den Prozess neu starten (Implementierungsdetail).
+
+## Apache (Referenz im Repo)
+
+Siehe **`sites-enabled/brew.rath-ulrich.de.conf`** (HTTP→HTTPS) und **`sites-enabled/brew.rath-ulrich.de-le-ssl.conf`** (`DocumentRoot` → gebautes **`web/dist`**, `ProxyPass` für **`/api/`**). Env auf dem Server: **`TRUST_PROXY=1`**, **`PUBLIC_ORIGIN=https://brew.rath-ulrich.de`** (Domain anpassen).
 
 ## Nginx (Skizze)
 
