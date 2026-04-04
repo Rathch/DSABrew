@@ -29,4 +29,5 @@ if ! curl -fsS "http://127.0.0.1:${PORT}/api/health" >/dev/null 2>&1; then
 fi
 
 cd "$REPO_ROOT/web"
-exec npx vite preview --host 127.0.0.1 --port 4173 --strictPort
+# Kein exec: Vorschau als Kindprozess, damit der im Skript gestartete API-Server nicht mit dem Shell-Ersetzen verloren geht.
+npx vite preview --host 127.0.0.1 --port 4173 --strictPort

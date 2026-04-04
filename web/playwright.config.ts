@@ -10,6 +10,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
  */
 export default defineConfig({
   testDir: "e2e",
+  // Nur Mock-/Smoke-E2E; echte API: playwright.integration.config.ts + e2e-integration-Job
+  testIgnore: ["**/integration/**"],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
