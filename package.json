@@ -1,12 +1,32 @@
 {
   "name": "dsabrew",
+  "version": "0.38.2",
   "private": true,
   "description": "Root scripts mirroring .github/workflows/ci.yml (run before push)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Rathch/DSABrew.git"
+  },
   "engines": {
     "node": ">=20.0.0"
   },
+  "overrides": {
+    "@semantic-release/npm": {
+      "npm": {
+        "brace-expansion": "2.0.3",
+        "picomatch": "4.0.4"
+      }
+    },
+    "npm": {
+      "brace-expansion": "2.0.3",
+      "picomatch": "4.0.4"
+    }
+  },
   "scripts": {
     "prepare": "husky",
+    "postinstall": "node scripts/patch-npm-embed-lock.mjs",
+    "release": "semantic-release",
+    "release:dry-run": "semantic-release --dry-run",
     "ci": "npm run ci:install && npm run ci:verify && npm run ci:audit",
     "ci:fix": "npm run ci:install && npm run lint:ts:fix && npm run lint:css:fix --prefix web && npm run ci:verify && npm run ci:audit",
     "ci:install": "npm ci && npm ci --prefix web && npm ci --prefix server",
@@ -15,16 +35,26 @@
     "lint:ts:fix": "node scripts/lint-ts.mjs --fix",
     "ci:verify": "npm run lint:ts && npm run typecheck --prefix web && npm run lint:css --prefix web && npm run test:coverage --prefix web && npm run build --prefix web && npm run test:e2e:ci --prefix web && npm run typecheck --prefix server && npm run test --prefix server",
     "ci:precommit": "npm run lint:ts && npm run typecheck --prefix web && npm run lint:css --prefix web && npm run typecheck --prefix server",
-    "ci:audit": "npm audit --audit-level=high --prefix web && npm audit --audit-level=high --prefix server",
+    "ci:audit": "npm audit --audit-level=high --production && npm audit --audit-level=high --prefix web && npm audit --audit-level=high --prefix server",
     "ci:gitleaks": "gitleaks detect --source . --verbose --exit-code 1",
     "ci:all": "npm run ci && npm run ci:gitleaks",
-    "ci:quick": "npm run ci:verify && npm run ci:audit"
+    "ci:quick": "npm run ci:verify && npm run ci:audit",
+    "audit:all": "npm audit --audit-level=high",
+    "changelog:sync": "node scripts/changelog-from-git.mjs",
+    "lock:patch-npm-embed": "node scripts/patch-npm-embed-lock.mjs"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
     "@eslint/js": "^9.16.0",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/exec": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.1",
     "eslint": "^9.16.0",
     "husky": "^9.1.7",
     "globals": "^15.14.0",
+    "semantic-release": "^24.2.3",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.18.2"
   }

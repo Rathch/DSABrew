@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+# Konventionelle Commits (feat:, fix:, chore:, …) — siehe commitlint.config.cjs
+set -e
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$REPO_ROOT" || exit 1
+# shellcheck disable=SC1091
+. "$REPO_ROOT/scripts/husky-env.sh"
+
+COMMIT_MSG_FILE="$1"
+
+if command -v npm >/dev/null 2>&1; then
+  npx --no -- commitlint --edit "$COMMIT_MSG_FILE"
+else
+  # shellcheck disable=SC1091
+  . "$REPO_ROOT/scripts/husky-wsl.sh"
+  husky_run_in_wsl "npx --no -- commitlint --edit $(printf '%q' "$COMMIT_MSG_FILE")"
+fi

@@ -136,6 +136,8 @@ const LINK_SCRIPTORIUM = "https://www.ulisses-ebooks.de/cc/7/scriptoriumaventuri
 const LINK_ELF = "https://elf.ulisses-spiele.de/";
 const LINK_GPL = "https://www.gnu.org/licenses/gpl-3.0.html";
 const LINK_GITHUB = "https://github.com/Rathch/DSABrew";
+const LINK_ISSUES_NEW = "https://github.com/Rathch/DSABrew/issues/new";
+const APP_VERSION = String(import.meta.env.VITE_APP_VERSION ?? "0.0.0");
 
 const A_CHROME = 'class="chrome-link"';
 
@@ -153,6 +155,7 @@ function landingFooterNav(navClass: string): string {
         <li><a href="${LINK_ELF}" rel="noopener noreferrer" ${A_CHROME}>ELF (Ulisses)</a></li>
         <li><a href="${LINK_GPL}" rel="noopener noreferrer" ${A_CHROME}>GNU GPLv3</a></li>
         <li><a href="${LINK_GITHUB}" rel="noopener noreferrer" ${A_CHROME}>GitHub</a></li>
+        <li><a href="${LINK_ISSUES_NEW}" rel="noopener noreferrer" ${A_CHROME}>Fehler melden</a></li>
       </ul>
     </nav>`;
 }
@@ -250,7 +253,10 @@ function buildDocumentLayout(options: { mode: "view" | "edit" }): string {
     <div class="hosted-banner">
       <div class="hosted-banner__brand">
         <div class="hosted-banner__title-row">
-          <h1 class="hosted-banner__title">DSABrew</h1>
+          <h1 class="hosted-banner__title">
+            <span class="hosted-banner__product">DSABrew</span>
+            <span class="hosted-banner__version" title="Build-Version">${escapeHtml(APP_VERSION)}</span>
+          </h1>
           <span class="hosted-banner__subtitle">${options.mode === "view" ? "Nur Lesen" : "Bearbeiten — Autosave"}</span>
         </div>
       </div>

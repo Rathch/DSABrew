@@ -1,0 +1,43 @@
+# Semantische Versionen + CHANGELOG (konventionelle Commits) + GitHub Release
+name: Release
+
+on:
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  release:
+    name: semantic-release
+    runs-on: ubuntu-latest
+    # Kein Release aus Forks
+    if: github.repository == 'Rathch/DSABrew'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            web/package-lock.json
+            server/package-lock.json
+
+      - name: Install (root + web + server)
+        run: |
+          npm ci
+          npm ci --prefix web
+          npm ci --prefix server
+
+      - name: semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
