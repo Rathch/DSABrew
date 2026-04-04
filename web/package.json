@@ -25,7 +25,7 @@
     "lint:ts:fix": "npm run lint:ts:fix --prefix .."
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=24.0.0"
   },
   "dependencies": {
     "html2canvas": "^1.4.1",
@@ -36,7 +36,7 @@
     "@axe-core/playwright": "^4.11.1",
     "@playwright/test": "^1.50.1",
     "@types/markdown-it": "^14.1.2",
-    "@types/node": "^22.13.10",
+    "@types/node": "^24.0.0",
     "@vitest/coverage-v8": "^3.2.4",
     "happy-dom": "^20.8.9",
     "sharp": "^0.33.5",
@@ -47,6 +47,6 @@
     "vitest": "^3.2.4"
   },
   "overrides": {
-    "glob": "^11.1.0"
+    "glob": "^13.0.0"
   }
 }

@@ -1,4 +1,5 @@
 import eslint from "@eslint/js";
+import { defineConfig } from "eslint/config";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 
@@ -7,7 +8,7 @@ import tseslint from "typescript-eslint";
  * Config-Verzeichnisses, wenn die Config unter `web/` liegt — daher diese Datei hier.
  * @see https://typescript-eslint.io/getting-started
  */
-export default tseslint.config(
+export default defineConfig([
   {
     ignores: [
       "**/node_modules/**",
@@ -64,4 +65,4 @@ export default tseslint.config(
       globals: { ...globals.es2021 }
     }
   }
-);
+]);
