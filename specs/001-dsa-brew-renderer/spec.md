@@ -13,12 +13,12 @@ The user writes RPG content in Markdown, includes DSA-specific layout macros, an
 
 **Why this priority**: This is the core promise of the tool and enables the user to create printable documents.
 
-**Independent Test**: Test by entering a sample Markdown document with multiple `\page` blocks and known background macros, then verify the preview shows multiple A4 pages and `window.print()` produces a PDF with correct page boundaries.
+**Independent Test**: Test by entering a sample Markdown document with multiple `\page` blocks and known background macros, then verify the preview shows multiple A4 pages and **PDF speichern** downloads a multi-page PDF with one sheet per rendered page (matching `\page` boundaries).
 
 **Acceptance Scenarios**:
 
 1. **Given** an empty editor and a sample Markdown containing `\page`, Markdown headings (e.g., `#`, `##`, `###`), and background macros, **When** the user saves/updates the preview, **Then** the preview displays multiple page sections corresponding to the `\page` blocks.
-2. **Given** a rendered multi-page preview, **When** the user triggers print/export from the page, **Then** the printed output contains distinct pages at the expected `\page` boundaries (including empty pages created by consecutive `\page` blocks).
+2. **Given** a rendered multi-page preview, **When** the user triggers PDF export from the app, **Then** the downloaded PDF contains distinct pages at the expected `\page` boundaries (including empty pages created by consecutive `\page` blocks).
 
 ---
 
@@ -72,7 +72,7 @@ The user needs standard book navigation aids: page numbers, footnotes, and a tab
 ### Edge Cases
 
 - What happens when the input is empty or contains only whitespace? → It produces exactly one empty rendered page in the output document.
-- What happens when a macro is malformed (e.g., missing closing brace in `\chapter{...}`)?
+- What happens when a macro is malformed (e.g., missing closing brace in `\map{...`)?
 - What happens when a macro references an unknown asset key (e.g., `\rauten{rot-999}`)?
 - What happens when the user includes raw HTML elements like `<img src="...">` or `<iframe>`?
 - What happens when a large document is provided (many `\page` blocks)? → Up to ~200 pages / ~100k characters render without crash and within 15 seconds, with output structure correct.
@@ -91,6 +91,22 @@ The user needs standard book navigation aids: page numbers, footnotes, and a tab
 - Q: Empty / whitespace-only input output? → A: produces exactly one empty rendered page
 - Q: Large document performance/stability rule? → A: Option C (<= 15s, up to ~200 pages / ~100k characters, no crash, output structure correct)
 
+### Session 2026-04-04 (Livegang / Betrieb)
+
+- Q: Welche **genaue** SQLite-Dateigröße löst den Alarm aus, und soll die Mail **einmalig** pro Überschreitung oder **wiederholt**? → A: Schwellwert **2 GiB** (2·1024³ Byte); **eine E-Mail pro Überschreitungsereignis** (beim Übergang von „unterhalb“ zu „oberhalb“ der Schwelle; nach Unterschreiten kann bei erneutem Anstieg erneut eine Mail gesendet werden — nicht täglich spammen).
+- Q: **SMTP**? → A: Versand per **SMTP** (Zugangsdaten nur in Env).
+- Q: **Wöchentlicher Report**: Zeitzone und Uhrzeit? → A: **Montags 08:00**, Zeitzone **`Europe/Berlin`** (CET/CEST).
+- Q: **Maintenance-Lock** — Zeitfenster, Entsperrung, Umfang? → A: Siehe **Entscheidung** in `docs/hosting.md` (Abschnitt *Missbrauchssperre*): moderates **gleitendes Fenster**, Schwellwerte per Env; **bestehende Dokumente** (GET/PUT mit gültigem Token) **bleiben nutzbar**; nur **Neuanlage** (`POST /api/documents` und gleichwertige Routen `/`, `/new`) und ggf. **statische App-„Neues Dokument“** liefern **Wartungsseite/503**. **Automatische Entsperrung**, wenn die Erstellungsrate über ein Folgefenster wieder normal ist (Details in `docs/hosting.md`). *Hinweis:* Normale **Rate-Limits pro IP** bleiben die erste Verteidigungslinie; die Sperre ist für **verteilte**/extreme Last — bei typischem Betrieb oft unnötig, schadet aber kaum, wenn konservativ konfiguriert.
+- Q: **Fehlerlogging**? → A: **Rotation in Dateien** (nicht nur stdout); in Logs **keine Edit-/View-Tokens** und **keine Client-IP-Adressen** (Redaktion).
+- Q: **`LICENSE`** mit Copyright? → A: **Copyright (C) 2026 Christian Rath-Ulrich** im **`LICENSE`**-Kopf, gefolgt vom **vollständigen GPL-3.0-Text**.
+
+### Session 2026-03-27
+
+- Q: Page-break alias besides `\page`? → A: `{{page}}` is equivalent to `\page`.
+- Q: Must every content page repeat `\map{content-even}` / `\map{content-odd}`? → A: No; if `\map` is omitted, the two content textures alternate from the **displayed** page number (odd → `content-even` / image12, even → `content-odd` / image17; see FR-017).
+- Q: Target document column layout? → A: Body text is two columns in preview and print; TOC/headings/warnings/footnotes span full width.
+- Q: Editor vs preview scrolling? → A: Preview scrolls when the document is tall; the text input scrolls only when its content exceeds the allocated input height.
+
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
@@ -104,17 +120,51 @@ The user needs standard book navigation aids: page numbers, footnotes, and a tab
 - **FR-006**: System MUST handle unknown macro keys safely by omitting the background and showing a visible warning/placeholder marker for the unknown background key, without breaking page rendering.
 - **FR-006a**: System MUST handle malformed macro invocations safely by ignoring the malformed macro and showing a visible warning/placeholder marker, without breaking page rendering.
 - **FR-007**: System MUST treat Markdown as untrusted input, prevent HTML/script execution, and strip raw HTML elements/blocks from rendering (they must never be executed and must not be rendered as HTML).
-- **FR-008**: Users MUST be able to export the rendered result to PDF via browser print (i.e., `window.print()` produces a stable multi-page PDF).
+- **FR-008**: Users MUST be able to export the rendered result to a **downloaded PDF file** generated in the app (one A4 page per rendered `.a4-page`, matching the visual preview). Export MAY rasterize each page (image-based PDF). The implementation MAY additionally emit **selectable text and link annotations** (tagged PDF) on top of the raster pages. Optional: users MAY still use the browser’s own print function (`Ctrl+P` / print menu) with the existing print stylesheet for vector printing where the browser supports it.
 - **FR-009**: System MUST implement page number macro `{{pageNumber N}}` where `N` defines the starting page number for the first rendered page of the document and increments by 1 for each subsequent rendered page.
 - **FR-010**: System MUST implement footnote macro `{{footnote LABEL | CONTENT}}` where `LABEL` is the visible reference label and `CONTENT` is the footnote text; footnotes MUST be collected per page and rendered as a footnote list at the bottom of the page containing the reference.
 - **FR-011**: System MUST implement TOC macro `{{tocDepthH3}}` to generate a table of contents derived from document headings; it MUST include headings up to depth level H3 and insert the TOC at the macro location.
 - **FR-012**: System MUST remain stable and produce correct rendered output for large documents (up to ~200 pages / ~100k characters) within 15 seconds of the preview/render action (no crash/hang).
+- **FR-013**: When creating a new document, the system MUST initialize it with exactly **5** pages by default: (1) cover (Einband), (2) **Impressum** (legal/credits, immediately after Einband), (3) and (4) two content pages, (5) final/back page.
+- **FR-013a**: The default new-document backgrounds MUST be applied as follows (local packaged assets where noted):
+  - Page 1 (cover/Einband): composed using `media/image13.png` and `media/image14.png`.
+  - Page 2 (Impressum): same **content page** background as other inner pages (even/odd rule); Impressum text via `{{impressumPage}}` / `{{impressumField …}}` (see FR-019).
+  - Page 3 (even content page): `media/image12.jpeg`.
+  - Page 4 (odd content page): `media/image17.jpeg`.
+  - Page 5 (final/back page): `media/image32.png`.
+- **FR-014**: The rendered page body text (preview + print) MUST use a **two-column** layout for body copy; structural blocks such as warnings, the table of contents, headings (H1–H4), and the per-page footnote list SHOULD span the full content width (not split across columns).
+- **FR-019**: The system MUST provide an **Impressum** page template placed **immediately after the Einband** in the default document. Impressum content MUST be **editable via macros** `{{impressumField key=value}}` (per-field overrides) and `{{impressumPage}}` (full block), with **defaults** in `web/src/impressum-config.ts` and optional programmatic merge via `renderDocument(..., { impressum: { … } })`. The Impressum page MUST use the **same background chrome** as ordinary content pages (automatic even/odd or explicit `\map{content-even}` / `\map{content-odd}`), not a separate Impressum-only background asset.
+- **FR-018**: The rendered document typography (preview + print) MUST follow `contracts/typography.md`: **Andalus** (system font stack) for chapter levels and Einband title styling; **Gentium** via *Gentium Book Plus* (web font) for body text and section levels; sizes and weights MUST match the documented mapping (Kapitel 23,5 pt, Unterkapitel 14 pt, Standard-Text 10 pt, Abschnitt Bold 13 pt, Unterabschnitt Bold 10 pt). The Einband title MUST use the same Andalus size as Kapitel with **silbrig** appearance (light neutral fill + subtle shadow) consistent with the reference cover.
+- **FR-015**: The interactive UI MUST keep the **preview/output pane** vertically scrollable within the viewport when the rendered document exceeds the available height; the **Markdown input** MUST use vertical scrolling **only when** the entered text exceeds the height allocated to the input control (no spurious page-level scroll for the editor when the text fits).
+- **FR-016**: The system MUST treat `{{page}}` as a **page break** equivalent to `\page` (same splitting semantics).
+- **FR-017**: For any rendered page **without** an explicit `\map{...}` on that page, the system MUST apply the default content background automatically: **odd** displayed page numbers use the `content-even` asset (`image12.jpeg`), **even** displayed page numbers use the `content-odd` asset (`image17.jpeg`), so the alternation matches the Scriptorium default sequence after the Einband (see `contracts/macros.md`). Explicit `\map{...}` on a page overrides this default for that page.
+
+#### Public hosting (optional product extension; detail: `contracts/public-documents.md`)
+
+- **FR-020**: For a **public deployment**, the system MUST support **persistent, shareable document URLs** with **no login**. Each document MUST use **two unguessable URL tokens** (view vs. edit; see FR-025), exposed under a single path pattern (e.g. `/d/{token}`) where the server resolves the token to **read-only** or **edit** mode; **tenant** = document identity (tokens + stored content), not organizational accounts.
+- **FR-021**: Document changes MUST be persisted by **automatic save** (debounced + flush on leave); a manual **Save** control MUST NOT be the only way to persist (optional status indicator allowed).
+- **FR-022**: **Rate limiting** MUST apply to document **creation** and **write/autosave** endpoints (e.g. per IP; limits to be documented in implementation).
+- **FR-023**: Documents whose content remains **byte-for-byte or hash-equal** to the **canonical default template** after normalization MUST be **eligible for deletion after a configurable retention period** (default: **24 hours**); once the content **diverges** from that template, the document MUST NOT be removed by this rule.
+- **FR-023b**: The retention period in FR-023 MUST be configurable via **environment variable** (documented in `docs/hosting.md` and `.env.example`); the default MUST match the previous **24-hour** behavior when unset.
+- **FR-024**: **“New document”** MUST create a new slug pair (or equivalent), persist the **standard default Markdown** as the initial body, and land the user on the **edit** URL. Creation MUST be invokable so it opens in a **new browser tab** (e.g. dedicated route such as `/new` that creates the document and redirects to `/d/{edit-token}`), without replacing the current tab’s document. **Direct navigation to the app root (`/`)** MAY use the **same** creation + redirect flow **in the current tab** (no separate landing page); see `contracts/public-documents.md`.
+- **FR-025**: Each stored document MUST expose two **distinct unguessable URLs (or tokens)**: one **view-only** (read-only or no write API) and one **edit** (autosave allowed). Implementations MUST NOT derive the edit URL from the view URL without a secret.
+- **FR-028**: The hosted UI MUST offer **share** actions: users MUST be able to copy (or otherwise obtain) the **view** URL; users in **edit** context MUST be able to copy the **edit** URL. The document API MUST NOT return the **edit** token to clients that only hold the **view** token (see `contracts/public-documents.md`).
+- **FR-026**: Server-side persistence MUST use **SQLite** and/or **one Markdown file per document** under a configurable path; the backend MAY be implemented in **TypeScript (Node)** or **PHP**, subject to deployment constraints.
+- **FR-027**: Cleanup of FR-023 MUST be implemented by **a scheduled job (cron)** **or** an **equivalent** mechanism (e.g. lazy deletion on read, platform scheduler, in-process scheduler); the chosen approach MUST be documented in `research.md` or `plan.md`.
+- **FR-029**: The repository MUST include the **GNU General Public License version 3** as a top-level **`LICENSE`** file (verbatim license text as published by the FSF), so downstream users and deployers can rely on a clear licensing statement.
+- **FR-030**: **Error logging** for the hosted API MUST be **extended** beyond the default framework output: failures MUST be diagnosable in production (e.g. structured fields, request correlation **without** logging secrets, stack traces for 5xx paths, clear distinction between client errors and server faults). Logs MUST be written with **file rotation** (retention/size documented in `docs/hosting.md`). Logs MUST **omit** URL/API **tokens** and **client IP addresses** (redaction).
+- **FR-031**: When the **SQLite database file** grows beyond a **configurable size threshold** (default agreed: **2 GiB**), the system MUST send **one email notification per threshold-crossing event** (not repeated while the file remains oversized) to a **configurable recipient address** (see FR-033). Threshold and check cadence MUST be documented in `docs/hosting.md` and listed in `.env.example`.
+- **FR-032**: The system MUST send a **weekly email report** summarizing how many **new documents were created** in the reporting window (e.g. previous calendar week), to the same **configurable recipient** as operational alerts unless a separate variable is specified. Default schedule: **Monday 08:00** in timezone **`Europe/Berlin`**; MUST be overridable via environment if needed. Document in `docs/hosting.md`.
+- **FR-033**: **Email recipient address(es)** for operational alerts and weekly reports MUST be **configurable via environment variables** (no hard-coded personal addresses in code). Secrets (SMTP passwords, API keys) MUST live only in environment or secret stores, **not** in the repository.
+- **FR-034**: The repository MUST contain **`.env.example`** documenting all supported environment variables; **`.env` files with real secrets MUST NOT be committed** (see `.gitignore`). Developers copy `.env.example` to `.env` locally; production uses the platform’s secret mechanism.
+- **FR-035**: **Abuse / overload protection (“maintenance lock”)**: If **document creation** exceeds a **configurable** high-water mark within a **configurable sliding time window**, the application MUST enter a **maintenance mode** for **new document creation only**: `POST /api/documents` and equivalent **“new document”** entry routes (`/`, `/new`) MUST return **503** (or serve a **maintenance page**); **existing** documents MUST remain **readable and editable** via valid view/edit tokens (**GET** / **PUT** unchanged). The system MUST **automatically** exit maintenance mode when creation rates return to normal (policy in `docs/hosting.md`); manual override MAY be supported via environment. Defaults and rationale (conservative thresholds) MUST be documented in `docs/hosting.md`.
 
 ### Key Entities *(include if feature involves data)*
 
 - **Markdown document**: The raw user input string that may include macros and text.
 - **Rendered book**: A structured collection of pages derived from `\page` blocks and macro expansion.
 - **Macro definition and asset map**: The internal mapping of supported macro names/keys to local background assets.
+- **Hosted document (optional)**: A server-side record (or file) keyed by unguessable slug(s), storing Markdown, view/edit tokens, and timestamps for TTL rules.
 
 ## Success Criteria *(mandatory)*
 
@@ -122,18 +172,23 @@ The user needs standard book navigation aids: page numbers, footnotes, and a tab
 
 - **SC-001**: Users can produce a two-page document preview from a typical input (up to ~5,000 characters) within 2 seconds of editing.
 - **SC-002**: At least 95% of supported macros resolve correctly to the expected page backgrounds on a representative sample document set.
-- **SC-003**: Printing/export via browser print yields a PDF with the number of pages matching the number of `\page` blocks (±0 pages) for the representative sample.
+- **SC-003**: PDF export from the app yields a file whose number of pages matches the number of rendered pages from `\page` / `{{page}}` semantics (±0 pages) for the representative sample.
 - **SC-004**: For malicious input containing scripts and raw HTML, no script execution is observed, and unsafe HTML is removed/stripped (it must not be executed and must not appear as rendered HTML in the preview) (pass/fail based on test).
 - **SC-005**: For a representative multi-page document using `{{pageNumber N}}`, the displayed page numbers match the formula `displayedPageNumber = N + (pageIndex - 1)` for all rendered pages.
 - **SC-006**: For a representative document containing at least 3 footnotes across multiple pages, every footnote reference shows the specified `LABEL` and every footnote list contains the corresponding `CONTENT` exactly once on the correct page.
 - **SC-007**: For a representative document containing headings across multiple levels, the TOC generated by `{{tocDepthH3}}` includes all and only headings eligible for depth H3 in correct document order.
-- **SC-008**: For empty or whitespace-only input, the rendered output contains exactly one page and printing/export yields a PDF with exactly one page.
+- **SC-008**: For empty or whitespace-only input, the rendered output contains exactly one page and PDF export yields a file with exactly one page.
 - **SC-009**: For a representative large document (up to ~200 pages / ~100k characters), rendering completes within 15 seconds and produces a correct page structure without crashes/hangs.
+
+## E2E-Tests (Playwright)
+
+Browser-End-to-End-Tests sind **zusätzlich** zu Vitest geplant; Werkzeug **Playwright**, Selektoren-Konvention (`id` wo vorhanden, ergänzend `data-testid` mit Präfix `dsabrew-…`), Phasenplan und Szenarien: **`contracts/e2e-playwright.md`**. Aufgaben: **`tasks.md`** (Phase E2E).
 
 ## Assumptions
 
 - Users run the tool in a modern web browser.
+- **Public / hosted mode** is the primary product surface: the web client expects a running API for document lifecycle; there is **no separate offline “local demo”** that preloads sample Markdown without the server (development still uses local API + Vite).
 - All required background assets are available locally within the tool’s package (no runtime dependency on external URLs for core backgrounds).
-- PDF export is implemented via the browser’s standard print dialog, so users can save to PDF using the OS/browser UI.
+- Primary PDF export is implemented in-app (html2canvas + jsPDF): users download a `.pdf` file that mirrors the preview. Browser print remains available as an optional path for users who prefer the system print dialog.
 - The initial macro set is limited to the documented subset; extensibility beyond that subset is handled by adding entries to the supported macro mapping.
 - Footnote rendering is per-page: each page contains a footnote list for references that appear on that page.

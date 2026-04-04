@@ -1,0 +1,5 @@
+{
+  "topRatio": 0.13,
+  "bottomRatio": 0.15,
+  "_comment": "Anteil der Referenzbildhöhe für obere/untere Zierleiste (Gem bzw. Maske). Bei abgeschnittenen Leisten Werte erhöhen (z. B. 0.18 / 0.2); wenn zu viel Fließtext in der Leiste steckt, verringern."
+}

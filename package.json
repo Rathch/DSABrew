@@ -1,0 +1,31 @@
+{
+  "name": "dsabrew",
+  "private": true,
+  "description": "Root scripts mirroring .github/workflows/ci.yml (run before push)",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "prepare": "husky",
+    "ci": "npm run ci:install && npm run ci:verify && npm run ci:audit",
+    "ci:fix": "npm run ci:install && npm run lint:ts:fix && npm run lint:css:fix --prefix web && npm run ci:verify && npm run ci:audit",
+    "ci:install": "npm ci && npm ci --prefix web && npm ci --prefix server",
+    "sync-server-lock": "node scripts/update-server-lock.mjs",
+    "lint:ts": "node scripts/lint-ts.mjs",
+    "lint:ts:fix": "node scripts/lint-ts.mjs --fix",
+    "ci:verify": "npm run lint:ts && npm run typecheck --prefix web && npm run lint:css --prefix web && npm run test:coverage --prefix web && npm run build --prefix web && npm run typecheck --prefix server",
+    "ci:precommit": "npm run lint:ts && npm run typecheck --prefix web && npm run lint:css --prefix web && npm run typecheck --prefix server",
+    "ci:audit": "npm audit --audit-level=high --prefix web && npm audit --audit-level=high --prefix server",
+    "ci:gitleaks": "gitleaks detect --source . --verbose --exit-code 1",
+    "ci:all": "npm run ci && npm run ci:gitleaks",
+    "ci:quick": "npm run ci:verify && npm run ci:audit"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.16.0",
+    "eslint": "^9.16.0",
+    "husky": "^9.1.7",
+    "globals": "^15.14.0",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.18.2"
+  }
+}

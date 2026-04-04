@@ -1,6 +1,6 @@
 # Research: DSABrew Markdown-to-DSA Renderer
 
-**Date**: 2026-03-26  
+**Date**: 2026-03-26 (updated 2026-03-28)  
 **Feature**: `specs/001-dsa-brew-renderer/spec.md`
 
 ## Decisions
@@ -25,7 +25,7 @@
 
 ### Decision: Table of contents generation
 
-**Chosen**: Generate TOC from heading tokens (chapter macro + Markdown headings) during render, with an explicit depth cap for `{{tocDepthH3}}`.
+**Chosen**: Generate TOC from heading tokens (Markdown headings) during render, with an explicit depth cap for `{{tocDepthH3}}`.
 **Rationale**: Deterministic, does not require layout measurement; can be inserted at macro location as a generated block.
 **Alternatives considered**: DOM scanning after render (works but less deterministic and harder to keep stable across renderer changes).
 
@@ -41,7 +41,102 @@
 **Rationale**: Deterministic and simple; aligns with print/PDF needs.
 **Alternatives considered**: Separate “set page number” macro per page (more complex, unclear precedence).
 
+### Decision: Footnote reference injection vs Markdown `html: false`
+
+**Chosen**: Replace `{{footnote …}}` with a **non-HTML placeholder token** before `markdown-it` runs, then inject `<sup class="footnote-ref">…</sup>` **after** Markdown rendering.
+**Rationale**: With `html: false`, inserting `<sup>` in the source would be escaped to text; placeholders must not use Markdown-active patterns (e.g. `__` for emphasis).
+**Alternatives considered**: Enable HTML in Markdown (rejected: weakens untrusted-input guarantees); custom markdown-it inline rule (more coupling).
+
+### Decision: Default content backgrounds without repeating `\map`
+
+**Chosen**: If a page has no `\map{…}`, set effective map to `content-even` when `displayPageNumber` is even, else `content-odd`.
+**Rationale**: Matches book-style even/odd spreads and reduces author boilerplate; explicit `\map` still overrides per page.
+**Alternatives considered**: Require `\map` on every page (more verbose).
+
+### Decision: Page-break alias `{{page}}`
+
+**Chosen**: Normalize `{{page}}` to the same split as `\page`.
+**Rationale**: Author ergonomics; same semantics as `\page`.
+**Alternatives considered**: Only `\page` (less flexible for templating).
+
+### Decision: Two-column body layout
+
+**Chosen**: CSS multi-column (`column-count: 2`) on the page body; headings, TOC, warnings, footnotes use `column-span: all` where appropriate.
+**Rationale**: Matches “scriptorium” print look without a complex layout engine for MVP.
+**Alternatives considered**: CSS Grid per page (heavier); single column (rejected by product).
+
+### Decision: PDF export (in-app download)
+
+**Chosen**: **html2canvas** + **jsPDF** in the browser: each `.a4-page` is captured to a canvas and embedded as one A4 page in a downloaded `.pdf` (letterboxed to preserve aspect ratio).
+**Rationale**: Delivers a real PDF file without a server; matches on-screen preview (including backgrounds and web fonts). Trade-off: raster PDF (text not selectable); some CSS (e.g. complex clip-paths) may differ slightly from vector print.
+**Alternatives considered**: Browser-only `window.print()` → “Save as PDF” (no automatic file download); headless Chrome/Puppeteer (requires backend or CLI); full vector rebuild (too heavy for MVP).
+
+### Decision: Vite major vs Node LTS
+
+**Chosen**: Pin **Vite 5** so developers on **Node 18** can run the dev server without requiring Node 20+ (Vite 7+).
+**Rationale**: Lower friction for common LTS setups; error `crypto.hash is not a function` on Node 18 + Vite 7 was observed in the wild.
+**Alternatives considered**: Require Node 20.19+ only (stricter environment).
+
+### Decision: Scriptorium typography (Andalus + Gentium)
+
+**Chosen**: Map Markdown `#`–`####` to Word-style levels per `contracts/typography.md`. **Gentium** is loaded as **Gentium Book Plus** from Google Fonts. **Andalus** uses a system `font-family` stack (no redistribution of Microsoft font files).
+**Rationale**: Matches the user’s template sizes; Gentium is OFL-licensed for web embedding; Andalus matches installed Office/Windows users.
+**Alternatives considered**: Substitute a free “Arabic-looking” webfont for Andalus (deviates from exact name); embed Andalus without license (rejected).
+
+### Decision: Impressum page
+
+**Chosen**: Macros `{{impressumField key=value}}` merge into defaults; `{{impressumPage}}` renders the block. Page uses the **same background** as other content pages (even/odd rule), not a separate asset.
+**Rationale**: Matches user expectation; field-level macros allow document-local edits without rebuilding.
+**Alternatives considered**: Separate `\map{impressum}` chrome (rejected: duplicate look vs content pages); JSON-only config (less author-friendly).
+
 ## Open Questions (deferred to implementation detail, not spec-level)
 
 - Exact visual layout (typography, margins, footer placement) for page number/footnotes/TOC.
-- Which headings count as “H1/H2/H3” when mixing `\chapter{}` with Markdown headings.
+- Exact rules for which headings count as H1/H2/H3 for TOC generation (based on Markdown heading levels).
+- Fine-tuning column gaps and hyphenation for very long words in two-column mode.
+
+---
+
+## Public hosting (FR-020–FR-027) — Phase 0 decisions
+
+*Resolved for planning; aligns with `contracts/public-documents.md` and `spec.md`.*
+
+### Decision: Default stack for hosted API (reference)
+
+**Chosen**: **Node + TypeScript** (Fastify or Express) + **better-sqlite3** or **sql.js** + single SQLite file on disk; Markdown body stored in-DB for v1 (optional second phase: mirror to `.md` files for backup).
+**Rationale**: Same language as `web/`; easy to share types; SQLite fits single-host VPS; no separate DB server.
+**Alternatives considered**: **PHP + SQLite** (fine on shared hosting; document parallel routes if needed); files-only without SQLite (simpler reads, harder for slug→token lookups without a manifest DB).
+
+### Decision: Slug generation
+
+**Chosen**: **32+ bits** of randomness encoded as URL-safe string (e.g. **nanoid** 21 chars or 16 bytes hex); **two independent** values for `slug_view` and `slug_edit`.
+**Rationale**: Unguessable; meets FR-025.
+**Alternatives considered**: UUID v4 string (longer URLs).
+
+### Decision: Rate limits (initial numbers, tune in production)
+
+**Chosen** (starting point): **POST** create document — e.g. **10 / hour / IP**; **PUT** autosave — e.g. **120 / hour / IP** and **60 / minute / editSlug** (burst).
+**Rationale**: Blocks naive abuse; autosave needs higher ceiling; store limits in env vars.
+**Alternatives considered**: Stricter create (5/h) if abuse observed.
+
+### Decision: TTL / deletion without classic cron
+
+**Chosen**: **Primary: lazy deletion** — on `GET` (view or edit load), if row matches “still default hash” **and** `created_at + 24h < now`, delete and return 404. **Secondary: optional** hourly `DELETE` SQL in a **systemd timer** or platform cron if traffic is low and lazy is insufficient.
+**Rationale**: No separate job runner required for MVP; FR-027 satisfied.
+**Alternatives considered**: Only cron (needs infra); Bull queue (overkill).
+
+### Decision: Canonical hash for “unchanged default”
+
+**Chosen**: **SHA-256** of **normalized** Markdown: `trim`, **LF** line endings, single trailing newline (same normalization as `DEFAULT_MARKDOWN_DEMO` snapshot in repo).
+**Rationale**: Deterministic comparison; document exact function in API code.
+**Alternatives considered**: byte equality without normalization (brittle on OS line endings).
+
+### Decision: Autosave transport
+
+**Chosen**: **Debounced PUT** (400 ms default); **sendBeacon** or synchronous `fetch` on `visibilitychange` / `pagehide` for last keystroke.
+**Rationale**: Meets FR-021 without visible “Save” requirement.
+**Alternatives considered**: WebSocket (unnecessary for single editor).
+
+### Implementation note: Referenz-API (`server/`)
+
+**Umgebungsvariablen** für Rate Limits und Pfade: siehe `docs/hosting.md` (`RATE_POST_CREATE_PER_HOUR`, `RATE_PUT_PER_HOUR`, `RATE_PUT_BURST_PER_MIN`, `SQLITE_PATH`, `PUBLIC_ORIGIN`, `PORT`, optional `TRUST_PROXY=1` hinter Reverse Proxy für korrektes Client-IP-Logging).

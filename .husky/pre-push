@@ -1,0 +1,24 @@
+#!/usr/bin/env sh
+# Voll wie „ci:quick“: ci:verify (inkl. Tests, Web-Build) + npm audit — entspricht CI-Web + CI-Server + Audit.
+set -e
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$REPO_ROOT" || exit 1
+# shellcheck disable=SC1091
+. "$REPO_ROOT/scripts/husky-env.sh"
+
+_run_push_hooks() {
+  npm run ci:quick
+  if command -v gitleaks >/dev/null 2>&1; then
+    npm run ci:gitleaks
+  else
+    echo "Hinweis: gitleaks nicht im PATH — Secret-Scan wie in CI wird lokal übersprungen (optional installieren)."
+  fi
+}
+
+if command -v npm >/dev/null 2>&1; then
+  _run_push_hooks
+else
+  # shellcheck disable=SC1091
+  . "$REPO_ROOT/scripts/husky-wsl.sh"
+  husky_run_in_wsl "npm run ci:quick; if command -v gitleaks >/dev/null 2>&1; then npm run ci:gitleaks; else echo \"[husky] gitleaks übersprungen\"; fi"
+fi
