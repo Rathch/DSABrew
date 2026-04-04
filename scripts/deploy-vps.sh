@@ -57,7 +57,11 @@ echo "==> npm run build --prefix web"
 npm run build --prefix web
 
 echo "==> systemctl restart $DEPLOY_SYSTEMD_UNIT"
-sudo -n systemctl restart "$DEPLOY_SYSTEMD_UNIT"
+if ! sudo -n systemctl restart "$DEPLOY_SYSTEMD_UNIT"; then
+  echo "Fehler: sudo -n systemctl restart — Passwort nötig oder keine Rechte." >&2
+  echo "Auf dem Server NOPASSWD für diesen User und systemctl restart/status dieser Unit einrichten: docs/hosting.md (GitHub Actions / VPS-Deploy)." >&2
+  exit 1
+fi
 
 echo "==> OK — kurz Status:"
 sudo -n systemctl --no-pager status "$DEPLOY_SYSTEMD_UNIT" || true
