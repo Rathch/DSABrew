@@ -60,6 +60,8 @@ Geheimnisse gehören **nicht** ins Git — nur die Vorlage **`.env.example`** im
 | `LOG_LEVEL` | `info` | `error` / `warn` / `info` / … (**FR-030**) |
 | `LOG_TO_STDOUT` | (gesetzt) | `0` = nur Datei-Logs, kein Duplikat auf stdout |
 
+**FR-035 (Missbrauchssperre):** Steht `ABUSE_DOC_CREATE_MAX` leer oder ist der Wert ungültig/`0`, verwendet der Server den Default **500** (`server/src/abuse-env.ts`). Ein leeres Feld wurde früher als **0** gelesen und löste nach dem ersten erfolgreichen `POST` den Wartungsmodus aus.
+
 Hinweis: **Log-Ausgabe** darf **keine** Edit-/View-**Tokens** und **keine Client-IP-Adressen** enthalten (**FR-030**).
 
 ## HTTPS
