@@ -84,11 +84,4 @@ if ! command -v npm >/dev/null 2>&1 && command -v node >/dev/null 2>&1; then
   export PATH
 fi
 
-if ! command -v npm >/dev/null 2>&1; then
-  echo "husky: npm nicht gefunden." >&2
-  echo "  • Node.js installieren (https://nodejs.org) und sicherstellen, dass der Ordner mit npm in der Windows-PATH liegt," >&2
-  echo "    oder Umgebungsvariable setzen, z. B. HUSKY_NPM_CMD=C:\\\\Program Files\\\\nodejs\\\\npm.cmd" >&2
-  echo "  • Oder Commits im Terminal/WSL ausführen, wo nvm/fnm geladen ist." >&2
-  echo "  • Details: scripts/husky-env.sh" >&2
-  exit 127
-fi
+# Kein exit hier — wenn npm fehlt, können .husky/* per scripts/husky-wsl.sh in WSL nachziehen (Cursor-GUI + nur WSL-Node).

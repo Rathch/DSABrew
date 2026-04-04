@@ -5,4 +5,11 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO_ROOT" || exit 1
 # shellcheck disable=SC1091
 . "$REPO_ROOT/scripts/husky-env.sh"
-npm run ci:precommit
+
+if command -v npm >/dev/null 2>&1; then
+  npm run ci:precommit
+else
+  # shellcheck disable=SC1091
+  . "$REPO_ROOT/scripts/husky-wsl.sh"
+  husky_run_in_wsl "npm run ci:precommit"
+fi

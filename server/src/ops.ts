@@ -12,8 +12,12 @@ import {
   sendSmtpMail
 } from "./mail.js";
 
-/** ISO-Woche: Montag als Wochenbeginn (Europe/Berlin). */
-Settings.defaultWeekSettings = { firstDay: 1, minimalDays: 4 };
+/** ISO-Woche: Montag als Wochenbeginn (Europe/Berlin); Wochenende Sa/So. */
+Settings.defaultWeekSettings = {
+  firstDay: 1,
+  minimalDays: 4,
+  weekend: [6, 7]
+};
 
 type OpsState = {
   sqliteSizeAlertLatched?: boolean;
