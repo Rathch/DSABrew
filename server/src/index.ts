@@ -5,13 +5,21 @@ import { nanoid } from "nanoid";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  evaluateUnlock,
+  isMaintenanceMode,
+  recordDocumentCreation,
+  getMaintenanceSnapshot
+} from "./abuse-maintenance.js";
+import {
   deleteDocument,
   findByAnySlug,
   insertDocument,
   openDb,
   updateMarkdown
 } from "./db.js";
+import { createServerLogger, resolveLogDir } from "./logger-config.js";
 import { normalizeMarkdown, sha256Hex } from "./normalize.js";
+import { scheduleWeeklyReport, startSqliteSizeWatch } from "./ops.js";
 import { DEFAULT_MARKDOWN_DEMO } from "../../shared/default-markdown-demo.js";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
@@ -21,7 +29,8 @@ const PORT = Number(process.env.PORT ?? "3001");
 const SQLITE_PATH = process.env.SQLITE_PATH ?? join(repoRoot, "server", "data", "dsabrew.db");
 const PUBLIC_ORIGIN = (process.env.PUBLIC_ORIGIN ?? "").replace(/\/$/, "");
 
-const TTL_MS = 24 * 60 * 60 * 1000;
+const TTL_HOURS = Number(process.env.DEFAULT_DOC_TTL_HOURS ?? 24);
+const TTL_MS = (Number.isFinite(TTL_HOURS) && TTL_HOURS > 0 ? TTL_HOURS : 24) * 60 * 60 * 1000;
 
 /** Sliding window (~1 h) per IP for PUT — complements @fastify/rate-limit burst per IP+token. */
 const putHourlyHits = new Map<string, number[]>();
@@ -61,8 +70,11 @@ async function main(): Promise<void> {
   loadCanonical();
 
   const db = openDb(SQLITE_PATH);
+  const logDir = resolveLogDir(repoRoot);
+  const rootLogger = createServerLogger(logDir);
+
   const app = Fastify({
-    logger: true,
+    logger: rootLogger,
     trustProxy: process.env.TRUST_PROXY === "1"
   });
 
@@ -71,7 +83,21 @@ async function main(): Promise<void> {
     global: false
   });
 
-  app.get("/api/health", async () => ({ ok: true }));
+  app.get("/api/health", async () => {
+    const m = getMaintenanceSnapshot();
+    return {
+      ok: true,
+      maintenance: m.maintenance,
+      abuseCreatesInWindow: m.createsInWindow
+    };
+  });
+
+  setInterval(() => {
+    evaluateUnlock();
+  }, 30_000).unref();
+
+  startSqliteSizeWatch(SQLITE_PATH, rootLogger);
+  scheduleWeeklyReport(db, rootLogger, SQLITE_PATH);
 
   app.post(
     "/api/documents",
@@ -85,6 +111,12 @@ async function main(): Promise<void> {
       }
     },
     async (_req, reply) => {
+      if (isMaintenanceMode()) {
+        return reply.code(503).send({
+          error: "maintenance",
+          message: "Neue Dokumente vorübergehend nicht möglich. Bitte später erneut versuchen."
+        });
+      }
       const id = nanoid();
       const slugView = nanoid(21);
       const slugEdit = nanoid(21);
@@ -97,6 +129,7 @@ async function main(): Promise<void> {
         created_at: now,
         updated_at: now
       });
+      recordDocumentCreation();
       reply.code(201);
       return {
         slugView,
@@ -184,7 +217,7 @@ async function main(): Promise<void> {
   );
 
   await app.listen({ port: PORT, host: "0.0.0.0" });
-  app.log.info({ SQLITE_PATH }, "dsabrew public API listening");
+  app.log.info({ SQLITE_PATH, logDir, ttlHours: TTL_MS / (60 * 60 * 1000) }, "dsabrew public API listening");
 }
 
 void main().catch((e) => {

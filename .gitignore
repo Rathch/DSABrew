@@ -12,4 +12,6 @@ web/coverage/
 *.tmp
 .env
 .env.*
+!.env.example
 server/data/
+ops-mail-state.json

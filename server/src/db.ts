@@ -67,3 +67,17 @@ export function updateMarkdown(
     `UPDATE documents SET markdown = ?, updated_at = ?, ever_diverged = ? WHERE id = ?`
   ).run(markdown, updatedAt, everDiverged, id);
 }
+
+/** `startMs` inklusiv, `endMsExclusive` exklusiv (Zeit in ms seit Epoch). */
+export function countDocumentsCreatedBetween(
+  db: Database.Database,
+  startMs: number,
+  endMsExclusive: number
+): number {
+  const row = db
+    .prepare(
+      `SELECT COUNT(*) AS c FROM documents WHERE created_at >= ? AND created_at < ?`
+    )
+    .get(startMs, endMsExclusive) as { c: number };
+  return Number(row.c);
+}

@@ -161,6 +161,26 @@ function siteChromeFooter(footerNavClass: string): string {
   return `<div class="site-chrome-footer">${landingFooterNav(footerNavClass)}${fanProductNoticeHtml()}</div>`;
 }
 
+function buildMaintenancePageLayout(): string {
+  return `
+  <div class="legal-shell maintenance-shell">
+    <header class="legal-header">
+      <h1 class="legal-h1">Wartung</h1>
+      ${themeControlClusterHtml()}
+    </header>
+    <div class="legal-prose maintenance-prose">
+      <p>
+        Neue Dokumente können derzeit <strong>nicht angelegt</strong> werden — die Dienstlast ist zu hoch.
+        Bestehende Dokumente sind weiterhin über Ihren Link erreichbar.
+      </p>
+      <p class="maintenance-hint">Bitte versuchen Sie es in einigen Minuten erneut.</p>
+    </div>
+    <p class="legal-back"><a href="/" class="chrome-link">Seite aktualisieren</a></p>
+    ${siteChromeFooter("chrome-footer-nav chrome-footer-nav--bordered-strong")}
+  </div>
+`;
+}
+
 function buildLegalPageLayout(kind: "impressum" | "datenschutz"): string {
   const title = kind === "impressum" ? "Impressum" : "Datenschutz";
   const body =
@@ -732,6 +752,13 @@ if (path === "/impressum") {
   void (async () => {
     try {
       const r = await fetch(apiUrl("/api/documents"), { method: "POST" });
+      if (r.status === 503) {
+        setPublicPageScroll(true);
+        document.title = "Wartung — DSABrew";
+        app.innerHTML = buildMaintenancePageLayout();
+        syncThemeToggleButtons();
+        return;
+      }
       if (!r.ok) {
         setPublicPageScroll(true);
         document.title = "DSABrew";
