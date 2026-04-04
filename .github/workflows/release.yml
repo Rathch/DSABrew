@@ -16,6 +16,7 @@ permissions:
   pull-requests: write
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   npm_config_fetch_retries: "7"
   npm_config_fetch_retry_mintimeout: "15000"
   npm_config_fetch_retry_maxtimeout: "120000"
@@ -44,7 +45,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "24"
           cache: npm
           cache-dependency-path: |
             package-lock.json

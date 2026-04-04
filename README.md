@@ -41,7 +41,7 @@ DSABrew ist ein Web-Tool, das Markdown in ein mehrseitiges A4-Layout rendert und
 
 Voraussetzungen:
 
-- Node.js **22.14 oder neuer** für das **Repository-Root** (Husky, Commitlint, semantic-release; siehe Root-`package.json` → `engines` und `.nvmrc`). `web`/`server` listen weiter **20+** in `engines` — empfohlen ist die Version aus **`.nvmrc`**, damit CI und lokale Root-Skripte passen.
+- Node.js **24 oder neuer** (siehe Root-`package.json` → `engines` und **`.nvmrc`**). **CI** und empfohlene lokale Version entsprechen **`.nvmrc`**.
 - npm
 
 **Web + API** (empfohlen): Zwei Terminals — (1) `cd server && npm install && npm run dev` (Port 3001), (2) `cd web && npm install && npm run dev` (Vite, typisch 5173). Im Browser `http://localhost:5173/` — sofortige Anlage eines Dokuments und Weiterleitung zur Bearbeiten-URL; **„+ Neues Dokument“** oeffnet `/new` in einem **neuen Tab**. Details: `docs/hosting.md`, `specs/.../quickstart.md`.
@@ -54,7 +54,7 @@ Optional: Banner manuell neu erzeugen mit `npm run prepare-assets` im Ordner `we
 
 ### Hinweis: Vite und Node.js
 
-Das Web-Paket nutzt **Vite 6** (siehe `web/package.json`). **CI** nutzt **Node 22** (wie `.nvmrc`); die `engines` in `web`/`server` verlangen mindestens **20**.
+Das Web-Paket nutzt **Vite 6** (siehe `web/package.json`). **CI** nutzt **Node 24** (wie `.nvmrc`).
 
 Nach einem Wechsel der Vite-Major-Version am besten neu installieren:
 
