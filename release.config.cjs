@@ -3,7 +3,8 @@
  *
  * Letzte Version kommt aus Git-Tags (tagFormat v${version}), nicht aus package.json. Ohne erkannten
  * letzten Tag setzt semantic-release die nächste Version fest auf 1.0.0 (Konstante FIRST_RELEASE).
- * Bestehende 0.x-Linie: höchsten Stand z. B. mit `git tag v0.38.2 <sha> && git push origin v0.38.2` setzen.
+ * Bestehende 0.x-Linie: höchsten Stand auf dem Default-Branch (main/master) taggen, z. B.
+ * `git tag v0.38.2 <sha> && git push origin v0.38.2`. Ohne solchen Tag bleibt die nächste Version 1.0.0.
  *
  * @see https://semantic-release.gitbook.io/
  */

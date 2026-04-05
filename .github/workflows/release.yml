@@ -59,21 +59,23 @@ jobs:
         with:
           node-version: "24"
           cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            web/package-lock.json
-            server/package-lock.json
+          # Nur Root-Lockfile: hier läuft nur `npm ci` — web/server brauchen keine vollen node_modules.
+          cache-dependency-path: package-lock.json
 
-      - name: Install (root + web + server)
-        run: |
-          npm ci
-          npm ci --prefix web
-          npm ci --prefix server
+      - name: Install (root — semantic-release)
+        run: npm ci
 
       - name: Git-Identität (Release-Commit)
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      # SR nutzt `git tag --merged <branch>` — bei detached HEAD fehlt oft refs/heads/master|main,
+      # dann werden keine v*-Tags gefunden → fälschlich „erster Release“ 1.0.0 trotz v0.38.2 auf GitHub.
+      - name: Lokaler Branch-Ref für semantic-release
+        run: |
+          B="${{ github.event.workflow_run.head_branch }}"
+          git branch -f "$B" HEAD
 
       - name: semantic-release
         env:
