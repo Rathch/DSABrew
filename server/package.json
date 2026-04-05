@@ -1,6 +1,6 @@
 {
   "name": "dsabrew-server",
-  "version": "0.38.2",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
