@@ -130,6 +130,53 @@ async function prCreateWithRetry(base, branch, version) {
   throw lastErr ?? new Error("[release-pr] gh pr create ist nach mehreren Versuchen fehlgeschlagen.");
 }
 
+/** gh pr checks --watch schlägt fehl, solange noch gar keine Checks existieren („no checks reported“). */
+async function waitForChecksThenWatch(prNum) {
+  const maxMs = Number(process.env.RELEASE_PR_CHECKS_WAIT_MS) || 20 * 60 * 1000;
+  const pollMs = Number(process.env.RELEASE_PR_CHECKS_POLL_MS) || 8000;
+  const deadline = Date.now() + maxMs;
+
+  function listChecks() {
+    try {
+      const out = execFileSync(
+        "gh",
+        [
+          "pr",
+          "checks",
+          String(prNum),
+          "--json",
+          "name,state",
+        ],
+        { encoding: "utf8", env: process.env }
+      );
+      const arr = JSON.parse(out.trim() || "[]");
+      return Array.isArray(arr) ? arr : [];
+    } catch {
+      return [];
+    }
+  }
+
+  while (Date.now() < deadline) {
+    const checks = listChecks();
+    if (checks.length > 0) {
+      console.log(
+        `[release-pr] ${checks.length} Check(s) am PR — warte auf Abschluss (gh pr checks --watch) …`
+      );
+      sh(`gh pr checks ${prNum} --watch`);
+      return;
+    }
+    console.log(
+      "[release-pr] Noch keine PR-Checks (CI startet oft verzögert) — erneuter Versuch …"
+    );
+    await delay(pollMs);
+  }
+
+  throw new Error(
+    `[release-pr] Timeout (${maxMs}ms): weiterhin keine Checks am PR #${prNum}. ` +
+      "Ist der Workflow „CI“ für pull_request → default branch aktiv?"
+  );
+}
+
 async function main() {
   const base = defaultBranch();
   const branch = `chore/release-v${version}`;
@@ -162,10 +209,7 @@ async function main() {
     process.exit(1);
   }
 
-  // Kein try/catch: gh pr checks --watch exitiert mit ≠0 bei fehlgeschlagenen Checks —
-  // sonst würde trotzdem gemerged (kaputter Release auf main).
-  console.log(`[release-pr] Warte auf abgeschlossene PR-Checks (PR #${num}) …`);
-  sh(`gh pr checks ${num} --watch`);
+  await waitForChecksThenWatch(num);
 
   const flag = mergeFlag();
   sh(`gh pr merge ${num} ${flag} --delete-branch`);

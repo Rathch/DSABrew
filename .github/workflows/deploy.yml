@@ -1,13 +1,12 @@
-# VPS-Deploy nach erfolgreichem Workflow „CI“ — unabhängig von Release/semantic-release.
-# Bei Deploy-Fehlern bleibt der CI-Lauf grün; nur dieser Workflow schlägt fehl.
-#
-# Checkout per `workflow_run.head_sha` (nicht `origin/<branch>`): sonst könnte ein späterer
-# Push auf main/master den Branch-Tipp vor dem Deploy-Rennen verändern — dann würde ungetesteter Code live gehen.
+# VPS-Deploy nach erfolgreichem Workflow „Release“ (semantic-release inkl. PR/Merge).
+# Ablauf: Push → CI → Release → Deploy — Release läuft erst nach grünem CI (siehe release.yml).
+# Reset auf origin/<defaultBranch>: nach Release-PR ist main ggf. neuer als der ursprüngliche CI-Commit.
+# Bei Deploy-Fehlern bleiben CI/Release grün; nur dieser Workflow schlägt fehl.
 name: Deploy (VPS)
 
 on:
   workflow_run:
-    workflows: [CI]
+    workflows: [Release]
     types:
       - completed
 
@@ -22,7 +21,6 @@ jobs:
     if: >-
       github.repository == 'Rathch/DSABrew' &&
       github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push' &&
       (github.event.workflow_run.head_branch == 'main' ||
        github.event.workflow_run.head_branch == 'master') &&
       github.event.workflow_run.head_repository.full_name == github.repository
@@ -86,7 +84,7 @@ jobs:
             set -euo pipefail
             cd "${{ secrets.DEPLOY_PATH }}"
             git fetch origin
-            git reset --hard ${{ github.event.workflow_run.head_sha }}
+            git reset --hard "origin/${{ github.event.repository.default_branch }}"
             npm ci
             npm ci --prefix web
             npm ci --prefix server
