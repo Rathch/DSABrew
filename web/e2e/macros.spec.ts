@@ -269,6 +269,15 @@ test.describe("Hosted Editor — Toolbar: Makros & Formatierung", () => {
     await expectPreviewContains(page, "hr");
   });
 
+  test("Bild — Toolbar (#md-tool-imageUrl) mit URL-Prompt", async ({ page }) => {
+    page.once("dialog", async (dialog) => {
+      await dialog.accept("https://example.test/e2e-bild.png");
+    });
+    await page.locator("#markdown-input").fill("");
+    await page.locator("#md-tool-imageUrl").click();
+    await expectPreviewContains(page, 'img[src="https://example.test/e2e-bild.png"]');
+  });
+
   test("Fett / Kursiv / H2 — Toolbar", async ({ page }) => {
     const input = page.locator("#markdown-input");
     await input.fill("");

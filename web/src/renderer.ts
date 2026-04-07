@@ -57,6 +57,18 @@ md.validateLink = (url: string): boolean => {
 /** Scriptorium parchment style for Markdown tables (see style.css `.dsa-md-table`). */
 md.renderer.rules.table_open = () => '<table class="dsa-md-table">\n';
 
+/** Header cells: `scope="col"` for a11y (pipe tables → thead `th` only). */
+const thOpenDefault = md.renderer.rules.th_open;
+if (thOpenDefault) {
+  md.renderer.rules.th_open = (tokens, idx, options, env, self) => {
+    const token = tokens[idx];
+    if (token.attrIndex("scope") < 0) {
+      token.attrSet("scope", "col");
+    }
+    return thOpenDefault(tokens, idx, options, env, self);
+  };
+}
+
 export interface Footnote {
   label: string;
   content: string;
@@ -80,6 +92,8 @@ export interface RenderedPage {
   rautenKey: string | null;
   /** Extra CSS class names for page chrome (backgrounds), space-separated. */
   pageChromeClasses: string;
+  /** Set when `\\map{einband #RRGGBB}` — custom `--page-einband-bg` on the page shell. */
+  einbandCustomHex: string | null;
   /** `true` after `\\pageSingle` / `{{pageSingle}}` — single-column layout (`.a4-page--single-column`). */
   singleColumn?: boolean;
   /** Set on all pages **after** the last `{{impressumPage}}` page (otherwise `undefined` → classic corner). */
@@ -174,12 +188,48 @@ function collectImpressumFields(raw: string): {
   return { cleaned, partial, fieldWarnings };
 }
 
+/** Normalize `#rgb` → `#rrggbb` for CSS. */
+function normalizeHexColor(s: string): string {
+  const t = s.trim();
+  if (/^#[0-9a-f]{3}$/i.test(t)) {
+    const r = t[1];
+    const g = t[2];
+    const b = t[3];
+    return `#${r}${r}${g}${g}${b}${b}`.toLowerCase();
+  }
+  return t.toLowerCase();
+}
+
+function parseEinbandHex(mod: string): string | null {
+  const t = mod.trim();
+  if (!/^#[0-9a-f]{3}$/i.test(t) && !/^#[0-9a-f]{6}$/i.test(t)) {
+    return null;
+  }
+  return normalizeHexColor(t);
+}
+
+/** WCAG relative luminance for sRGB hex (used to pick hell/dunkel text chrome with custom Einband). */
+function relativeLuminanceFromHex(hex: string): number {
+  const h = hex.slice(1);
+  const n = Number.parseInt(h, 16);
+  const rs = ((n >> 16) & 255) / 255;
+  const gs = ((n >> 8) & 255) / 255;
+  const bs = (n & 255) / 255;
+  const lin = (c: number): number =>
+    c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  const R = lin(rs);
+  const G = lin(gs);
+  const B = lin(bs);
+  return 0.2126 * R + 0.7152 * G + 0.0722 * B;
+}
+
 /**
- * `cover` → einband. Cover only: second word `hell` / `dunkel` (aliases light, dark, heller).
+ * `cover` → einband. Cover: second token `hell` / `dunkel` or `#rrggbb` / `#rgb` (custom background).
  */
 function parseMapMacroInner(rawKey: string): {
   canonical: string | null;
   einbandTone?: "hell" | "dunkel";
+  einbandHex?: string;
 } {
   const parts = rawKey
     .trim()
@@ -210,6 +260,15 @@ function parseMapMacroInner(rawKey: string): {
   }
 
   const mod = parts[1];
+  const hex = parseEinbandHex(mod);
+  if (hex) {
+    const lum = relativeLuminanceFromHex(hex);
+    return {
+      canonical: "einband",
+      einbandTone: lum > 0.55 ? "hell" : "dunkel",
+      einbandHex: hex
+    };
+  }
   if (mod === "hell" || mod === "heller" || mod === "light") {
     return { canonical: "einband", einbandTone: "hell" };
   }
@@ -222,13 +281,19 @@ function parseMapMacroInner(rawKey: string): {
 export function buildPageChromeClasses(
   mapKey: string | null,
   rautenKey: string | null,
-  einbandTone?: "hell" | "dunkel"
+  einbandTone?: "hell" | "dunkel",
+  einbandHex?: string | null
 ): string {
   const parts: string[] = [];
   if (mapKey) {
     parts.push(`page-bg-${mapKey}`);
-    if (mapKey === "einband" && einbandTone === "hell") {
-      parts.push("page-einband-hell");
+    if (mapKey === "einband") {
+      if (einbandHex) {
+        parts.push("page-einband-custom");
+      }
+      if (einbandTone === "hell") {
+        parts.push("page-einband-hell");
+      }
     }
   }
   if (rautenKey) {
@@ -1021,12 +1086,14 @@ function parseBackgrounds(raw: string): {
   mapKey: string | null;
   rautenKey: string | null;
   einbandTone?: "hell" | "dunkel";
+  einbandHex?: string;
   warnings: string[];
 } {
   const warnings: string[] = [];
   let mapKey: string | null = null;
   let rautenKey: string | null = null;
   let einbandTone: "hell" | "dunkel" | undefined;
+  let einbandHex: string | undefined;
 
   const cleaned = raw.replace(VALID_BG_MACRO, (_, macro: "map" | "rauten", key: string) => {
     const normalizedKey = key.trim().toLowerCase();
@@ -1036,8 +1103,13 @@ function parseBackgrounds(raw: string): {
         warnings.push(`[WARN] Unknown map key: ${key.trim()}`);
       } else {
         mapKey = parsed.canonical;
-        if (parsed.canonical === "einband" && parsed.einbandTone) {
-          einbandTone = parsed.einbandTone;
+        if (parsed.canonical === "einband") {
+          if (parsed.einbandTone) {
+            einbandTone = parsed.einbandTone;
+          }
+          if (parsed.einbandHex) {
+            einbandHex = parsed.einbandHex;
+          }
         }
       }
     } else if (!RAUTEN_ASSET_KEYS.has(normalizedKey)) {
@@ -1052,7 +1124,7 @@ function parseBackgrounds(raw: string): {
     warnings.push("[WARN] Malformed macro invocation");
   }
 
-  return { cleaned, mapKey, rautenKey, einbandTone, warnings };
+  return { cleaned, mapKey, rautenKey, einbandTone, einbandHex, warnings };
 }
 
 /** Entry for {{tocDepthH3}} — from Markdown of all pages (see contracts/macros.md: document-wide). */
@@ -1452,10 +1524,12 @@ export function renderDocument(markdown: string, options?: RenderDocumentOptions
       footnotes: footnoteData.footnotes,
       mapKey: effectiveMapKey,
       rautenKey: bgData.rautenKey,
+      einbandCustomHex: effectiveMapKey === "einband" ? bgData.einbandHex ?? null : null,
       pageChromeClasses: buildPageChromeClasses(
         effectiveMapKey,
         bgData.rautenKey,
-        effectiveMapKey === "einband" ? bgData.einbandTone : undefined
+        effectiveMapKey === "einband" ? bgData.einbandTone : undefined,
+        effectiveMapKey === "einband" ? bgData.einbandHex ?? null : null
       ),
       singleColumn: segment.singleColumn,
       bookFooter

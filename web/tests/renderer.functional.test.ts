@@ -20,6 +20,19 @@ describe("renderer functional", () => {
     expect(r.pages[0].pageChromeClasses).toContain("page-bg-einband");
   });
 
+  it("applies custom Einband color from hex in map macro", () => {
+    const r = renderDocument("\\map{einband #2a3440}");
+    const p = r.pages[0];
+    expect(p.mapKey).toBe("einband");
+    expect(p.einbandCustomHex).toBe("#2a3440");
+    expect(p.pageChromeClasses).toContain("page-einband-custom");
+  });
+
+  it("normalizes three-digit hex for Einband map", () => {
+    const r = renderDocument("\\map{einband #abc}");
+    expect(r.pages[0].einbandCustomHex).toBe("#aabbcc");
+  });
+
   it("includes footnote label and content on the same page", () => {
     const r = renderDocument("{{footnote PART 2 | BORING STUFF}}");
     const html = r.pages[0].renderedHtml;
@@ -73,6 +86,7 @@ describe("renderer functional", () => {
     expect(html).toContain('class="dsa-md-table"');
     expect(html).toContain("<thead>");
     expect(html).toContain("<tbody>");
+    expect(html).toContain('scope="col"');
   });
 
   it("splits pages for {{page}} alias", () => {

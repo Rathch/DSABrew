@@ -52,6 +52,19 @@ export function insertAtCursor(textarea: HTMLTextAreaElement, text: string): voi
   dispatchInput(textarea);
 }
 
+/** Fügt `![](url)` ein; URL per `prompt` (Toolbar „Bild“). */
+export function insertImageFromUrl(textarea: HTMLTextAreaElement): void {
+  const raw = window.prompt("Bild-URL (https:// …):", "https://");
+  if (raw === null) {
+    return;
+  }
+  const url = raw.trim();
+  if (url === "") {
+    return;
+  }
+  insertAtCursor(textarea, `\n\n![Bild](${url})\n\n`);
+}
+
 export function getLineRange(value: string, selStart: number, selEnd: number): { start: number; end: number } {
   const lineStart = value.lastIndexOf("\n", selStart - 1) + 1;
   let lineEnd = value.indexOf("\n", Math.max(selEnd - 1, 0));
@@ -279,6 +292,13 @@ const ACTIONS: {
         ta,
         "\n\n| Spalte 1 | Spalte 2 |\n| --- | --- |\n|  |  |\n\n"
       )
+  },
+  {
+    id: "imageUrl",
+    label: "Bild",
+    title:
+      "Bild per URL (![](…)); NSC-Porträt: im Block `portrait=https://…` setzen (gleiche URL-Regeln)",
+    run: insertImageFromUrl
   },
   { id: "sep3", label: "|", title: "", run: () => {} },
   {

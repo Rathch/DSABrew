@@ -328,6 +328,10 @@ function initEditorAndPreview(
                 : "book-footer-strip--odd"
               : "";
           const hidePageNumber = page.mapKey === "final";
+          const einbandStyle =
+            page.einbandCustomHex != null && page.einbandCustomHex.length > 0
+              ? ` style="--page-einband-bg: ${escapeHtml(page.einbandCustomHex)}"`
+              : "";
           const footerHtml = page.bookFooter
             ? `<footer class="book-footer-strip ${footerParity}" aria-label="Fußzeile">
   <div class="book-footer-cluster book-footer-cluster--start book-footer-cluster--num-slot">
@@ -340,7 +344,7 @@ function initEditorAndPreview(
               ? ""
               : `<div class="page-number page-number--${page.displayPageNumber % 2 === 0 ? "even" : "odd"}">${String(page.displayPageNumber).padStart(2, "0")}</div>`;
           return `
-      <article class="a4-page${chrome}${singleCol}${footerClass}">
+      <article class="a4-page${chrome}${singleCol}${footerClass}"${einbandStyle}>
         <div class="page-body">${page.renderedHtml}</div>
         ${footerHtml}
       </article>

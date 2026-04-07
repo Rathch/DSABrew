@@ -4,6 +4,7 @@ import {
   insertAbschnittMacro,
   insertAtCursor,
   insertCodeBlock,
+  insertImageFromUrl,
   insertLink,
   isSeparator,
   setHeadingLevel,
@@ -68,6 +69,24 @@ describe("insertAtCursor", () => {
     insertAtCursor(ta, "XY");
     expect(ta.value).toBe("aXYb");
     expect(ta.setSelectionRange).toHaveBeenCalledWith(3, 3);
+  });
+});
+
+describe("insertImageFromUrl", () => {
+  it("fügt Markdown-Bildzeile ein, wenn prompt eine URL liefert", () => {
+    const promptSpy = vi.spyOn(window, "prompt").mockReturnValue("https://example.com/x.png");
+    const ta = createTextarea("", 0, 0);
+    insertImageFromUrl(ta);
+    expect(ta.value).toContain("![Bild](https://example.com/x.png)");
+    promptSpy.mockRestore();
+  });
+
+  it("fügt nichts ein bei Abbruch (prompt null)", () => {
+    const promptSpy = vi.spyOn(window, "prompt").mockReturnValue(null);
+    const ta = createTextarea("x", 0, 0);
+    insertImageFromUrl(ta);
+    expect(ta.value).toBe("x");
+    promptSpy.mockRestore();
   });
 });
 

@@ -604,7 +604,8 @@ html.dark .hosted-banner__version {
 }
 
 html.dark .hosted-banner__subtitle {
-  color: #a1a1aa;
+  /* heller für WCAG-Kontrast auf #18181b / Banner (issue #18) */
+  color: #d4d4d8;
 }
 
 .hosted-view-controls {
@@ -644,7 +645,7 @@ html.dark .hosted-view-controls {
 }
 
 html.dark .hosted-view-label {
-  color: #a1a1aa;
+  color: #d4d4d8;
 }
 
 .hosted-doc-footer {
@@ -1859,6 +1860,20 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   background-repeat: no-repeat, no-repeat, no-repeat;
 }
 
+/* Custom Einband: \\map{einband #RRGGBB} — solid fill (issue #21) */
+.a4-page.page-bg-einband.page-einband-custom::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: none !important;
+  background-color: var(--page-einband-bg);
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
 .a4-page.page-bg-content-even::before {
   content: "";
   position: absolute;
@@ -2761,7 +2776,8 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 }
 
 .dsa-roulbox__header {
-  background: rgb(0 0 0 / 40%);
+  /* Solid tone for predictable WCAG contrast (issue #22); was rgb(0 0 0 / 40%) on variable page bg */
+  background: rgb(38 42 50);
   color: #f7f7f5;
   padding: 0.55em 0.75em 0.6em;
   margin: 0;
@@ -2784,14 +2800,24 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   font-style: italic;
   font-weight: 400;
   line-height: 1.35;
-  color: rgb(255 255 255 / 70%);
+  color: rgb(238 241 246);
 }
 
 .dsa-roulbox__body {
-  background: rgb(185 190 196 / 20%);
-  color: #121418;
+  background: rgb(226 230 236);
+  color: #0f1218;
   padding: 0.65em 0.85em 0.75em;
   margin: 0;
+}
+
+.dsa-roulbox__body a {
+  color: #0b2d6e;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.dsa-roulbox__body a:hover {
+  color: #071a45;
 }
 
 .dsa-roulbox__body > :first-child {
