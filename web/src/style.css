@@ -3401,6 +3401,16 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   grid-column: 1 / -1;
 }
 
+/* Schmale Viewports (#16): kein „Beides“ — Umschalten Nur Markdown ↔ Nur Vorschau (s. main.ts) */
+.layout--hosted-narrow .hosted-view-toolbar {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.layout--hosted-narrow .hosted-view-radiogroup .ui-segment-btn {
+  min-height: 2.75rem;
+}
+
 /* View split / Markdown only / Preview only — all widths (toggle in banner) */
 .layout.layout--hosted.layout--view-single.layout--focus-editor .preview {
   display: none !important;

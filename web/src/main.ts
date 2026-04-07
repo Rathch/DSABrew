@@ -16,6 +16,7 @@ import {
   buildMaintenancePageLayout,
   copyTextToClipboard,
   defaultHostedView,
+  effectiveHostedViewPref,
   escapeHtml,
   matchHostedDocToken,
   migrateOldHostedPrefsFromValues,
@@ -174,7 +175,12 @@ function wireHostedViewControls(layout: HTMLElement, docMode: "view" | "edit"): 
     return;
   }
 
-  const segBtns = [btnLayout, btnMd, btnPv] as const;
+  /* Explizite Bindings: TS schließt in verschachtelten Closures nicht, dass querySelector hier non-null ist. */
+  const layoutBtn = btnLayout;
+  const mdBtn = btnMd;
+  const pvBtn = btnPv;
+
+  const segBtns = [layoutBtn, mdBtn, pvBtn] as const;
 
   function setSegActive(activeIndex: number): void {
     segBtns.forEach((b, i) => {
@@ -213,23 +219,27 @@ function wireHostedViewControls(layout: HTMLElement, docMode: "view" | "edit"): 
   }
 
   function applyHostedViewState(): void {
-    const v =
+    const raw =
       docMode === "view" ? "preview" : readHostedViewPref() ?? defaultHostedView(docMode);
+    const v = effectiveHostedViewPref(raw, docMode, mq.matches);
+    layout.classList.toggle("layout--hosted-narrow", mq.matches);
+    layoutBtn.hidden = mq.matches;
     applyViewPref(v);
     notifyLayoutChanged();
   }
 
   function persistAndApply(v: HostedViewPref): void {
+    const next = effectiveHostedViewPref(v, docMode, mq.matches);
     if (docMode !== "view") {
-      localStorage.setItem(LS_HOSTED_VIEW, v);
+      localStorage.setItem(LS_HOSTED_VIEW, next);
     }
-    applyViewPref(v);
+    applyViewPref(next);
     notifyLayoutChanged();
   }
 
-  btnLayout.addEventListener("click", () => persistAndApply("layout"));
-  btnMd.addEventListener("click", () => persistAndApply("markdown"));
-  btnPv.addEventListener("click", () => persistAndApply("preview"));
+  layoutBtn.addEventListener("click", () => persistAndApply("layout"));
+  mdBtn.addEventListener("click", () => persistAndApply("markdown"));
+  pvBtn.addEventListener("click", () => persistAndApply("preview"));
 
   mq.addEventListener("change", applyHostedViewState);
   applyHostedViewState();

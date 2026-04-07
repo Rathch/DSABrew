@@ -7,6 +7,7 @@ import {
   buildMaintenancePageLayout,
   copyTextToClipboard,
   defaultHostedView,
+  effectiveHostedViewPref,
   escapeHtml,
   matchHostedDocToken,
   migrateOldHostedPrefsFromValues,
@@ -122,6 +123,20 @@ describe("copyTextToClipboard", () => {
     expect(appendChild).toHaveBeenCalledWith(ta);
     expect(removeChild).toHaveBeenCalledWith(ta);
     expect(ta.value).toBe("fallback");
+  });
+});
+
+describe("effectiveHostedViewPref (#16 schmale Viewports)", () => {
+  it("ersetzt Beides durch Nur Markdown im Bearbeiten-Modus", () => {
+    expect(effectiveHostedViewPref("layout", "edit", true)).toBe("markdown");
+    expect(effectiveHostedViewPref("layout", "edit", false)).toBe("layout");
+    expect(effectiveHostedViewPref("preview", "edit", true)).toBe("preview");
+    expect(effectiveHostedViewPref("markdown", "edit", true)).toBe("markdown");
+  });
+
+  it("ersetzt Beides durch Nur Vorschau im Nur-Lesen-Modus", () => {
+    expect(effectiveHostedViewPref("layout", "view", true)).toBe("preview");
+    expect(effectiveHostedViewPref("layout", "view", false)).toBe("layout");
   });
 });
 
