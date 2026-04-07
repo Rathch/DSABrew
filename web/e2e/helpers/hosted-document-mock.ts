@@ -27,6 +27,19 @@ export async function mockHostedDocumentApi(
     const method = req.method();
     const path = new URL(url).pathname;
 
+    /* Kein route.continue(): sonst trifft Vites Proxy 127.0.0.1:3001 — ECONNREFUSED ohne Server. */
+    if (method === "OPTIONS") {
+      await route.fulfill({
+        status: 204,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, HEAD, POST, PUT, OPTIONS",
+          "Access-Control-Allow-Headers": "*"
+        }
+      });
+      return;
+    }
+
     if (method === "POST" && (path === "/api/documents" || path.endsWith("/api/documents"))) {
       await route.fulfill({
         status: 201,
@@ -78,7 +91,11 @@ export async function mockHostedDocumentApi(
       return;
     }
 
-    await route.continue();
+    await route.fulfill({
+      status: 404,
+      contentType: "application/json",
+      body: JSON.stringify({ error: "e2e: unmocked", method, path })
+    });
   });
 }
 
@@ -87,11 +104,26 @@ export async function mockPostDocuments503(page: Page): Promise<void> {
   await page.route("**/api/documents**", async (route) => {
     const method = route.request().method();
     const path = new URL(route.request().url()).pathname;
+    if (method === "OPTIONS") {
+      await route.fulfill({
+        status: 204,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, HEAD, POST, PUT, OPTIONS",
+          "Access-Control-Allow-Headers": "*"
+        }
+      });
+      return;
+    }
     if (method === "POST" && (path === "/api/documents" || path.endsWith("/api/documents"))) {
       await route.fulfill({ status: 503, body: "Service Unavailable" });
       return;
     }
-    await route.continue();
+    await route.fulfill({
+      status: 404,
+      contentType: "application/json",
+      body: JSON.stringify({ error: "e2e: unmocked", method, path })
+    });
   });
 }
 

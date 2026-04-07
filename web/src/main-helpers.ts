@@ -251,6 +251,21 @@ export function defaultHostedView(docMode: "view" | "edit"): HostedViewPref {
   return docMode === "edit" ? "layout" : "preview";
 }
 
+/**
+ * Schmale Viewports (Issue #16): „Beides“ (zwei Spalten) ist unbenutzbar — stattdessen
+ * ein Panel: Bearbeiten → „Nur Markdown“, Nur-Lesen → „Nur Vorschau“.
+ */
+export function effectiveHostedViewPref(
+  pref: HostedViewPref,
+  docMode: "view" | "edit",
+  isNarrow: boolean
+): HostedViewPref {
+  if (!isNarrow || pref !== "layout") {
+    return pref;
+  }
+  return docMode === "edit" ? "markdown" : "preview";
+}
+
 /** Reine Migration alter localStorage-Schlüssel → aktuelle `HostedViewPref`. */
 export function migrateOldHostedPrefsFromValues(
   pane: string | null,
