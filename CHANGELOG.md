@@ -1,3 +1,16 @@
+# [0.39.0](https://github.com/Rathch/DSABrew/compare/v0.38.2...v0.39.0) (2026-04-07)
+
+
+### Bug Fixes
+
+* **dependencies:** upgrade vite to version 6.4.2 and adjust related configurations ([1f8b8c9](https://github.com/Rathch/DSABrew/commit/1f8b8c9b9cec6cc4fac45ca3f374cdbe1672e2e6))
+* potential fix for pull request finding 'CodeQL / Incomplete HTML attribute sanitization' ([cdec910](https://github.com/Rathch/DSABrew/commit/cdec91099acd2b28e1b320c20d257daf8f80bd7c))
+
+
+### Features
+
+* toolbar-Bild, Einband-Farbe, Tabellen-scope, Roulbox-Kontrast, Dark-UI ([0b7d49e](https://github.com/Rathch/DSABrew/commit/0b7d49e1b4bdb4d15ca139bf30dd023879161ae5))
+
 # Changelog
 
 Alle wesentlichen Änderungen an diesem Projekt werden in dieser Datei festgehalten.
