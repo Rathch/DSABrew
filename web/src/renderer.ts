@@ -58,16 +58,13 @@ md.validateLink = (url: string): boolean => {
 md.renderer.rules.table_open = () => '<table class="dsa-md-table">\n';
 
 /** Header cells: `scope="col"` for a11y (pipe tables → thead `th` only). */
-const thOpenDefault = md.renderer.rules.th_open;
-if (thOpenDefault) {
-  md.renderer.rules.th_open = (tokens, idx, options, env, self) => {
-    const token = tokens[idx];
-    if (token.attrIndex("scope") < 0) {
-      token.attrSet("scope", "col");
-    }
-    return thOpenDefault(tokens, idx, options, env, self);
-  };
-}
+md.renderer.rules.th_open = (tokens, idx, options, env, self) => {
+  const token = tokens[idx];
+  if (token.attrIndex("scope") < 0) {
+    token.attrSet("scope", "col");
+  }
+  return self.renderToken(tokens, idx, options);
+};
 
 export interface Footnote {
   label: string;
