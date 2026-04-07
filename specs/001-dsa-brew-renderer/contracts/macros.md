@@ -107,6 +107,7 @@ Headings are expressed using plain Markdown headings:
   - `einband` — Einband / cover; **Standard (dunkel)**: `image13.png` als **oberer** Banner, `image14.png` als **unterer** Rahmen auf dunklem Grund (`#0d1520`); Fließtext und Inhaltsverknüpfungen **hell** gehalten.
   - `einband hell` (Aliase zweites Wort: `heller`, `light`) — gleiche Leisten **image13** / **image14**, Mittelfläche mit **Pergament** (`note-read-aloud-parchment.png`); Schrift **dunkel** wie auf Inhaltsseiten.
   - `einband dunkel` (Aliase: `dark`) — explizit wie `einband` ohne zweites Wort.
+  - `einband #RRGGBB` bzw. `#RGB` — **feste Hintergrundfarbe** (ohne die Standard-Banner-Texturen); die hell/dunkel-Typografie richtet sich nach der **relativen Helligkeit** der Farbe (WCAG-Luminanz).
   - `cover` — **Alias** für `einband` (nur erstes Wort); ebenfalls `cover hell` / `cover dunkel` möglich.
   - `content-even` — even content page; `image12.jpeg`.
   - `content-odd` — odd content page; `image17.jpeg`.
