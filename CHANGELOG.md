@@ -1,3 +1,10 @@
+# [0.40.0](https://github.com/Rathch/DSABrew/compare/v0.39.0...v0.40.0) (2026-04-07)
+
+
+### Features
+
+* **viewport:** implement narrow viewport handling ([e9d12fe](https://github.com/Rathch/DSABrew/commit/e9d12fe25ca652adc0db66c2a8852c2d80a5ff9a))
+
 # [0.39.0](https://github.com/Rathch/DSABrew/compare/v0.38.2...v0.39.0) (2026-04-07)
 
 
