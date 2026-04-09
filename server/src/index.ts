@@ -1,8 +1,9 @@
 import { repoRoot } from "./env-bootstrap.js";
 import cors from "@fastify/cors";
 import rateLimit from "@fastify/rate-limit";
-import Fastify from "fastify";
+import Fastify, { type FastifyInstance, type preHandlerHookHandler } from "fastify";
 import { nanoid } from "nanoid";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   evaluateUnlock,
@@ -28,12 +29,27 @@ import {
 import { scheduleWeeklyReport, startSqliteSizeWatch } from "./ops.js";
 import { getSharedDefaultMarkdown } from "./shared-default-markdown.js";
 
+/** `@fastify/rate-limit` decorates the instance with `rateLimit()` (not in core Fastify types). */
+type FastifyWithRateLimit = FastifyInstance & {
+  rateLimit: (opts: {
+    max: number;
+    timeWindow: string;
+    keyGenerator: (req: import("fastify").FastifyRequest) => string;
+  }) => preHandlerHookHandler;
+};
+
 function isAbsolutePath(p: string): boolean {
   return p.startsWith("/") || /^[A-Za-z]:[\\/]/.test(p);
 }
 
-/** Relativ zum Repo-Root wie in `docs/hosting.md` (nicht relativ zu `cwd`). */
+/**
+ * Relativ zum Repo-Root wie in `docs/hosting.md` (nicht relativ zu `cwd`).
+ * `DSABREW_USE_TEMP_SQLITE=1`: frische Datei unter /tmp pro Prozess — um Hänger durch defekte/gesperrte `server/data/dsabrew.db` zu umgehen.
+ */
 function resolveSqlitePath(): string {
+  if (process.env.DSABREW_USE_TEMP_SQLITE?.trim() === "1") {
+    return join(tmpdir(), `dsabrew-dev-${process.pid}.sqlite`);
+  }
   const raw = process.env.SQLITE_PATH?.trim();
   if (raw === undefined || raw === "") {
     return join(repoRoot, "server", "data", "dsabrew.db");
@@ -97,17 +113,65 @@ function publicUrl(path: string): string | undefined {
 }
 
 async function main(): Promise<void> {
-  loadCanonical();
+  /* Für SIGINT/SIGTERM auch vor app.listen() (sonst blockiert z. B. tsx-Elternprozess beim Beenden). */
+  const shutdownRefs: {
+    sqlite?: ReturnType<typeof openDb>;
+    app?: FastifyInstance;
+  } = {};
+  let stopRequested = false;
 
-  const db = openDb(SQLITE_PATH);
+  const shutdown = async (signal: NodeJS.Signals): Promise<void> => {
+    if (stopRequested) {
+      return;
+    }
+    stopRequested = true;
+    console.log(`\n[dsabrew] ${signal} — Server wird beendet …`);
+    const code = signal === "SIGINT" ? 130 : 143;
+    try {
+      if (shutdownRefs.app) {
+        await shutdownRefs.app.close();
+      }
+    } catch (err) {
+      shutdownRefs.app?.log.error({ err }, "fastify_close_failed");
+    }
+    try {
+      shutdownRefs.sqlite?.close();
+    } catch (err) {
+      shutdownRefs.app?.log.error({ err }, "sqlite_close_failed");
+    }
+    process.exit(code);
+  };
+
+  process.once("SIGTERM", () => void shutdown("SIGTERM"));
+  process.once("SIGINT", () => void shutdown("SIGINT"));
+
+  console.log(`[dsabrew] Start mit Node ${process.version} …`);
+
+  loadCanonical();
+  console.error("[dsabrew] Kanonischer Markdown geladen.");
+
+  console.error("[dsabrew] SQLite-Pfad:", SQLITE_PATH);
+  let db: ReturnType<typeof openDb>;
+  try {
+    db = openDb(SQLITE_PATH);
+  } catch (err) {
+    console.error("[dsabrew] SQLite konnte nicht geöffnet werden (anderer Server läuft? Dateirechte?):", err);
+    throw err;
+  }
+  shutdownRefs.sqlite = db;
+  console.error("[dsabrew] SQLite geöffnet.");
+
+  console.error("[dsabrew] Datei-Logger initialisieren …");
   const logDir = resolveLogDir(repoRoot);
   const rootLogger = createServerLogger(logDir);
+  console.error("[dsabrew] Datei-Logger fertig.");
 
   const app = Fastify({
     // Fastify 5: fertige Pino-Instanz → loggerInstance, nicht logger (nur Konfig-Objekt)
     loggerInstance: rootLogger,
     trustProxy: process.env.TRUST_PROXY === "1"
   });
+  shutdownRefs.app = app as unknown as FastifyInstance;
 
   await app.register(cors, {
     origin: true,
@@ -116,6 +180,7 @@ async function main(): Promise<void> {
   await app.register(rateLimit, {
     global: false
   });
+  console.error("[dsabrew] Fastify-Plugins registriert, binde Port …");
 
   app.get("/api/health", async () => {
     const m = getMaintenanceSnapshot();
@@ -127,17 +192,15 @@ async function main(): Promise<void> {
   });
 
   if (isOpsStatusPageEnabled()) {
+    /* Explicit preHandler: CodeQL js/missing-rate-limiting does not treat config.rateLimit as sufficient. */
+    const opsStatusRateLimitPreHandler = (app as unknown as FastifyWithRateLimit).rateLimit({
+      max: 30,
+      timeWindow: "1 minute",
+      keyGenerator: (req) => (req.ip ? String(req.ip) : "unknown")
+    });
     app.get(
       "/api/ops/status",
-      {
-        config: {
-          rateLimit: {
-            max: 30,
-            timeWindow: "1 minute",
-            keyGenerator: (req) => (req.ip ? String(req.ip) : "unknown")
-          }
-        }
-      },
+      { preHandler: opsStatusRateLimitPreHandler },
       async (req, reply) => {
         if (!verifyOpsStatusBasicAuth(req, reply)) {
           return;
@@ -288,5 +351,23 @@ async function main(): Promise<void> {
 
 void main().catch((e) => {
   console.error(e);
+  const code = e && typeof e === "object" && "code" in e ? String((e as { code?: unknown }).code) : "";
+  const message = e instanceof Error ? e.message : String(e);
+  if (
+    code === "ERR_DLOPEN_FAILED" ||
+    message.includes("NODE_MODULE_VERSION") ||
+    message.includes("better_sqlite3.node")
+  ) {
+    console.error(
+      "\n[dsabrew] Native Modul passt nicht zur Node-Version (typisch: better-sqlite3).\n" +
+        "  • Gleiche Node-Version wie bei der Installation nutzen (Projekt: Node 24+, siehe .nvmrc).\n" +
+        "  • Danach im Ordner server/: npm rebuild better-sqlite3   oder   rm -rf node_modules && npm install\n"
+    );
+  }
+  if (code === "EADDRINUSE") {
+    console.error(
+      "\n[dsabrew] Port bereits belegt (EADDRINUSE). Anderen Prozess beenden oder PORT in der Umgebung setzen.\n"
+    );
+  }
   process.exit(1);
 });

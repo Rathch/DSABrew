@@ -11,6 +11,7 @@ import {
   ERR_ASIDE,
   absoluteDocUrl,
   apiUrl,
+  buildAnleitungPageLayout,
   buildDocumentLayout,
   buildLegalPageLayout,
   buildMaintenancePageLayout,
@@ -535,6 +536,11 @@ if (path === "/impressum") {
   renderLegalPage("impressum");
 } else if (path === "/datenschutz") {
   renderLegalPage("datenschutz");
+} else if (path === "/anleitung") {
+  document.title = "Anleitung — DSABrew";
+  setPublicPageScroll(true);
+  app.innerHTML = buildAnleitungPageLayout();
+  syncThemeToggleButtons();
 } else if (path === "/ops") {
   document.title = "Betrieb — DSABrew";
   setPublicPageScroll(true);

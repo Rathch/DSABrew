@@ -350,6 +350,14 @@ html.dark .hosted-doc-nav {
   min-width: 0;
 }
 
+.hosted-anleitung-link {
+  flex: 0 0 auto;
+  align-self: center;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .hosted-doc-nav .editor__sync-bar {
   margin: 0;
   padding: 0.35rem 0.55rem;
@@ -453,6 +461,7 @@ html.dark .ui-segment-btn:hover {
 }
 
 .ui-segment-btn[aria-pressed="true"] {
+  font-weight: 700;
   color: #fff;
   background: #4f46e5;
 }
@@ -779,6 +788,27 @@ html.dark .legal-prose {
 
 .legal-prose-flow > .legal-h2 {
   margin-top: 2rem;
+}
+
+/* /anleitung — mehrzeilige Markdown-/Makro-Beispiele */
+.legal-prose-flow pre.legal-snippet {
+  margin: 0.5rem 0 0;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.375rem;
+  border: 1px solid #e4e4e7;
+  background: #f4f4f5;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+html.dark .legal-prose-flow pre.legal-snippet {
+  border-color: #3f3f46;
+  background: #18181b;
+  color: #e4e4e7;
 }
 
 .legal-impressum-address {
@@ -1587,7 +1617,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   font-family: monospace;
   line-height: 1.4;
   text-align: right;
-  color: rgb(113 113 122);
+  color: #52525b;
   white-space: pre;
   padding-right: 6px;
   box-sizing: border-box;
@@ -1600,7 +1630,7 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
 }
 
 .dark .editor__line-numbers-inner {
-  color: #71717a;
+  color: #d4d4d8;
 }
 
 .editor__input-row {
@@ -1972,6 +2002,27 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   color: #1a1a1a;
 }
 
+/*
+ * WCAG 2.1: Inline-Links in der Vorschau (heller Seitengrund — Inhaltsspalten, Pergament).
+ * Nicht auf TOC-Zeilen (.toc-line) oder Abschnitts-Sprüngen (.dsa-abschnitt-ref) anwenden.
+ */
+.preview .page-body a[href]:not(.toc-line, .dsa-abschnitt-ref) {
+  color: #0a3a75;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 0.08em;
+}
+
+.preview .page-body a[href]:not(.toc-line, .dsa-abschnitt-ref):visited {
+  color: #4a0072;
+}
+
+.preview .page-body a[href]:not(.toc-line, .dsa-abschnitt-ref):focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
 /* After \\pageSingle / {{pageSingle}}: one column, full content width (tables, boxes, headings) */
 .a4-page.a4-page--single-column .page-body {
   column-count: 1;
@@ -2315,8 +2366,21 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   color: rgb(245 242 236 / 95%);
 }
 
-.a4-page.page-bg-einband:not(.page-einband-hell) .page-body a {
-  color: #f0c9a0;
+.a4-page.page-bg-einband:not(.page-einband-hell) .page-body a[href]:not(.toc-line, .dsa-abschnitt-ref) {
+  color: #b8e6ff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 0.08em;
+}
+
+.a4-page.page-bg-einband:not(.page-einband-hell) .page-body a[href]:not(.toc-line, .dsa-abschnitt-ref):visited {
+  color: #f0e0ff;
+}
+
+.a4-page.page-bg-einband:not(.page-einband-hell) .page-body a[href]:not(.toc-line, .dsa-abschnitt-ref):focus-visible {
+  outline: 2px solid #e0f2fe;
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 .a4-page.page-bg-einband:not(.page-einband-hell) .page-body > h1:first-of-type {
@@ -2375,8 +2439,21 @@ body.dsabrew-body--scrollable.dsabrew-privacy-strip-visible {
   color: #1a1410;
 }
 
-.a4-page.page-bg-einband.page-einband-hell .page-body a {
-  color: #5c3d18;
+.a4-page.page-bg-einband.page-einband-hell .page-body a[href]:not(.toc-line, .dsa-abschnitt-ref) {
+  color: #0a3a75;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 0.08em;
+}
+
+.a4-page.page-bg-einband.page-einband-hell .page-body a[href]:not(.toc-line, .dsa-abschnitt-ref):visited {
+  color: #4a0072;
+}
+
+.a4-page.page-bg-einband.page-einband-hell .page-body a[href]:not(.toc-line, .dsa-abschnitt-ref):focus-visible {
+  outline: 2px solid #1d4ed8;
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 .a4-page.page-bg-einband.page-einband-hell .page-body > h1:first-of-type {

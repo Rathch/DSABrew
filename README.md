@@ -41,10 +41,10 @@ DSABrew ist ein Web-Tool, das Markdown in ein mehrseitiges A4-Layout rendert und
 
 Voraussetzungen:
 
-- Node.js **24 oder neuer** (siehe Root-`package.json` → `engines` und **`.nvmrc`**). **CI** und empfohlene lokale Version entsprechen **`.nvmrc`**.
+- Node.js **24 oder neuer** (siehe Root-`package.json` → `engines`, **`.nvmrc`** und **`.node-version`**). **CI** nutzt dieselbe Vorgabe. Mit **nvm** im Repository-Root: `nvm install` und `nvm use`, danach erst `npm install` in Root/`server`/`web`. Root-**`.npmrc`** setzt **`engine-strict=true`** — bei zu alter Node-Version verweigert npm die Installation mit einer Engine-Fehlermeldung.
 - npm
 
-**Web + API** (empfohlen): Zwei Terminals — (1) `cd server && npm install && npm run dev` (Port 3001), (2) `cd web && npm install && npm run dev` (Vite, typisch 5173). Im Browser `http://localhost:5173/` — sofortige Anlage eines Dokuments und Weiterleitung zur Bearbeiten-URL; **„+ Neues Dokument“** oeffnet `/new` in einem **neuen Tab**. Details: `docs/hosting.md`, `specs/.../quickstart.md`.
+**Web + API** (empfohlen): **ein Terminal** im Repo-Root nach `npm install` (Root, `web/`, `server/`): **`npm start`** oder **`npm run dev`** — **`scripts/dev-both.mjs`** startet die **API** zuerst, wartet auf **`/api/health`**, dann **Vite** (sonst kann der Proxy `ECONNREFUSED` melden, wenn die API noch nicht lauscht). Alternativ zwei Terminals: (1) `cd server && npm run dev`, (2) `cd web && npm run dev`. Im Browser `http://localhost:5173/` — sofortige Anlage eines Dokuments und Weiterleitung zur Bearbeiten-URL; **„+ Neues Dokument“** oeffnet `/new` in einem **neuen Tab**. Details: `docs/hosting.md`, `specs/.../quickstart.md`.
 
 Nur **Web** ohne API: `cd web`, `npm install`, `npm run dev` — ohne laufende API schlaegt die Anlage unter **`/`** fehl (Fehlermeldung mit **Erneut versuchen**); vollstaendige Nutzung erfordert den API-Prozess.
 

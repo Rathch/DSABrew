@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "node ./scripts/assert-node.mjs",
+    "prestart": "node ./scripts/assert-node.mjs",
     "dev": "node --import ./src/load-dotenv.mjs ./node_modules/tsx/dist/cli.mjs watch src/index.ts",
     "start": "node --import ./src/load-dotenv.mjs ./node_modules/tsx/dist/cli.mjs src/index.ts",
     "typecheck": "tsc --noEmit",

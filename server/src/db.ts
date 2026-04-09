@@ -13,8 +13,17 @@ export type HostedRow = {
 };
 
 export function openDb(sqlitePath: string): Database.Database {
+  const t0 = Date.now();
+  const tick = (msg: string): void => {
+    console.error(`[dsabrew:db +${Date.now() - t0}ms] ${msg}`);
+  };
+  tick("data-Verzeichnis anlegen …");
   mkdirSync(dirname(sqlitePath), { recursive: true });
-  const db = new Database(sqlitePath);
+  tick(
+    "SQLite-Datei öffnen (Hänger hier → .env: DSABREW_USE_TEMP_SQLITE=1 testen; oder DB wegsichern und -wal/-shm löschen; siehe docs/hosting.md) …"
+  );
+  const db = new Database(sqlitePath, { timeout: 15000 });
+  tick("Schema ausführen …");
   db.exec(`
     CREATE TABLE IF NOT EXISTS documents (
       id TEXT PRIMARY KEY NOT NULL,
@@ -26,6 +35,7 @@ export function openDb(sqlitePath: string): Database.Database {
       ever_diverged INTEGER NOT NULL DEFAULT 0
     );
   `);
+  tick("fertig.");
   return db;
 }
 

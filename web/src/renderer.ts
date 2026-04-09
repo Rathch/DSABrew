@@ -9,6 +9,7 @@ import {
 } from "./impressum-config";
 import { resolveImpressumFieldKey } from "./impressum-field-aliases";
 import { applyHeadingAnchorPlugin } from "./markdown-heading-anchor";
+import { isUnsafeUrlScheme } from "./unsafe-url-schemes";
 import easierIconUrl from "@media/image19.png?url";
 import harderIconUrl from "@media/image20.png?url";
 import chessImg8 from "@media/image8.png?url";
@@ -47,11 +48,7 @@ const md = new MarkdownIt({
 applyHeadingAnchorPlugin(md, (s: string) => `p${anchorPageDisplayNumber}-${slugifyHeadingText(s)}`);
 
 md.validateLink = (url: string): boolean => {
-  const normalized = url.trim().toLowerCase();
-  if (normalized.startsWith("javascript:")) {
-    return false;
-  }
-  return true;
+  return !isUnsafeUrlScheme(url);
 };
 
 /** Scriptorium parchment style for Markdown tables (see style.css `.dsa-md-table`). */
@@ -1387,15 +1384,35 @@ function injectTocMacro(html: string, tocItems: TocHeadingItem[]): string {
 
 /** TOC uses `md.renderInline`; the footer strip needs plain text like the Scriptorium reference. */
 function htmlToPlainFooterTitle(html: string): string {
-  return html
-    .replace(/<[^>]+>/g, "")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&#0*39;/g, "'")
-    .replace(/&quot;/g, '"')
-    .trim();
+  let s = html;
+  let prev: string;
+  /* CodeQL js/incomplete-multi-character-sanitization: repeat until stable (nested / tricky markup). */
+  do {
+    prev = s;
+    s = s.replace(/<[^>]+>/g, "");
+  } while (s !== prev);
+
+  /*
+   * CodeQL js/double-escaping: when decoding HTML entities by hand, replace `&amp;` last each round
+   * (see OWASP / query help), then repeat until stable so `&amp;lt;` → `&lt;` → `<`.
+   */
+  do {
+    prev = s;
+    s = s
+      .replace(/&nbsp;/g, " ")
+      .replace(/&quot;/g, '"')
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&#0*39;/g, "'")
+      .replace(/&amp;/g, "&");
+  } while (s !== prev);
+
+  do {
+    prev = s;
+    s = s.replace(/<[^>]+>/g, "");
+  } while (s !== prev);
+
+  return s.trim();
 }
 
 export function renderDocument(markdown: string, options?: RenderDocumentOptions): RenderResult {

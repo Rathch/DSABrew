@@ -1,5 +1,6 @@
 import type { ImpressumData } from "../../shared/impressum-default-data.js";
 import { DEFAULT_IMPRESSUM_DATA } from "../../shared/impressum-default-data.js";
+import { isUnsafeUrlScheme } from "./unsafe-url-schemes";
 
 export type { ImpressumData };
 export { DEFAULT_IMPRESSUM_DATA };
@@ -37,10 +38,10 @@ export function formatVersionDisplayLine(data: ImpressumData): string {
   return data.versionValue.trim();
 }
 
-/** Safe href attributes (no javascript:). */
+/** Safe href attributes (no executable URL schemes). */
 export function safeHttpHref(url: string): string {
   const t = url.trim();
-  if (/^javascript:/i.test(t)) {
+  if (isUnsafeUrlScheme(t)) {
     return "#";
   }
   if (!/^https?:\/\//i.test(t)) {

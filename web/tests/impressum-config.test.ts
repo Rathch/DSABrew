@@ -49,9 +49,11 @@ describe("formatVersionDisplayLine", () => {
 });
 
 describe("safeHttpHref", () => {
-  it("replaces javascript: URLs with #", () => {
+  it("replaces javascript:, data: and vbscript: URLs with #", () => {
     expect(safeHttpHref("javascript:alert(1)")).toBe("#");
     expect(safeHttpHref("  JaVaScRiPt:evil  ")).toBe("#");
+    expect(safeHttpHref("data:text/html,<p>x</p>")).toBe("#");
+    expect(safeHttpHref("vbscript:msgbox(1)")).toBe("#");
   });
 
   it("prefixes bare hosts with https://", () => {
