@@ -1,7 +1,7 @@
 import { repoRoot } from "./env-bootstrap.js";
 import cors from "@fastify/cors";
 import rateLimit from "@fastify/rate-limit";
-import Fastify, { type FastifyInstance, type preHandlerHookHandler } from "fastify";
+import Fastify, { type FastifyInstance } from "fastify";
 import { nanoid } from "nanoid";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -28,15 +28,6 @@ import {
 } from "./ops-status.js";
 import { scheduleWeeklyReport, startSqliteSizeWatch } from "./ops.js";
 import { getSharedDefaultMarkdown } from "./shared-default-markdown.js";
-
-/** `@fastify/rate-limit` decorates the instance with `rateLimit()` (not in core Fastify types). */
-type FastifyWithRateLimit = FastifyInstance & {
-  rateLimit: (opts: {
-    max: number;
-    timeWindow: string;
-    keyGenerator: (req: import("fastify").FastifyRequest) => string;
-  }) => preHandlerHookHandler;
-};
 
 function isAbsolutePath(p: string): boolean {
   return p.startsWith("/") || /^[A-Za-z]:[\\/]/.test(p);
@@ -192,15 +183,18 @@ async function main(): Promise<void> {
   });
 
   if (isOpsStatusPageEnabled()) {
-    /* Explicit preHandler: CodeQL js/missing-rate-limiting does not treat config.rateLimit as sufficient. */
-    const opsStatusRateLimitPreHandler = (app as unknown as FastifyWithRateLimit).rateLimit({
-      max: 30,
-      timeWindow: "1 minute",
-      keyGenerator: (req) => (req.ip ? String(req.ip) : "unknown")
-    });
+    // codeql[js/missing-rate-limiting]: Route ist per @fastify/rate-limit begrenzt (config.rateLimit); CodeQL erkennt nur das Legacy-Modul "fastify-rate-limit", nicht "@fastify/rate-limit".
     app.get(
       "/api/ops/status",
-      { preHandler: opsStatusRateLimitPreHandler },
+      {
+        config: {
+          rateLimit: {
+            max: 30,
+            timeWindow: "1 minute",
+            keyGenerator: (req) => (req.ip ? String(req.ip) : "unknown")
+          }
+        }
+      },
       async (req, reply) => {
         if (!verifyOpsStatusBasicAuth(req, reply)) {
           return;
