@@ -66,6 +66,7 @@ export const LINK_ELF = "https://elf.ulisses-spiele.de/";
 export const LINK_GPL = "https://www.gnu.org/licenses/gpl-3.0.html";
 export const LINK_GITHUB = "https://github.com/Rathch/DSABrew";
 export const LINK_ISSUES_NEW = "https://github.com/Rathch/DSABrew/issues/new";
+export const LINK_BUYMEACOFFEE = "https://buymeacoffee.com/rathch";
 
 export const A_CHROME = 'class="chrome-link"';
 export const A_ERR = 'class="chrome-link chrome-link--danger"';
@@ -86,6 +87,7 @@ export function landingFooterNav(navClass: string): string {
         <li><a href="${LINK_ELF}" rel="noopener noreferrer" ${A_CHROME}>ELF (Ulisses)</a></li>
         <li><a href="${LINK_GPL}" rel="noopener noreferrer" ${A_CHROME}>GNU GPLv3</a></li>
         <li><a href="${LINK_GITHUB}" rel="noopener noreferrer" ${A_CHROME}>GitHub</a></li>
+        <li><a href="${LINK_BUYMEACOFFEE}" rel="noopener noreferrer" ${A_CHROME}>Buy Me a Coffee</a></li>
         <li><a href="${LINK_ISSUES_NEW}" rel="noopener noreferrer" ${A_CHROME}>Fehler melden</a></li>
       </ul>
     </nav>`;
