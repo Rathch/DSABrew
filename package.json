@@ -23,6 +23,8 @@
     }
   },
   "scripts": {
+    "start": "node scripts/dev-both.mjs",
+    "dev": "npm run start",
     "prepare": "husky",
     "postinstall": "node scripts/patch-npm-embed-lock.mjs",
     "release": "semantic-release",

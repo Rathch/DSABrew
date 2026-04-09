@@ -11,6 +11,8 @@
 
 import type { jsPDF } from "jspdf";
 
+import { isUnsafeUrlScheme } from "./unsafe-url-schemes";
+
 export interface ExportPdfOptions {
   filename?: string;
   onProgress?: (current: number, total: number) => void;
@@ -71,11 +73,7 @@ export function sanitizePdfText(s: string): string {
 }
 
 export function isAllowedLinkHref(href: string): boolean {
-  const t = href.trim().toLowerCase();
-  if (t.startsWith("javascript:") || t.startsWith("data:")) {
-    return false;
-  }
-  return true;
+  return !isUnsafeUrlScheme(href);
 }
 
 export function pxToPt(px: number): number {

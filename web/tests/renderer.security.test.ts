@@ -22,6 +22,14 @@ describe("renderer security", () => {
     expect(html).not.toContain('href="javascript:alert(1)"');
   });
 
+  it("blocks data: and vbscript: links", () => {
+    const data = renderDocument("[x](data:text/html,<script>alert(1)</script>)");
+    expect(data.pages[0].renderedHtml).not.toContain('href="data:');
+    /* Keine Klammern in der URL — sonst schließt `)` das Markdown-Link-Zu früh. */
+    const vbs = renderDocument("[x](vbscript:evil)");
+    expect(vbs.pages[0].renderedHtml).not.toContain('href="vbscript:');
+  });
+
   it("warns on unknown and malformed background macros", () => {
     const unknown = renderDocument("\\map{does-not-exist}");
     expect(unknown.pages[0].warnings.some((w) => w.includes("Unknown map key"))).toBe(true);

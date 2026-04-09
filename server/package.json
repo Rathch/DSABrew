@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "node ./scripts/assert-node.mjs",
+    "prestart": "node ./scripts/assert-node.mjs",
     "dev": "node --import ./src/load-dotenv.mjs ./node_modules/tsx/dist/cli.mjs watch src/index.ts",
     "start": "node --import ./src/load-dotenv.mjs ./node_modules/tsx/dist/cli.mjs src/index.ts",
     "typecheck": "tsc --noEmit",
@@ -19,7 +21,7 @@
     "luxon": "^3.5.0",
     "nanoid": "^5.0.9",
     "node-cron": "^3.0.3",
-    "nodemailer": "^8.0.4",
+    "nodemailer": "^8.0.5",
     "pino": "^10.3.0",
     "rotating-file-stream": "^3.2.5"
   },

@@ -10,7 +10,11 @@ Dieses Dokument ergänzt `specs/001-dsa-brew-renderer/contracts/public-documents
 
 ## Lokale Entwicklung
 
-Zwei Prozesse:
+**Node.js:** Das Projekt ist auf **Node 24+** ausgelegt (`engines` in den `package.json`, **`.nvmrc`** / **`.node-version`**). Vor `npm install` im Root, `web/` oder `server/` die passende Version aktivieren, z. B. mit **nvm**: im Repository-Root `nvm install` und `nvm use` (liest `.nvmrc`). Mit einer älteren Node-Version schlagen u. a. native Module (**`better-sqlite3`**) fehl oder lassen sich nicht zuverlässig bauen. Im Root liegt **`engine-strict=true`** in **`.npmrc`** — `npm install` bricht bei falscher Node-Version mit einer klaren Meldung ab.
+
+**Alles in einem Terminal (Repo-Root):** nach `npm install` im Root sowie in `web/` und `server/` genügt **`npm start`** (Alias **`npm run dev`**) — **`scripts/dev-both.mjs`** startet zuerst die **API**, wartet auf **`GET /api/health`** (verhindert `ECONNREFUSED` im Vite-Proxy), danach **Vite**. **Strg+C** beendet beide Prozesse. Abweichender API-Port: in **`.env`** oder **`PORT`** in der Shell (wie der Server).
+
+Alternativ zwei getrennte Terminals:
 
 ```bash
 # Terminal 1 — API (Port 3001)
@@ -18,6 +22,13 @@ cd server
 npm install
 npm run dev
 
+```
+
+**Hinweis `npm run dev` / `npm run start` (nur im Ordner `server/`):** Beide Befehle **beenden sich nicht von selbst** — die Shell wirkt „hängend“, bis du **Strg+C** drückst. Das ist beabsichtigt: der API-Prozess läuft im Vordergrund. Nach dem Start (bei `dev` nutzt **`tsx watch`**; die **erste Ladung** kann kurz dauern) erscheinen u. a. **`[dsabrew] Start mit Node …`**, Meldungen auf **stderr** (`Kanonischer Markdown geladen`, `SQLite-Pfad`, `SQLite geöffnet`) und **`dsabrew API listening on 0.0.0.0:3001`**. Ob die API antwortet, prüfst du in einem **zweiten** Terminal z. B. mit `curl -sS http://127.0.0.1:3001/api/health` (JSON mit `"ok":true`). `npm run start` im Ordner **`server/`** ist dasselbe ohne Datei-Watch (produktionsnaher Lauf).
+
+**Strg+C** beendet den Prozess mit sauberem **Schließen von Fastify und SQLite** (Signal-Handler sind **sofort** beim Start registriert, nicht erst nach `listen`). Bei Dateiänderungen startet **`tsx watch`** den Prozess neu (nach **SIGTERM** muss der Server schnell beenden — dafür die Shutdown-Handler).
+
+```bash
 # Terminal 2 — Web (Vite, typisch 5173)
 cd web
 npm install
@@ -25,6 +36,16 @@ npm run dev
 ```
 
 Vite leitet Anfragen an **`/api`** per Proxy an `http://127.0.0.1:3001` weiter — die Web-App kann relative URLs (`/api/...`) verwenden.
+
+### Hänger bei „SQLite-Datei öffnen“ / kein `lsof`-Treffer
+
+Wenn die Logs bei **`[dsabrew:db …] SQLite-Datei öffnen`** stehen bleiben und **`lsof`** auf die `.db` **leer** ist: der Prozess kann **innerhalb** von SQLite/`better-sqlite3` hängen, **bevor** die Datei wie erwartet als offener Deskriptor erscheint — das ist **kein** Beweis, dass alles in Ordnung ist.
+
+**Schritte (lokal):**
+
+1. **Test mit frischer DB:** In **`.env`** im Repo-Root **`DSABREW_USE_TEMP_SQLITE=1`** setzen (siehe **`.env.example`**), API neu starten. Wenn der Server dann hochkommt, liegt das Problem sehr wahrscheinlich an der **bisherigen Datei** `server/data/dsabrew.db` (oder den Hilfsdateien **`dsabrew.db-wal`** / **`dsabrew.db-shm`**). Temp-DB wieder auskommentieren, wenn du wieder die echte Datei nutzen willst.
+2. **Hilfsdateien:** API beenden, **`dsabrew.db`** sichern (`mv` / Kopie), optional **`dsabrew.db-wal`** und **`dsabrew.db-shm`** löschen (nur wenn du die WAL-Daten nicht brauchst), erneut starten.
+3. **Native Modul:** Im Ordner **`server/`**: **`npm rebuild better-sqlite3`**.
 
 Die Web-Oberfläche stylt den **App-Chrome** mit **reinem CSS** in `web/src/style.css` (Hell/Dunkel über **`html.dark`**, kein Tailwind). Theme-Persistenz: **`localStorage`**-Key **`dsabrew-theme`** (siehe `specs/002-modern-ui-darkmode/contracts/ui-shell.md`).
 
@@ -38,6 +59,7 @@ Geheimnisse gehören **nicht** ins Git — Vorlage **`.env.example`** im Repo-Ro
 |----------|----------|--------------|
 | `PORT` | `3001` | Listen-Port |
 | `SQLITE_PATH` | `server/data/dsabrew.db` (relativ zum Repo) | Pfad zur SQLite-Datei |
+| `DSABREW_USE_TEMP_SQLITE` | — | `1` = Entwicklung: SQLite unter `/tmp/dsabrew-dev-{pid}.sqlite` (bei Hänger/Defekt der Projekt-DB testen) |
 | `PUBLIC_ORIGIN` | — | z. B. `https://app.example.com` — wenn gesetzt, liefert `POST /api/documents` vollständige `viewUrl` / `editUrl` |
 | `TRUST_PROXY` | — | `1` setzen, wenn die API hinter einem Reverse Proxy läuft und `X-Forwarded-For` für Rate Limits / Logs vertrauenswürdig ist |
 | `RATE_POST_CREATE_PER_HOUR` | `10` | Rate Limit: neue Dokumente pro IP und Stunde |
