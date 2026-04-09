@@ -1,3 +1,11 @@
+# [0.41.0](https://github.com/Rathch/DSABrew/compare/v0.40.0...v0.41.0) (2026-04-09)
+
+
+### Features
+
+* add Anleitung page ([00051ac](https://github.com/Rathch/DSABrew/commit/00051ac91ed9176d3d863ef57b5e70f8828c3481))
+* add Buy Me a Coffee link to footer navigation ([48b2591](https://github.com/Rathch/DSABrew/commit/48b2591fd18472cc977ee7d106748d51569bd348))
+
 # [0.40.0](https://github.com/Rathch/DSABrew/compare/v0.39.0...v0.40.0) (2026-04-07)
 
 
