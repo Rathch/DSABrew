@@ -19,7 +19,7 @@
     "luxon": "^3.5.0",
     "nanoid": "^5.0.9",
     "node-cron": "^3.0.3",
-    "nodemailer": "^8.0.4",
+    "nodemailer": "^8.0.5",
     "pino": "^10.3.0",
     "rotating-file-stream": "^3.2.5"
   },
