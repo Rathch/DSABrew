@@ -160,6 +160,14 @@ location / {
 
 Der Workflow **„Deploy (VPS)“** (`.github/workflows/deploy.yml`) führt auf dem Zielhost per SSH u. a. **`sudo -n systemctl restart …`** aus. **`sudo -n`** bedeutet **ohne Passwortabfrage**; schlägt die Authentifizierung fehl, erscheint **`sudo: a password is required`** und der Job bricht ab.
 
+**Node 24 auf dem VPS:** Das Projekt verlangt **`engines.node >= 24`** (Root-`package.json`, **`engine-strict`** in **`.npmrc`**). **`npm ci`** im Deploy schlägt mit **`EBADENGINE`** fehl, wenn dort noch **Node 22** (oder älter) aus dem System-Pfad verwendet wird.
+
+- **`nvm use` in einer normalen SSH-Session** gilt nur für **diese** Shell und lädt beim **Deploy-Job** oft **gar nicht**, weil SSH-Commands eine **nicht-interaktive** Shell ohne dein `~/.bashrc`-Setup nutzen.
+- Auf dem Server einmal **`nvm install`** im Repo-Root (liest **`.nvmrc`**) und optional **`nvm alias default 24`** ausführen.
+- Der Workflow **sourced** **`$HOME/.nvm/nvm.sh`** und ruft **`nvm install`** im **`DEPLOY_PATH`** auf, **bevor** `npm ci` läuft — damit gilt **Node 24** auch für den GitHub-Deploy. Dasselbe macht **`scripts/deploy-vps.sh`**.
+
+Wenn **nvm** auf dem Server fehlt: [nvm installieren](https://github.com/nvm-sh/nvm#installing-and-updating), danach als Deploy-User **`nvm install 24`** im geklonten Repo. Alternativ Node 24 als System-Runtime (z. B. NodeSource/`nodesource`-Repo) — dann muss **`which node`** für den Deploy-User **v24** zeigen.
+
 **Erforderlich auf dem Server:** Für den SSH-Benutzer (GitHub-Secret **`DEPLOY_USER`**) muss **passwortloses sudo nur für die nötigen `systemctl`-Aufrufe** erlaubt sein — nicht für beliebige Befehle. Unit-Name per GitHub-Variable **`DEPLOY_SYSTEMD_UNIT`** (Standard **`dsabrew-api`**).
 
 Beispiel (als root, Pfad und Benutzer anpassen):

@@ -27,6 +27,17 @@ fi
 
 cd "$REPO_ROOT"
 
+# Node 24+ (engines / .nvmrc). In nicht-interaktiven Shells (SSH, CI) ist nvm nicht geladen — ohne diesen Block nutzt npm die System-Node (z. B. v22) → EBADENGINE.
+export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+if [[ ! -s "$NVM_DIR/nvm.sh" ]]; then
+  echo "Fehler: nvm nicht gefunden (erwartet: $NVM_DIR/nvm.sh). Siehe docs/hosting.md (Node auf dem VPS)." >&2
+  exit 1
+fi
+# shellcheck source=/dev/null
+. "$NVM_DIR/nvm.sh"
+nvm install
+node -v
+
 git fetch origin
 
 # Wie CI (github.ref_name): Branch = main oder master — hier Default-Branch von origin, falls DEPLOY_BRANCH nicht gesetzt.

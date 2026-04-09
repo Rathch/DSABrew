@@ -83,6 +83,12 @@ jobs:
           script: |
             set -euo pipefail
             cd "${{ secrets.DEPLOY_PATH }}"
+            # Nicht-interaktive SSH-Shell lädt nvm nicht — sonst EBADENGINE (Node 22 vs. engines >=24 in package.json).
+            export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm install
+            node -v
+            npm -v
             git fetch origin
             git reset --hard "origin/${{ github.event.repository.default_branch }}"
             npm ci
