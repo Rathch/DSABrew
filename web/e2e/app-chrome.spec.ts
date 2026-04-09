@@ -37,6 +37,17 @@ test.describe("App-Chrome & Shell (P1 — Ergänzung zu contracts/e2e-playwright
     await popup.close();
   });
 
+  test("Hilfe / Anleitung öffnet /anleitung in neuem Tab", async ({ page }) => {
+    await gotoHostedEditor(page);
+    const [popup] = await Promise.all([
+      page.waitForEvent("popup"),
+      page.locator("#hosted-anleitung-link").click()
+    ]);
+    await expect(popup).toHaveURL(/\/anleitung(\/)?(\?.*)?$/);
+    await expect(popup.getByRole("heading", { name: "Anleitung" })).toBeVisible();
+    await popup.close();
+  });
+
   test("Teilen: Nur-Ansicht kopiert Link in die Zwischenablage", async ({ page, context }) => {
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
     await gotoHostedEditor(page);

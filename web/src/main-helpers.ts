@@ -2,6 +2,7 @@
  * Reine Hilfen und HTML-Strings für den App-Shell-Einstieg (`main.ts`).
  * Ermöglicht Unit-Tests ohne vollständigen Browser-Bootstrap.
  */
+import { ANLEITUNG_BODY_HTML } from "./anleitung-content";
 import { DATENSCHUTZ_BODY_HTML } from "./datenschutz-content";
 import { fanProductNoticeHtml } from "./fan-product-notice";
 import { themeControlClusterHtml } from "./theme";
@@ -80,6 +81,7 @@ export function landingFooterNav(navClass: string): string {
       <ul>
         <li><a href="/impressum" ${A_CHROME}>Impressum</a></li>
         <li><a href="/datenschutz" ${A_CHROME}>Datenschutz</a></li>
+        <li><a href="/anleitung" ${A_CHROME}>Anleitung</a></li>
         <li><a href="${LINK_SCRIPTORIUM}" rel="noopener noreferrer" ${A_CHROME}>Scriptorium Aventuris</a></li>
         <li><a href="${LINK_ELF}" rel="noopener noreferrer" ${A_CHROME}>ELF (Ulisses)</a></li>
         <li><a href="${LINK_GPL}" rel="noopener noreferrer" ${A_CHROME}>GNU GPLv3</a></li>
@@ -109,6 +111,22 @@ export function buildMaintenancePageLayout(): string {
         <p class="maintenance-hint">Bitte versuchen Sie es in einigen Minuten erneut.</p>
       </div>
       <p class="legal-back"><a href="/" class="chrome-link">Seite aktualisieren</a></p>
+    </main>
+    ${siteChromeFooter("chrome-footer-nav chrome-footer-nav--bordered-strong")}
+  </div>
+`;
+}
+
+export function buildAnleitungPageLayout(): string {
+  return `
+  <div class="legal-shell">
+    <header class="legal-header">
+      <h1 class="legal-h1" id="legal-page-title">Anleitung</h1>
+      ${themeControlClusterHtml()}
+    </header>
+    <main class="legal-main" aria-labelledby="legal-page-title">
+      ${ANLEITUNG_BODY_HTML}
+      <p class="legal-back"><a href="/" ${A_CHROME}>← Neues Dokument</a></p>
     </main>
     ${siteChromeFooter("chrome-footer-nav chrome-footer-nav--bordered-strong")}
   </div>
@@ -147,6 +165,13 @@ export function buildLegalPageLayout(kind: "impressum" | "datenschutz"): string 
 export function hostedChromeToolsHtml(): string {
   return `
     <div class="hosted-chrome-tools">
+      <a
+        href="/anleitung"
+        id="hosted-anleitung-link"
+        class="hosted-anleitung-link chrome-link"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Hilfe / Anleitung</a>
       <div class="editor__sync-bar" id="editor-sync-bar" hidden>
         <label class="editor__sync-label" for="scroll-link-toggle">
           <input type="checkbox" id="scroll-link-toggle" checked />

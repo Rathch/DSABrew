@@ -68,9 +68,10 @@ describe("pdf-export helpers", () => {
     expect(sanitizePdfText("  a\0b\rc  ")).toBe("abc");
   });
 
-  it("isAllowedLinkHref blockiert javascript: und data:", () => {
+  it("isAllowedLinkHref blockiert javascript:, data: und vbscript:", () => {
     expect(isAllowedLinkHref("javascript:alert(1)")).toBe(false);
     expect(isAllowedLinkHref("data:text/html,hi")).toBe(false);
+    expect(isAllowedLinkHref("vbscript:msgbox(1)")).toBe(false);
     expect(isAllowedLinkHref("https://example.com/x")).toBe(true);
     expect(isAllowedLinkHref("#anker")).toBe(true);
   });

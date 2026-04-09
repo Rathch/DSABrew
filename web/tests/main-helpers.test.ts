@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   absoluteDocUrl,
   apiUrl,
+  buildAnleitungPageLayout,
   buildDocumentLayout,
   buildLegalPageLayout,
   buildMaintenancePageLayout,
@@ -153,6 +154,13 @@ describe("HTML layouts", () => {
     expect(buildLegalPageLayout("datenschutz")).toContain("Datenschutz");
   });
 
+  it("buildAnleitungPageLayout enthält Titel und Handbuchtext", () => {
+    const html = buildAnleitungPageLayout();
+    expect(html).toContain("Anleitung");
+    expect(html).toContain("Markdown-Werkzeugleiste");
+    expect(html).toContain("site-chrome-footer");
+  });
+
   it("buildDocumentLayout enthält Modus und Version", () => {
     const view = buildDocumentLayout({ mode: "view" }, "1.2.3");
     expect(view).toContain("editor--readonly");
@@ -162,6 +170,7 @@ describe("HTML layouts", () => {
     const edit = buildDocumentLayout({ mode: "edit" }, "0.0.1");
     expect(edit).toContain('id="share-edit-btn"');
     expect(edit).toContain("0.0.1");
+    expect(edit).toContain('id="hosted-anleitung-link"');
     expect(edit).not.toContain("editor--readonly");
   });
 });
