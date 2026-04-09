@@ -85,7 +85,11 @@ jobs:
             cd "${{ secrets.DEPLOY_PATH }}"
             # Nicht-interaktive SSH-Shell lädt nvm nicht — sonst EBADENGINE (Node 22 vs. engines >=24 in package.json).
             export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            if [[ ! -s "$NVM_DIR/nvm.sh" ]]; then
+              echo "::error::nvm nicht gefunden (erwartet: $NVM_DIR/nvm.sh). Siehe docs/hosting.md (Node auf dem VPS)." >&2
+              exit 1
+            fi
+            . "$NVM_DIR/nvm.sh"
             nvm install
             node -v
             npm -v
