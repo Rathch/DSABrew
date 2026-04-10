@@ -158,6 +158,8 @@ location / {
 
 ## GitHub Actions / VPS-Deploy
 
+**Node.js 24+:** Der SSH-Befehl von **drone-ssh** läuft als **nicht-interaktive Shell** — typischerweise wird **`~/.bashrc`** nicht gelesen. Dann fehlt **nvm**/**fnm** im **`PATH`**, und **`npm`** nutzt oft die System-**Node** (z. B. v22) → **`EBADENGINE`**. Der Workflow lädt deshalb **`$NVM_DIR/nvm.sh`** bzw. **`fnm env`**, wechselt im Repo mit **`.nvmrc`** per **`nvm use`** / **`fnm use`**, und bricht mit einer klaren Meldung ab, wenn die aktive **Node**-Hauptversion unter **24** liegt. Manuell per interaktivem SSH siehst du weiter **Node 24**, weil dort die Shell dein Profil lädt.
+
 Der Workflow **„Deploy (VPS)“** (`.github/workflows/deploy.yml`) führt auf dem Zielhost per SSH u. a. **`sudo -n systemctl restart …`** aus. **`sudo -n`** bedeutet **ohne Passwortabfrage**; schlägt die Authentifizierung fehl, erscheint **`sudo: a password is required`** und der Job bricht ab.
 
 **Erforderlich auf dem Server:** Für den SSH-Benutzer (GitHub-Secret **`DEPLOY_USER`**) muss **passwortloses sudo nur für die nötigen `systemctl`-Aufrufe** erlaubt sein — nicht für beliebige Befehle. Unit-Name per GitHub-Variable **`DEPLOY_SYSTEMD_UNIT`** (Standard **`dsabrew-api`**).

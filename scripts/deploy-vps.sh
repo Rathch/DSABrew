@@ -15,6 +15,16 @@
 
 set -euo pipefail
 
+# Wie SSH-Deploy in CI: nicht-interaktive Shells haben oft kein nvm/fnm — vor npm explizit laden
+export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+if [[ -s "$NVM_DIR/nvm.sh" ]]; then
+  # shellcheck source=/dev/null
+  . "$NVM_DIR/nvm.sh"
+fi
+if command -v fnm >/dev/null 2>&1; then
+  eval "$(fnm env)"
+fi
+
 DEPLOY_SYSTEMD_UNIT="${DEPLOY_SYSTEMD_UNIT:-dsabrew-api}"
 
 if [[ -n "${DEPLOY_PATH:-}" ]]; then
@@ -26,6 +36,18 @@ else
 fi
 
 cd "$REPO_ROOT"
+
+if type nvm >/dev/null 2>&1; then
+  nvm install
+  nvm use
+elif command -v fnm >/dev/null 2>&1; then
+  fnm use --install-if-missing 2>/dev/null || fnm use
+fi
+node_maj="$(node -p 'parseInt(process.versions.node,10)' 2>/dev/null || echo 0)"
+if [[ "$node_maj" -lt 24 ]]; then
+  echo "Fehler: Node.js 24+ nötig, aktiv: $(node -v 2>/dev/null || echo '?'). nvm/fnm siehe docs/hosting.md." >&2
+  exit 1
+fi
 
 git fetch origin
 
