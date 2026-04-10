@@ -183,31 +183,29 @@ async function main(): Promise<void> {
   });
 
   if (isOpsStatusPageEnabled()) {
-    // codeql[js/missing-rate-limiting]: Route ist per @fastify/rate-limit begrenzt (config.rateLimit); CodeQL erkennt nur das Legacy-Modul "fastify-rate-limit", nicht "@fastify/rate-limit".
-    app.get(
-      "/api/ops/status",
-      {
-        config: {
-          rateLimit: {
-            max: 30,
-            timeWindow: "1 minute",
-            keyGenerator: (req) => (req.ip ? String(req.ip) : "unknown")
+    await app.register(
+      async (opsScope) => {
+        await opsScope.register(rateLimit, {
+          global: true,
+          max: 30,
+          timeWindow: "1 minute",
+          keyGenerator: (req) => (req.ip ? String(req.ip) : "unknown")
+        });
+        opsScope.get("/status", async (req, reply) => {
+          if (!verifyOpsStatusBasicAuth(req, reply)) {
+            return;
           }
-        }
+          const payload = buildOpsStatusPayload(db, SQLITE_PATH);
+          const q = req.query as { format?: string };
+          const accept = req.headers.accept ?? "";
+          if (q.format === "html" || accept.includes("text/html")) {
+            reply.type("text/html; charset=utf-8");
+            return renderOpsStatusHtml(payload);
+          }
+          return payload;
+        });
       },
-      async (req, reply) => {
-        if (!verifyOpsStatusBasicAuth(req, reply)) {
-          return;
-        }
-        const payload = buildOpsStatusPayload(db, SQLITE_PATH);
-        const q = req.query as { format?: string };
-        const accept = req.headers.accept ?? "";
-        if (q.format === "html" || accept.includes("text/html")) {
-          reply.type("text/html; charset=utf-8");
-          return renderOpsStatusHtml(payload);
-        }
-        return payload;
-      }
+      { prefix: "/api/ops" }
     );
   }
 
