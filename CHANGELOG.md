@@ -1,3 +1,10 @@
+# [0.43.0](https://github.com/Rathch/DSABrew/compare/v0.42.0...v0.43.0) (2026-04-10)
+
+
+### Features
+
+* **deploy:** improve Node.js version handling ([bea4428](https://github.com/Rathch/DSABrew/commit/bea4428bdcf1cc04e086eec92ff275aecbe7c721))
+
 # [0.42.0](https://github.com/Rathch/DSABrew/compare/v0.41.0...v0.42.0) (2026-04-10)
 
 
