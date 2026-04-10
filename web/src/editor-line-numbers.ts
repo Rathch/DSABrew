@@ -1,9 +1,12 @@
+/** ECMAScript-Zeilenumbrüche inkl. U+2028 / U+2029 (z. B. aus Word/Google-Docs-Paste). */
+const LINE_SPLIT = /\r\n|\r|\n|\u2028|\u2029/;
+
 /** Zeilen zählen wie in der Zeilennummern-Gutter (leerer Editor = eine Zeile). */
 export function countLines(text: string): number {
   if (!text) {
     return 1;
   }
-  return text.split(/\r\n|\r|\n/).length;
+  return text.split(LINE_SPLIT).length;
 }
 
 export function setupEditorLineNumbers(
@@ -23,6 +26,16 @@ export function setupEditorLineNumbers(
     inner.style.paddingBottom = cs.paddingBottom;
   }
 
+  function syncPadToTextarea(): void {
+    /* Textarea scrollHeight enthält Zeilenumbrüche durch Soft-Wrap; die Gutter nur logische Zeilen.
+     * Zusatz-Padding unten gleicht die Scroll-Höhen ab, damit Sync bis zum Dokumentende funktioniert. */
+    inner.style.paddingBottom = "0px";
+    const innerSh = inner.scrollHeight;
+    const taSh = textarea.scrollHeight;
+    const extra = Math.max(0, taSh - innerSh);
+    inner.style.paddingBottom = `${extra}px`;
+  }
+
   function update(): void {
     applyMetrics();
     const n = countLines(textarea.value);
@@ -31,6 +44,10 @@ export function setupEditorLineNumbers(
     host.style.width = wch;
     host.style.minWidth = wch;
     inner.textContent = Array.from({ length: n }, (_, i) => String(i + 1)).join("\n");
+    requestAnimationFrame(() => {
+      syncPadToTextarea();
+      syncScroll();
+    });
   }
 
   function syncScroll(): void {

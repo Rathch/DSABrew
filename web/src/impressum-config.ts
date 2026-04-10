@@ -83,6 +83,8 @@ export function renderImpressumHtml(data: ImpressumData, esc: (s: string) => str
   </section>
   <footer class="impressum-footer">
     ${esc(data.footerCreditsPrefix)} <a class="impressum-footer-link" href="${href}" rel="noopener noreferrer">${esc(data.footerWordTemplateLabel)}</a>${esc(data.footerCreditsSuffix)}
+    <br />
+    ${esc(data.footerCreatedWithLine)}
   </footer>
 </div>`.trim();
 }

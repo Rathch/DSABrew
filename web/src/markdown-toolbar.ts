@@ -17,6 +17,8 @@ type ToolbarPreviewKind =
   | "table"
   | "abschnitt";
 
+type ToolbarCategory = "text" | "struktur" | "layout" | "makros";
+
 export function dispatchInput(textarea: HTMLTextAreaElement): void {
   textarea.dispatchEvent(new Event("input", { bubbles: true }));
 }
@@ -201,86 +203,100 @@ const ACTIONS: {
   title: string;
   run: (ta: HTMLTextAreaElement) => void;
   preview?: ToolbarPreviewKind;
+  category: ToolbarCategory;
 }[] = [
   {
     id: "bold",
     label: "B",
     title: "Fett (Strg+B)",
-    run: (ta) => wrapSelection(ta, "**", "**", "Text")
+    run: (ta) => wrapSelection(ta, "**", "**", "Text"),
+    category: "text"
   },
   {
     id: "italic",
     label: "I",
     title: "Kursiv (Strg+I)",
-    run: (ta) => wrapSelection(ta, "*", "*", "Text")
+    run: (ta) => wrapSelection(ta, "*", "*", "Text"),
+    category: "text"
   },
   {
     id: "strike",
     label: "S",
     title: "Durchgestrichen",
-    run: (ta) => wrapSelection(ta, "~~", "~~", "Text")
+    run: (ta) => wrapSelection(ta, "~~", "~~", "Text"),
+    category: "text"
   },
   {
     id: "code",
     label: "</>",
     title: "Code",
-    run: (ta) => wrapSelection(ta, "`", "`", "code")
+    run: (ta) => wrapSelection(ta, "`", "`", "code"),
+    category: "text"
   },
   {
     id: "link",
     label: "🔗",
     title: "Link (Strg+K)",
-    run: insertLink
+    run: insertLink,
+    category: "text"
   },
-  { id: "sep1", label: "|", title: "", run: () => {} },
+  { id: "sep1", label: "|", title: "", run: () => {}, category: "text" },
   {
     id: "h1",
     label: "H1",
     title: "Überschrift 1",
-    run: (ta) => setHeadingLevel(ta, 1)
+    run: (ta) => setHeadingLevel(ta, 1),
+    category: "struktur"
   },
   {
     id: "h2",
     label: "H2",
     title: "Überschrift 2",
-    run: (ta) => setHeadingLevel(ta, 2)
+    run: (ta) => setHeadingLevel(ta, 2),
+    category: "struktur"
   },
   {
     id: "h3",
     label: "H3",
     title: "Überschrift 3",
-    run: (ta) => setHeadingLevel(ta, 3)
+    run: (ta) => setHeadingLevel(ta, 3),
+    category: "struktur"
   },
   {
     id: "h4",
     label: "H4",
     title: "Überschrift 4",
-    run: (ta) => setHeadingLevel(ta, 4)
+    run: (ta) => setHeadingLevel(ta, 4),
+    category: "struktur"
   },
-  { id: "sep2", label: "|", title: "", run: () => {} },
+  { id: "sep2", label: "|", title: "", run: () => {}, category: "struktur" },
   {
     id: "ul",
     label: "• Liste",
     title: "Aufzählung",
-    run: toggleBulletList
+    run: toggleBulletList,
+    category: "struktur"
   },
   {
     id: "ol",
     label: "1. Liste",
     title: "Nummerierte Liste",
-    run: toggleOrderedList
+    run: toggleOrderedList,
+    category: "struktur"
   },
   {
     id: "quote",
     label: "„ Zitat",
     title: "Zitat",
-    run: toggleBlockquote
+    run: toggleBlockquote,
+    category: "struktur"
   },
   {
     id: "fence",
     label: "{ }",
     title: "Code-Block",
-    run: insertCodeBlock
+    run: insertCodeBlock,
+    category: "struktur"
   },
   {
     id: "table",
@@ -291,45 +307,51 @@ const ACTIONS: {
       insertAtCursor(
         ta,
         "\n\n| Spalte 1 | Spalte 2 |\n| --- | --- |\n|  |  |\n\n"
-      )
+      ),
+    category: "struktur"
   },
   {
     id: "imageUrl",
-    label: "Bild",
+    label: "🖼 Bild",
     title:
       "Bild per URL (![](…)); NSC-Porträt: im Block `portrait=https://…` setzen (gleiche URL-Regeln)",
-    run: insertImageFromUrl
+    run: insertImageFromUrl,
+    category: "struktur"
   },
-  { id: "sep3", label: "|", title: "", run: () => {} },
+  { id: "sep3", label: "|", title: "", run: () => {}, category: "layout" },
   {
     id: "hr",
     label: "—",
     title: "Trennlinie (---) — Scriptorium-Grafik in der Vorschau",
     preview: "hr",
-    run: (ta) => insertAtCursor(ta, "\n\n---\n\n")
+    run: (ta) => insertAtCursor(ta, "\n\n---\n\n"),
+    category: "layout"
   },
   {
     id: "page",
     label: "Seite",
     title: "Seitenumbruch (\\page)",
     preview: "page-2col",
-    run: (ta) => insertAtCursor(ta, "\n\\page\n")
+    run: (ta) => insertAtCursor(ta, "\n\\page\n"),
+    category: "layout"
   },
   {
     id: "pageSingle",
     label: "1 Spalte",
     title: "Seite ohne Zweispaltigkeit (\\pageSingle / {{pageSingle}}) — folgende Seite einspaltig",
     preview: "page-1col",
-    run: (ta) => insertAtCursor(ta, "\n\\pageSingle\n")
+    run: (ta) => insertAtCursor(ta, "\n\\pageSingle\n"),
+    category: "layout"
   },
   {
     id: "abschnitt",
     label: "Abschnitt",
     title: "Solo-Sprung ({{abschnitt N | Text}}) — Ziel: ## N Titel oder ## N. Titel; mit markiertem Text als Beschriftung",
     preview: "abschnitt",
-    run: insertAbschnittMacro
+    run: insertAbschnittMacro,
+    category: "layout"
   },
-  { id: "sep4", label: "|", title: "", run: () => {} },
+  { id: "sep4", label: "|", title: "", run: () => {}, category: "makros" },
   {
     id: "readAloudNote",
     label: "Vorlesen",
@@ -339,7 +361,8 @@ const ACTIONS: {
       insertAtCursor(
         ta,
         "\n\n{{readAloudNote Zum Vorlesen oder Nacherzählen: |\nHier *kursiver* Vorlesetext.\n}}\n\n"
-      )
+      ),
+    category: "makros"
   },
   {
     id: "gmNote",
@@ -347,7 +370,8 @@ const ACTIONS: {
     title: "Meister-Box ({{gmNote Titel | Text}})",
     preview: "gm",
     run: (ta) =>
-      insertAtCursor(ta, "\n\n{{gmNote Meisterinformation: |\nGeheime Infos für die Spielleitung.\n}}\n\n")
+      insertAtCursor(ta, "\n\n{{gmNote Meisterinformation: |\nGeheime Infos für die Spielleitung.\n}}\n\n"),
+    category: "makros"
   },
   {
     id: "roulbox",
@@ -358,7 +382,8 @@ const ACTIONS: {
       insertAtCursor(
         ta,
         "\n\n{{roulbox Regeltitel | Optionaler Untertitel |\nFließtext mit **Zwischenüberschrift** und Liste:\n\n- Punkt eins\n- Punkt zwei\n}}\n\n"
-      )
+      ),
+    category: "makros"
   },
   {
     id: "easier",
@@ -369,7 +394,8 @@ const ACTIONS: {
       insertAtCursor(
         ta,
         "\n\n{{easier |\n*Leichter-Symbol:* Zur Erleichterung einer Szene kannst du die Vorschläge der so markierten Abschnitte übernehmen.\n}}\n\n"
-      )
+      ),
+    category: "makros"
   },
   {
     id: "harder",
@@ -380,14 +406,16 @@ const ACTIONS: {
       insertAtCursor(
         ta,
         "\n\n{{harder |\n*Schwerer-Symbol:* Braucht die Gruppe mehr Herausforderung? Mit den Hinweisen der so markierten Abschnitte kannst du eine Situation erschweren.\n}}\n\n"
-      )
+      ),
+    category: "makros"
   },
   {
     id: "chess",
     label: "Figur",
     title: "Schachfigur inline ({{ chess | pawn }} — pawn, rook, knight, bishop, queen, king …)",
     preview: "chess",
-    run: (ta) => insertAtCursor(ta, "{{ chess | pawn }}")
+    run: (ta) => insertAtCursor(ta, "{{ chess | pawn }}"),
+    category: "makros"
   },
   {
     id: "difficulty",
@@ -395,7 +423,8 @@ const ACTIONS: {
     title:
       "Schwierigkeit 0–4 ({{ difficulty | rot 2 }}, {{ difficulty | Kapitel: | grün 3 }} mit optionalem Text vor den Rauten)",
     preview: "difficulty",
-    run: (ta) => insertAtCursor(ta, "{{ difficulty | Kampf: | grün 2 }}")
+    run: (ta) => insertAtCursor(ta, "{{ difficulty | Kampf: | grün 2 }}"),
+    category: "makros"
   },
   {
     id: "npcBlock",
@@ -423,7 +452,8 @@ talente=Schwimmen 3, Klettern 2
 {{/npcBlock}}
 
 `
-      )
+      ),
+    category: "makros"
   }
 ];
 
@@ -478,13 +508,44 @@ export function attachMarkdownToolbar(
   container.classList.add("md-toolbar");
   container.setAttribute("role", "toolbar");
   container.setAttribute("aria-label", "Markdown-Formatierung");
-
+  type ToolbarTab = "markdown" | "macros";
+  const categories: { id: ToolbarTab; label: string }[] = [
+    { id: "markdown", label: "Markdown" },
+    { id: "macros", label: "Macros" }
+  ];
+  const tabs = document.createElement("div");
+  tabs.className = "md-toolbar-tabs";
+  tabs.setAttribute("role", "tablist");
+  tabs.setAttribute("aria-label", "Toolbar-Kategorien");
+  const panels = document.createElement("div");
+  panels.className = "md-toolbar-panels";
+  const tabButtons = new Map<ToolbarTab, HTMLButtonElement>();
+  const panelMap = new Map<ToolbarTab, HTMLDivElement>();
+  const tabForAction = (action: { category: ToolbarCategory }): ToolbarTab =>
+    action.category === "layout" || action.category === "makros" ? "macros" : "markdown";
+  for (const cat of categories) {
+    const tab = document.createElement("button");
+    tab.type = "button";
+    tab.className = "md-toolbar-tab";
+    tab.textContent = cat.label;
+    tab.id = `md-toolbar-tab-${cat.id}`;
+    tab.setAttribute("role", "tab");
+    tabButtons.set(cat.id, tab);
+    tabs.appendChild(tab);
+    const panel = document.createElement("div");
+    panel.className = "md-toolbar-panel";
+    panel.id = `md-toolbar-panel-${cat.id}`;
+    panel.setAttribute("role", "tabpanel");
+    panel.setAttribute("aria-labelledby", tab.id);
+    panelMap.set(cat.id, panel);
+    panels.appendChild(panel);
+  }
   for (const action of ACTIONS) {
     if (isSeparator(action.id)) {
-      const sep = document.createElement("span");
-      sep.className = "md-toolbar-sep";
-      sep.setAttribute("aria-hidden", "true");
-      container.appendChild(sep);
+      continue;
+    }
+    const panel = panelMap.get(tabForAction(action));
+    if (!panel) {
       continue;
     }
     const btn = document.createElement("button");
@@ -506,8 +567,43 @@ export function attachMarkdownToolbar(
       btn.textContent = action.label;
     }
     btn.addEventListener("click", () => action.run(textarea));
-    container.appendChild(btn);
+    panel.appendChild(btn);
   }
+  let activeTab: ToolbarTab = "markdown";
+
+  /** Schmale Viewports: ein Tab-Panel; Desktop (CSS blendet Tabs aus): beide Panels sichtbar. */
+  function applyTabPanelsForViewport(): void {
+    const tabMode = window.matchMedia("(max-width: 960px)").matches;
+    for (const cat of categories) {
+      const tab = tabButtons.get(cat.id);
+      const panel = panelMap.get(cat.id);
+      if (!tab || !panel) {
+        continue;
+      }
+      if (!tabMode) {
+        panel.hidden = false;
+      } else {
+        panel.hidden = cat.id !== activeTab;
+      }
+      tab.setAttribute("aria-selected", cat.id === activeTab ? "true" : "false");
+    }
+  }
+
+  for (const cat of categories) {
+    const tab = tabButtons.get(cat.id);
+    if (!tab) {
+      continue;
+    }
+    tab.addEventListener("click", () => {
+      activeTab = cat.id;
+      applyTabPanelsForViewport();
+    });
+  }
+
+  container.appendChild(tabs);
+  container.appendChild(panels);
+  applyTabPanelsForViewport();
+  window.matchMedia("(max-width: 960px)").addEventListener("change", applyTabPanelsForViewport);
 
   textarea.addEventListener("keydown", (e) => {
     const mod = e.ctrlKey || e.metaKey;

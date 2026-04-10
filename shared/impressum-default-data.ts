@@ -32,6 +32,8 @@ export interface ImpressumData {
   footerWordTemplateUrl: string;
   /** Text after the link, e.g. “ by Massimo Feth …” */
   footerCreditsSuffix: string;
+  /** Optional second line under credits. */
+  footerCreatedWithLine: string;
 }
 
 export const DEFAULT_IMPRESSUM_DATA: ImpressumData = {
@@ -59,5 +61,6 @@ export const DEFAULT_IMPRESSUM_DATA: ImpressumData = {
   footerCreditsPrefix: "Credits / Dieses Produkt basiert auf der",
   footerWordTemplateLabel: "Microsoft Word-Vorlage",
   footerWordTemplateUrl: "https://blog.fethz.de",
-  footerCreditsSuffix: " von Massimo Feth (blog.fethz.de)."
+  footerCreditsSuffix: " von Massimo Feth (blog.fethz.de).",
+  footerCreatedWithLine: "erstellt mit DSABrew brew.rath-ulrich.de"
 };

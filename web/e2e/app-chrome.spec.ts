@@ -13,7 +13,7 @@ test.describe("App-Chrome & Shell (P1 — Ergänzung zu contracts/e2e-playwright
     await mockPostDocuments503(page);
     await page.goto("/");
     await expect(page.getByRole("heading", { name: "Wartung" })).toBeVisible({ timeout: 15_000 });
-    await expect(page.locator(".maintenance-shell, .legal-shell")).toBeVisible();
+    await expect(page.locator(".maintenance-shell, .layout-host--static")).toBeVisible();
   });
 
   test("Privacy-Strip: sichtbar, Verstanden blendet aus", async ({ page }) => {

@@ -4,6 +4,7 @@
  */
 import { ANLEITUNG_BODY_HTML } from "./anleitung-content";
 import { DATENSCHUTZ_BODY_HTML } from "./datenschutz-content";
+import { IMPRESSUM_BODY_HTML } from "./impressum-content";
 import { fanProductNoticeHtml } from "./fan-product-notice";
 import { themeControlClusterHtml } from "./theme";
 
@@ -69,6 +70,8 @@ export const LINK_ISSUES_NEW = "https://github.com/Rathch/DSABrew/issues/new";
 export const LINK_BUYMEACOFFEE = "https://buymeacoffee.com/rathch";
 
 export const A_CHROME = 'class="chrome-link"';
+/** Footer-/Site-Nav-Links: neuer Tab (Impressum, Datenschutz, externe URLs). */
+export const A_CHROME_BLANK = 'class="chrome-link" target="_blank" rel="noopener noreferrer"';
 export const A_ERR = 'class="chrome-link chrome-link--danger"';
 export const ERR_ASIDE = "dsabrew-err-aside";
 
@@ -76,19 +79,23 @@ const ICON_VIEW = `<svg class="hosted-toolbar-icon" width="16" height="16" viewB
 
 const ICON_EDIT = `<svg class="hosted-toolbar-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.003 1.003 0 0 0 0-1.41l-2.34-2.34a1.003 1.003 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>`;
 
+const ICON_HELP = `<svg class="hosted-toolbar-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 100 20 10 10 0 000-20zm.1 15.25a1.15 1.15 0 110-2.3 1.15 1.15 0 010 2.3zM14.6 10.4l-.72.73c-.57.58-.93 1.04-.93 2.12h-2c0-1.38.36-2.27 1.22-3.14l.99-1c.3-.29.49-.7.49-1.16a1.7 1.7 0 10-3.4 0H8.25a3.7 3.7 0 117.4 0c0 .99-.4 1.88-1.05 2.55z"/></svg>`;
+
+const ICON_PDF = `<svg class="hosted-toolbar-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6 2h8l4 4v16H6V2zm8 1.5V7h3.5L14 3.5zM9 12h2.2c1.1 0 1.8.6 1.8 1.6s-.7 1.6-1.8 1.6H10v1.8H9V12zm1 2.3h1.1c.45 0 .8-.2.8-.7s-.35-.7-.8-.7H10v1.4zm4.1-2.3h1.7c1.35 0 2.2.86 2.2 2.45 0 1.6-.85 2.55-2.2 2.55h-1.7V12zm1 4.1h.6c.9 0 1.3-.52 1.3-1.65 0-1.03-.4-1.55-1.3-1.55h-.6v3.2z"/></svg>`;
+
 export function landingFooterNav(navClass: string): string {
   return `
     <nav class="${navClass}" aria-label="Rechtliches und externe Links">
       <ul>
-        <li><a href="/impressum" ${A_CHROME}>Impressum</a></li>
-        <li><a href="/datenschutz" ${A_CHROME}>Datenschutz</a></li>
-        <li><a href="/anleitung" ${A_CHROME}>Anleitung</a></li>
-        <li><a href="${LINK_SCRIPTORIUM}" rel="noopener noreferrer" ${A_CHROME}>Scriptorium Aventuris</a></li>
-        <li><a href="${LINK_ELF}" rel="noopener noreferrer" ${A_CHROME}>ELF (Ulisses)</a></li>
-        <li><a href="${LINK_GPL}" rel="noopener noreferrer" ${A_CHROME}>GNU GPLv3</a></li>
-        <li><a href="${LINK_GITHUB}" rel="noopener noreferrer" ${A_CHROME}>GitHub</a></li>
-        <li><a href="${LINK_BUYMEACOFFEE}" rel="noopener noreferrer" ${A_CHROME}>Buy Me a Coffee</a></li>
-        <li><a href="${LINK_ISSUES_NEW}" rel="noopener noreferrer" ${A_CHROME}>Fehler melden</a></li>
+        <li><a href="/impressum" ${A_CHROME_BLANK}>Impressum</a></li>
+        <li><a href="/datenschutz" ${A_CHROME_BLANK}>Datenschutz</a></li>
+        <li><a href="/anleitung" ${A_CHROME_BLANK}>Anleitung</a></li>
+        <li><a href="${LINK_SCRIPTORIUM}" ${A_CHROME_BLANK}>Scriptorium Aventuris</a></li>
+        <li><a href="${LINK_ELF}" ${A_CHROME_BLANK}>ELF (Ulisses)</a></li>
+        <li><a href="${LINK_GPL}" ${A_CHROME_BLANK}>GNU GPLv3</a></li>
+        <li><a href="${LINK_GITHUB}" ${A_CHROME_BLANK}>GitHub</a></li>
+        <li><a href="${LINK_BUYMEACOFFEE}" ${A_CHROME_BLANK}>Buy Me a Coffee</a></li>
+        <li><a href="${LINK_ISSUES_NEW}" ${A_CHROME_BLANK}>Fehler melden</a></li>
       </ul>
     </nav>`;
 }
@@ -97,91 +104,94 @@ export function siteChromeFooter(footerNavClass: string): string {
   return `<div class="site-chrome-footer">${landingFooterNav(footerNavClass)}${fanProductNoticeHtml()}</div>`;
 }
 
-export function buildMaintenancePageLayout(): string {
+export function hostedChromeToolsHtml(options?: { includeHelp?: boolean }): string {
+  const help =
+    options?.includeHelp === false
+      ? ""
+      : `
+      <a
+        href="/anleitung"
+        id="hosted-anleitung-link"
+        class="hosted-anleitung-link ui-toolbar-btn ui-toolbar-btn--secondary"
+        target="_blank"
+        rel="noopener noreferrer"
+        >${ICON_HELP}<span>Hilfe / Anleitung</span></a>`;
   return `
-  <div class="legal-shell maintenance-shell">
-    <header class="legal-header">
-      <h1 class="legal-h1" id="legal-page-title">Wartung</h1>
+    <div class="hosted-chrome-tools">
+      ${help}
       ${themeControlClusterHtml()}
-    </header>
-    <main class="legal-main" aria-labelledby="legal-page-title">
-      <div class="legal-prose maintenance-prose">
-        <p>
-          Neue Dokumente können derzeit <strong>nicht angelegt</strong> werden — die Dienstlast ist zu hoch.
-          Bestehende Dokumente sind weiterhin über Ihren Link erreichbar.
-        </p>
-        <p class="maintenance-hint">Bitte versuchen Sie es in einigen Minuten erneut.</p>
+    </div>`;
+}
+
+const STATIC_PAGE_NEW_DOC = `<a href="/" class="ui-toolbar-btn ui-toolbar-btn--cta hosted-doc-nav__new-btn"><span class="hosted-doc-nav__new-icon" aria-hidden="true">+</span><span>Neues Dokument</span></a>`;
+
+/**
+ * Statische Seiten (Impressum, Datenschutz, Anleitung, Wartung, /ops): gleiche Shell wie die Dokument-Hauptseite
+ * (layout-host, Banner, Doc-Nav, Hosted-Footer).
+ */
+export function staticHostedPageShellHtml(
+  pageTitle: string,
+  contentHtml: string,
+  backParagraphHtml: string = "",
+  options?: { hostExtraClass?: string; chromeTools?: { includeHelp?: boolean } }
+): string {
+  const safeTitle = escapeHtml(pageTitle);
+  const hostClass = ["layout-host", "layout-host--hosted", "layout-host--static"]
+    .concat(options?.hostExtraClass ? [options.hostExtraClass] : [])
+    .join(" ");
+  return `
+  <div class="${hostClass}">
+  <main class="layout layout--hosted layout--hosted-bg layout--static-page" aria-labelledby="static-page-title">
+    <div class="hosted-banner hosted-banner--static-page">
+      <div class="hosted-banner__brand">
+        <div class="hosted-banner__title-row">
+          <span class="hosted-banner__product">DSABrew</span>
+          <h1 class="hosted-banner__static-h1" id="static-page-title">${safeTitle}</h1>
+        </div>
       </div>
-      <p class="legal-back"><a href="/" class="chrome-link">Seite aktualisieren</a></p>
-    </main>
-    ${siteChromeFooter("chrome-footer-nav chrome-footer-nav--bordered-strong")}
-  </div>
-`;
+      <nav class="hosted-doc-nav hosted-doc-nav--static-page" aria-label="Seitennavigation">
+        <div class="hosted-doc-nav__center">
+          ${STATIC_PAGE_NEW_DOC}
+        </div>
+        <div class="hosted-doc-nav__right">${hostedChromeToolsHtml(options?.chromeTools)}</div>
+      </nav>
+    </div>
+    <div class="static-page-main">
+      ${contentHtml}
+      ${backParagraphHtml}
+    </div>
+  </main>
+    <footer class="hosted-doc-footer" role="contentinfo">
+      ${siteChromeFooter("chrome-footer-nav chrome-footer-nav--bordered")}
+    </footer>
+  </div>`;
+}
+
+export function buildMaintenancePageLayout(): string {
+  return staticHostedPageShellHtml(
+    "Wartung",
+    `<div class="legal-prose maintenance-prose">
+      <p>
+        Neue Dokumente können derzeit <strong>nicht angelegt</strong> werden — die Dienstlast ist zu hoch.
+        Bestehende Dokumente sind weiterhin über Ihren Link erreichbar.
+      </p>
+      <p class="maintenance-hint">Bitte versuchen Sie es in einigen Minuten erneut.</p>
+    </div>`,
+    `<p class="legal-back"><a href="/" class="chrome-link">Seite aktualisieren</a></p>`,
+    { hostExtraClass: "maintenance-shell" }
+  );
 }
 
 export function buildAnleitungPageLayout(): string {
-  return `
-  <div class="legal-shell">
-    <header class="legal-header">
-      <h1 class="legal-h1" id="legal-page-title">Anleitung</h1>
-      ${themeControlClusterHtml()}
-    </header>
-    <main class="legal-main" aria-labelledby="legal-page-title">
-      ${ANLEITUNG_BODY_HTML}
-      <p class="legal-back"><a href="/" ${A_CHROME}>← Neues Dokument</a></p>
-    </main>
-    ${siteChromeFooter("chrome-footer-nav chrome-footer-nav--bordered-strong")}
-  </div>
-`;
+  return staticHostedPageShellHtml("Anleitung", ANLEITUNG_BODY_HTML, "", {
+    chromeTools: { includeHelp: false }
+  });
 }
 
 export function buildLegalPageLayout(kind: "impressum" | "datenschutz"): string {
   const title = kind === "impressum" ? "Impressum" : "Datenschutz";
-  const body =
-    kind === "impressum"
-      ? `<div class="legal-prose">
-      <address class="legal-impressum-address">
-        <p class="legal-impressum-name">Christian Rath-Ulrich</p>
-        <p>Ernst-Mühlendyckstr 2<br />51143 Köln</p>
-        <p>
-          <a href="mailto:kontakt@rath-ulrich.de" ${A_CHROME}>kontakt@rath-ulrich.de</a>
-        </p>
-      </address>
-    </div>`
-      : DATENSCHUTZ_BODY_HTML;
-  return `
-  <div class="legal-shell">
-    <header class="legal-header">
-      <h1 class="legal-h1" id="legal-page-title">${title}</h1>
-      ${themeControlClusterHtml()}
-    </header>
-    <main class="legal-main" aria-labelledby="legal-page-title">
-      ${body}
-      <p class="legal-back"><a href="/" ${A_CHROME}>← Neues Dokument</a></p>
-    </main>
-    ${siteChromeFooter("chrome-footer-nav chrome-footer-nav--bordered-strong")}
-  </div>
-`;
-}
-
-export function hostedChromeToolsHtml(): string {
-  return `
-    <div class="hosted-chrome-tools">
-      <a
-        href="/anleitung"
-        id="hosted-anleitung-link"
-        class="hosted-anleitung-link chrome-link"
-        target="_blank"
-        rel="noopener noreferrer"
-        >Hilfe / Anleitung</a>
-      <div class="editor__sync-bar" id="editor-sync-bar" hidden>
-        <label class="editor__sync-label" for="scroll-link-toggle">
-          <input type="checkbox" id="scroll-link-toggle" checked />
-          Scroll koppeln
-        </label>
-      </div>
-      ${themeControlClusterHtml()}
-    </div>`;
+  const body = kind === "impressum" ? IMPRESSUM_BODY_HTML : DATENSCHUTZ_BODY_HTML;
+  return staticHostedPageShellHtml(title, body);
 }
 
 export function buildDocumentLayout(options: { mode: "view" | "edit" }, appVersion: string): string {
@@ -221,7 +231,7 @@ export function buildDocumentLayout(options: { mode: "view" | "edit" }, appVersi
         <div class="hosted-doc-nav__left" role="toolbar" aria-label="Teilen und Export">
           <button type="button" id="share-view-btn" class="ui-toolbar-btn ui-toolbar-btn--secondary">${ICON_VIEW}<span>Teilen: Nur Ansicht</span></button>
           ${shareEditBtn}
-          <button type="button" id="pdf-btn-banner" class="ui-toolbar-btn ui-toolbar-btn--secondary" aria-label="PDF speichern">PDF speichern</button>
+          <button type="button" id="pdf-btn-banner" class="ui-toolbar-btn ui-toolbar-btn--secondary" aria-label="PDF speichern">${ICON_PDF}<span>PDF speichern</span></button>
         </div>
         <div class="hosted-doc-nav__center">
           <button type="button" id="hosted-new-btn" class="ui-toolbar-btn ui-toolbar-btn--cta hosted-doc-nav__new-btn">
@@ -239,6 +249,12 @@ export function buildDocumentLayout(options: { mode: "view" | "edit" }, appVersi
             <button type="button" ${segMd} id="hosted-view-md">Nur Markdown</button>
             <button type="button" ${segPv} id="hosted-view-preview">Nur Vorschau</button>
           </div>
+        </div>
+        <div class="editor__sync-bar editor__sync-bar--hosted" id="editor-sync-bar" hidden>
+          <label class="editor__sync-label" for="scroll-link-toggle">
+            <input type="checkbox" id="scroll-link-toggle" checked />
+            Scroll koppeln
+          </label>
         </div>
       </div>
     </div>

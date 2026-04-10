@@ -18,6 +18,11 @@ describe("countLines", () => {
     expect(countLines("\na")).toBe(2);
     expect(countLines("a\n")).toBe(2);
   });
+
+  it("zählt Unicode-Zeilenseparatoren (U+2028 / U+2029)", () => {
+    expect(countLines("a\u2028b")).toBe(2);
+    expect(countLines("a\u2029b")).toBe(2);
+  });
 });
 
 describe("setupEditorLineNumbers", () => {
