@@ -1,3 +1,15 @@
+# [0.42.0](https://github.com/Rathch/DSABrew/compare/v0.41.0...v0.42.0) (2026-04-10)
+
+
+### Bug Fixes
+
+* **web:** stack hosted nav controls on narrow screens ([4e80792](https://github.com/Rathch/DSABrew/commit/4e8079275e51019f9edb70e97724f1a377f9c728))
+
+
+### Features
+
+* enhance impressum ([da529ef](https://github.com/Rathch/DSABrew/commit/da529ef567c61c673dc316bc51fd91c66d83e2ef))
+
 # [0.41.0](https://github.com/Rathch/DSABrew/compare/v0.40.0...v0.41.0) (2026-04-09)
 
 
