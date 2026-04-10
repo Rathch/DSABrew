@@ -2186,43 +2186,6 @@ html.dark .hosted-banner__static-h1 {
   user-select: none;
 }
 
-/* Zeilennummern vollständig ausblenden (Desktop + Mobile). */
-.editor__line-numbers-host {
-  display: none !important;
-}
-
-.editor__line-numbers-scroll {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: hidden;
-  scrollbar-width: none;
-}
-
-.editor__line-numbers-scroll::-webkit-scrollbar {
-  display: none;
-}
-
-.editor__line-numbers-inner {
-  margin: 0;
-  font-family: monospace;
-  line-height: 1.4;
-  text-align: right;
-  color: #52525b;
-  white-space: pre;
-  padding-right: 6px;
-  box-sizing: border-box;
-  tab-size: 2;
-}
-
-.dark .editor__line-numbers-host {
-  border-right-color: #3f3f46;
-  background: #18181b;
-}
-
-.dark .editor__line-numbers-inner {
-  color: #d4d4d8;
-}
-
 .editor__input-row {
   display: flex;
   flex-direction: row;
@@ -2246,7 +2209,7 @@ html.dark .hosted-banner__static-h1 {
   box-sizing: border-box;
 }
 
-/* Like line numbers: mirror textarea scrollTop; no separate wheel scrolling */
+/* Spiegel textarea scrollTop; kein eigenes Wheel-Scrolling */
 .editor__viewport-gutter-inner {
   position: relative;
   height: 100%;
@@ -4433,10 +4396,6 @@ html.dark .hosted-banner__static-h1 {
     min-height: 2.75rem;
     padding: 0.5rem 0.8rem;
     font-size: 0.9rem;
-  }
-
-  .editor__line-numbers-host {
-    display: none;
   }
 
   .editor textarea {

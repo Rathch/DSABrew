@@ -14,7 +14,13 @@ export default {
     "property-no-vendor-prefix": [
       true,
       {
-        ignoreProperties: ["-webkit-font-smoothing", "-moz-osx-font-smoothing"]
+        ignoreProperties: [
+          "-webkit-font-smoothing",
+          "-moz-osx-font-smoothing",
+          /* Kein standardsiertes Äquivalent für iOS-Momentum-Scrolling / Druckfarben. */
+          "-webkit-overflow-scrolling",
+          "-webkit-print-color-adjust"
+        ]
       }
     ],
     /**

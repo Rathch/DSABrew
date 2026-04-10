@@ -263,11 +263,6 @@ export function buildDocumentLayout(options: { mode: "view" | "edit" }, appVersi
       <p id="save-status" class="editor__flash" aria-live="polite"></p>
       <div id="md-toolbar" class="md-toolbar-wrap"></div>
       <div class="editor__input-row">
-        <div class="editor__line-numbers-host" id="editor-line-numbers-host" aria-hidden="true">
-          <div class="editor__line-numbers-scroll" id="editor-line-numbers-scroll">
-            <pre class="editor__line-numbers-inner" id="editor-line-numbers-inner"></pre>
-          </div>
-        </div>
         <div class="editor__viewport-gutter" id="editor-viewport-gutter" hidden aria-hidden="true">
           <div class="editor__viewport-gutter-inner" id="editor-viewport-gutter-inner">
             <div class="editor__viewport-gutter-track" id="editor-viewport-gutter-track">
