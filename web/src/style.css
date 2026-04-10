@@ -350,6 +350,40 @@ html.dark .hosted-doc-nav {
   min-width: 0;
 }
 
+@media (width <= 960px) {
+  .hosted-doc-nav {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: stretch;
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+
+  .hosted-doc-nav__left,
+  .hosted-doc-nav__center,
+  .hosted-doc-nav__right {
+    width: 100%;
+    min-height: 0;
+    justify-self: stretch;
+    padding: 0;
+  }
+
+  .hosted-doc-nav__left {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+
+  .hosted-doc-nav__new-btn {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .hosted-doc-nav__right,
+  .hosted-chrome-tools {
+    justify-content: flex-start;
+  }
+}
+
 .hosted-anleitung-link {
   flex: 0 0 auto;
   align-self: center;
