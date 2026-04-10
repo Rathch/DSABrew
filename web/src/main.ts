@@ -5,7 +5,6 @@ import { exportPreviewToPdf } from "./pdf-export";
 import { renderDocument } from "./renderer";
 import { setupEditorPreviewScrollSync } from "./scroll-sync";
 import { updateEditorPageStripeBackground } from "./editor-page-stripes";
-import { setupEditorLineNumbers } from "./editor-line-numbers";
 import {
   A_ERR,
   ERR_ASIDE,
@@ -270,12 +269,6 @@ function initEditorAndPreview(
 
   input.value = initialMarkdown;
 
-  const lineNumbersScroll = document.querySelector<HTMLElement>("#editor-line-numbers-scroll");
-  const lineNumbersInner = document.querySelector<HTMLElement>("#editor-line-numbers-inner");
-  const lineNumbersHost = document.querySelector<HTMLElement>("#editor-line-numbers-host");
-  if (lineNumbersScroll && lineNumbersInner && lineNumbersHost) {
-    setupEditorLineNumbers(input, lineNumbersScroll, lineNumbersInner, lineNumbersHost);
-  }
   if (options.mode === "view") {
     input.readOnly = true;
     input.setAttribute("aria-readonly", "true");
@@ -519,6 +512,8 @@ function initEditorAndPreview(
   pdfBanner?.addEventListener("click", () => void runPdfExport());
 
   updatePreview(input.value);
+  /* Scroll-Sync initialisiert vor erstem Preview-Render — Gutter einmal nachfüllen (s. scroll-sync updatePageStripeGutter). */
+  layoutHost?.dispatchEvent(new CustomEvent("dsabrew-layout-changed"));
   updateEditorPageStripeBackground(input);
   syncThemeToggleButtons();
 }

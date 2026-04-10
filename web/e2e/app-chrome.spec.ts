@@ -13,7 +13,7 @@ test.describe("App-Chrome & Shell (P1 — Ergänzung zu contracts/e2e-playwright
     await mockPostDocuments503(page);
     await page.goto("/");
     await expect(page.getByRole("heading", { name: "Wartung" })).toBeVisible({ timeout: 15_000 });
-    await expect(page.locator(".maintenance-shell, .legal-shell")).toBeVisible();
+    await expect(page.locator(".maintenance-shell, .layout-host--static")).toBeVisible();
   });
 
   test("Privacy-Strip: sichtbar, Verstanden blendet aus", async ({ page }) => {
@@ -78,7 +78,7 @@ test.describe("App-Chrome & Shell (P1 — Ergänzung zu contracts/e2e-playwright
     expect(download.suggestedFilename().toLowerCase()).toMatch(/\.pdf$/);
   });
 
-  test("Ansicht Beides: Scroll-Kopplung, Gutter, localStorage", async ({ page }) => {
+  test("Ansicht Beides: Scroll-Kopplung (Sync-Leiste, Toggle, localStorage)", async ({ page }) => {
     await page.addInitScript(() => {
       localStorage.removeItem("dsabrew-hosted-view");
       localStorage.removeItem("dsabrew-scroll-link");
@@ -91,8 +91,7 @@ test.describe("App-Chrome & Shell (P1 — Ergänzung zu contracts/e2e-playwright
 
     await page.locator("#scroll-link-toggle").uncheck();
     expect(await page.evaluate(() => localStorage.getItem("dsabrew-scroll-link"))).toBe("0");
-
-    await expect(page.locator("#editor-viewport-gutter")).toBeVisible();
+    await expect(page.locator("#scroll-link-toggle")).not.toBeChecked();
   });
 
   test("Nur-Lese-Modus: Toolbar-Hinweis, Textarea readonly, kein Bearbeiten-Teilen", async ({

@@ -27,6 +27,7 @@ const IMPRESSUM_PAGE_BLOCK = [
   impressumField("footerWordTemplateLabel", D.footerWordTemplateLabel),
   impressumField("footerWordTemplateUrl", D.footerWordTemplateUrl),
   impressumField("footerCreditsSuffix", D.footerCreditsSuffix),
+  impressumField("footerCreatedWithLine", D.footerCreatedWithLine),
   "{{impressumPage}}"
 ].join("\n");
 

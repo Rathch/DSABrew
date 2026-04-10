@@ -37,6 +37,7 @@
     "lint:ts:fix": "node scripts/lint-ts.mjs --fix",
     "ci:verify": "npm run lint:ts && npm run typecheck --prefix web && npm run lint:css --prefix web && npm run test:coverage --prefix web && npm run build --prefix web && npm run test:e2e:ci --prefix web && npm run typecheck --prefix server && npm run test:coverage --prefix server",
     "ci:precommit": "npm run lint:ts && npm run typecheck --prefix web && npm run lint:css --prefix web && npm run typecheck --prefix server",
+    "verify:unit": "npm run lint:ts && npm run typecheck --prefix web && npm run lint:css --prefix web && npm run test --prefix web && npm run typecheck --prefix server && npm run test --prefix server",
     "ci:audit": "npm audit --audit-level=high --production && npm audit --audit-level=high --prefix web && npm audit --audit-level=high --prefix server",
     "ci:gitleaks": "gitleaks detect --source . --verbose --exit-code 1",
     "ci:all": "npm run ci && npm run ci:gitleaks",

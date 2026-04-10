@@ -1,6 +1,5 @@
 /** Betriebsstatus unter `/ops`: `GET /api/ops/status` mit HTTP Basic (vom Nutzer eingegeben). */
-import { apiUrl, escapeHtml, siteChromeFooter } from "./main-helpers";
-import { themeControlClusterHtml } from "./theme";
+import { apiUrl, escapeHtml, staticHostedPageShellHtml } from "./main-helpers";
 
 /** Entspricht `OpsStatusPayload` der API (`server/src/ops-status.ts`). */
 export type OpsStatusPayload = {
@@ -58,32 +57,26 @@ export function formatOpsStatusTableHtml(p: OpsStatusPayload): string {
 }
 
 export function buildOpsStatusPageLayout(): string {
-  return `
-  <div class="legal-shell">
-    <header class="legal-header">
-      <h1 class="legal-h1" id="legal-page-title">Betrieb</h1>
-      ${themeControlClusterHtml()}
-    </header>
-    <main class="legal-main" aria-labelledby="legal-page-title">
-      <div class="legal-prose">
-        <form id="ops-status-form" class="ops-status-form" autocomplete="on">
-          <label>
-            Benutzername
-            <input name="user" type="text" required autocomplete="username" spellcheck="false" />
-          </label>
-          <label>
-            Passwort
-            <input name="password" type="password" required autocomplete="current-password" />
-          </label>
-          <button type="submit" id="ops-status-submit">Status laden</button>
-        </form>
-        <div id="ops-status-error" class="ops-status-err" hidden></div>
-        <div id="ops-status-result" hidden></div>
-      </div>
-      <p class="legal-back"><a href="/" class="chrome-link">← Neues Dokument</a></p>
-    </main>
-    ${siteChromeFooter("chrome-footer-nav chrome-footer-nav--bordered-strong")}
-  </div>`;
+  return staticHostedPageShellHtml(
+    "Betrieb",
+    `<div class="legal-prose legal-prose-flow ops-status-page-root">
+      <form id="ops-status-form" class="ops-status-form" autocomplete="on">
+        <label>
+          Benutzername
+          <input name="user" type="text" required autocomplete="username" spellcheck="false" />
+        </label>
+        <label>
+          Passwort
+          <input name="password" type="password" required autocomplete="current-password" />
+        </label>
+        <button type="submit" id="ops-status-submit" class="ui-toolbar-btn ui-toolbar-btn--primary ops-status-submit">
+          Status laden
+        </button>
+      </form>
+      <div id="ops-status-error" class="ops-status-err" hidden></div>
+      <div id="ops-status-result" class="ops-status-result" hidden></div>
+    </div>`
+  );
 }
 
 export function wireOpsStatusPage(

@@ -146,7 +146,12 @@ describe("HTML layouts", () => {
     const html = buildMaintenancePageLayout();
     expect(html).toContain("Wartung");
     expect(html).toContain("maintenance-shell");
+    expect(html).toContain("layout-host--static");
+    expect(html).toContain("hosted-doc-footer");
     expect(html).toContain("site-chrome-footer");
+    expect(html).toContain('href="/impressum"');
+    expect(html).toContain('target="_blank"');
+    expect(html).toContain('rel="noopener noreferrer"');
   });
 
   it("buildLegalPageLayout unterscheidet impressum/datenschutz", () => {
@@ -158,7 +163,10 @@ describe("HTML layouts", () => {
     const html = buildAnleitungPageLayout();
     expect(html).toContain("Anleitung");
     expect(html).toContain("Markdown-Werkzeugleiste");
+    expect(html).toContain("layout--static-page");
+    expect(html).toContain("hosted-doc-footer");
     expect(html).toContain("site-chrome-footer");
+    expect(html).not.toContain("hosted-anleitung-link");
   });
 
   it("buildDocumentLayout enthält Modus und Version", () => {
