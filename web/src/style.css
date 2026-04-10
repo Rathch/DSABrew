@@ -407,8 +407,7 @@ html.dark .hosted-doc-nav {
     min-height: 100dvh;
     height: 100dvh;
     max-height: none;
-    overflow-x: clip;
-    overflow-y: auto;
+    overflow: clip auto;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -529,7 +528,6 @@ html.dark .hosted-doc-nav {
   padding: 0.5rem 0.75rem;
   border-radius: 9999px;
   appearance: none;
-  -webkit-appearance: none;
 }
 
 @media (width >= 961px) {
@@ -571,7 +569,6 @@ html.dark .editor__sync-bar--hosted .editor__sync-label {
 
 .editor__sync-bar--hosted .editor__sync-label input[type="checkbox"] {
   appearance: none;
-  -webkit-appearance: none;
   width: 2.2rem;
   height: 1.3rem;
   margin: 0;
@@ -2187,18 +2184,6 @@ html.dark .hosted-banner__static-h1 {
   gap: 0.4rem;
   cursor: pointer;
   user-select: none;
-}
-
-.editor__line-numbers-host {
-  flex: 0 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-self: stretch;
-  min-height: 0;
-  min-width: 2.25ch;
-  border-right: 1px solid rgb(228 228 231);
-  background: rgb(248 250 252);
-  box-sizing: border-box;
 }
 
 /* Zeilennummern vollständig ausblenden (Desktop + Mobile). */
@@ -4317,8 +4302,7 @@ html.dark .hosted-banner__static-h1 {
     flex-direction: column;
     min-height: 100dvh;
     height: 100dvh;
-    overflow-x: clip;
-    overflow-y: auto;
+    overflow: clip auto;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -4365,6 +4349,7 @@ html.dark .hosted-banner__static-h1 {
     max-width: var(--mobile-listgroup-width);
     min-width: 0;
     box-sizing: border-box;
+    border-radius: 9999px;
   }
 
   .hosted-doc-nav__new-btn {
@@ -4381,14 +4366,6 @@ html.dark .hosted-banner__static-h1 {
 
   .hosted-view-controls {
     align-items: center;
-  }
-
-  .hosted-doc-nav__left .ui-toolbar-btn--secondary,
-  .hosted-doc-nav__new-btn,
-  .hosted-chrome-tools .ui-toolbar-btn,
-  .hosted-chrome-tools .theme-segmented--single,
-  .editor__sync-bar--hosted {
-    border-radius: 9999px;
   }
 
   .editor__sync-bar--hosted {
