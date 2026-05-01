@@ -3,10 +3,12 @@ FROM node:24-alpine AS build
 WORKDIR /app
 
 COPY web/package*.json ./web/
-RUN npm ci --prefix web
+RUN npm ci --prefix web --ignore-scripts
 
 COPY web ./web
 COPY shared ./shared
+COPY media ./media
+COPY package.json ./package.json
 RUN npm run build --prefix web
 
 FROM nginx:1.27-alpine
