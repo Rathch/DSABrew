@@ -1,3 +1,10 @@
+# [0.45.0](https://github.com/Rathch/DSABrew/compare/v0.44.0...v0.45.0) (2026-05-01)
+
+
+### Features
+
+* **deploy:** enhance deployment workflow_run triggers ([cdd6a58](https://github.com/Rathch/DSABrew/commit/cdd6a5895b84e6e3b8f4d64e52ee2fce9ad2c4a0))
+
 # [0.44.0](https://github.com/Rathch/DSABrew/compare/v0.43.0...v0.44.0) (2026-05-01)
 
 
