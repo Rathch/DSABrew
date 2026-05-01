@@ -7,10 +7,12 @@ on:
 
 concurrency:
   group: production-deploy
-  cancel-in-progress: true
+  # Kein Abbruch laufender Deploys: sonst abbrechende Jobs können Prod halb aktualisiert lassen.
+  cancel-in-progress: false
 
 jobs:
   deploy:
+    if: github.repository == 'Rathch/DSABrew'
     runs-on: ubuntu-latest
     permissions:
       contents: read
