@@ -10,7 +10,7 @@ services:
       - com.rathch.service=api
       - traefik.enable=true
       - traefik.docker.network=${TRAEFIK_NETWORK:-proxy}
-      - traefik.http.routers.dsabrew-api.rule=(Host("${DSABREW_HOST:-dsabrew.rath-ulrich.de}") || Host("${BREW_HOST:-brew.rath-ulrich.de}")) && PathPrefix(`/api`)
+      - traefik.http.routers.dsabrew-api.rule=Host(`${BREW_HOST:-brew.rath-ulrich.de}`) && PathPrefix(`/api`)
       - traefik.http.routers.dsabrew-api.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
       - traefik.http.routers.dsabrew-api.tls=true
       - traefik.http.routers.dsabrew-api.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
@@ -34,10 +34,11 @@ services:
       - com.rathch.service=web
       - traefik.enable=true
       - traefik.docker.network=${TRAEFIK_NETWORK:-proxy}
-      - traefik.http.routers.dsabrew-web.rule=Host("${DSABREW_HOST:-dsabrew.rath-ulrich.de}") || Host("${BREW_HOST:-brew.rath-ulrich.de}")
+      - traefik.http.routers.dsabrew-web.rule=Host(`${BREW_HOST:-brew.rath-ulrich.de}`)
       - traefik.http.routers.dsabrew-web.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
       - traefik.http.routers.dsabrew-web.tls=true
       - traefik.http.routers.dsabrew-web.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
+      - traefik.http.routers.dsabrew-web.tls.domains[0].main=${BREW_HOST:-brew.rath-ulrich.de}
       - traefik.http.routers.dsabrew-web.priority=10
       - traefik.http.services.dsabrew-web.loadbalancer.server.port=80
     networks:
