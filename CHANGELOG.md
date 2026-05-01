@@ -1,3 +1,10 @@
+# [0.44.0](https://github.com/Rathch/DSABrew/compare/v0.43.0...v0.44.0) (2026-05-01)
+
+
+### Features
+
+* **deploy:** add Docker support and update deployment configuration ([aca347a](https://github.com/Rathch/DSABrew/commit/aca347afec391f3b8cf06a438ab15d7bf00fffe5))
+
 # [0.43.0](https://github.com/Rathch/DSABrew/compare/v0.42.0...v0.43.0) (2026-04-10)
 
 
