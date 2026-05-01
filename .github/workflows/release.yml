@@ -1,6 +1,6 @@
 # Semantische Versionen + CHANGELOG (konventionelle Commits) + GitHub Release
-# Läuft nach erfolgreichem Workflow „CI“. VPS-Deploy (deploy.yml) startet danach bei erfolgreichem „Release“.
-# Hinweis: `needs` gilt nur innerhalb eines Workflows — übergreifend: `workflow_run` + Bedingungen.
+# Läuft nach erfolgreichem Workflow „CI“. Produktions-Deploy: deploy.yml bei Push auf main
+# (nicht an Release gekoppelt — vermeidet doppelte Deploys wenn SR nichts publisht).
 #
 # Release-Commit geht per PR in den Default-Branch (geschützter main: kein Direktpush).
 # Secret `RELEASE_GITHUB_TOKEN`: Fine-grained PAT mit Contents + Pull requests (Read/Write),
