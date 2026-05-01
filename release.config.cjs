@@ -10,7 +10,8 @@
  */
 /** @type {import('semantic-release').GlobalConfig} */
 module.exports = {
-  branches: ["main", "master"],
+  // Nach dem Default-Branch-Wechsel nur noch Releases von main.
+  branches: ["main"],
   plugins: [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
@@ -23,6 +24,12 @@ module.exports = {
         publishCmd: "node scripts/release-pr.mjs ${nextRelease.version}"
       }
     ],
-    "@semantic-release/github"
+    [
+      "@semantic-release/github",
+      {
+        // Verhindert 422 beim Fail-Issue, falls das Label im Repo nicht existiert.
+        labels: []
+      }
+    ]
   ]
 };
