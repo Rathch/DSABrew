@@ -1,114 +1,152 @@
-# VPS-Deploy nach erfolgreichem Workflow „Release“ (semantic-release inkl. PR/Merge).
-# Ablauf: Push → CI → Release → Deploy — Release läuft erst nach grünem CI (siehe release.yml).
-# Reset auf origin/<defaultBranch>: nach Release-PR ist main ggf. neuer als der ursprüngliche CI-Commit.
-# Bei Deploy-Fehlern bleiben CI/Release grün; nur dieser Workflow schlägt fehl.
-name: Deploy (VPS)
+name: Deploy Production
 
 on:
-  workflow_run:
-    workflows: [Release]
-    types:
-      - completed
+  push:
+    branches: [main]
 
-# Kein Schreibzugriff aufs Repo nötig — nur SSH zum Server
-permissions:
-  contents: read
+concurrency:
+  group: production-deploy
+  cancel-in-progress: true
 
 jobs:
   deploy:
-    name: Deploy (VPS)
     runs-on: ubuntu-latest
-    if: >-
-      github.repository == 'Rathch/DSABrew' &&
-      github.event.workflow_run.conclusion == 'success' &&
-      (github.event.workflow_run.head_branch == 'main' ||
-       github.event.workflow_run.head_branch == 'master') &&
-      github.event.workflow_run.head_repository.full_name == github.repository
-    concurrency:
-      group: deploy-production
-      cancel-in-progress: false
-    environment: production
+    permissions:
+      contents: read
+      packages: write
+    env:
+      REGISTRY: ghcr.io
+      IMAGE_NAME: rathch/dsabrew
+      WEB_IMAGE_NAME: rathch/dsabrew-web
+      DEPLOY_DIR: /opt/apps/dsabrew
     steps:
-      - name: Deploy — Diagnose (Runner-IP, DNS, TCP zum SSH-Port)
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_SSH_PORT: ${{ vars.DEPLOY_SSH_PORT || '22' }}
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate deploy configuration
         run: |
           set -euo pipefail
-          echo "::group::Runner / Job"
-          echo "GITHUB_RUN_ID=$GITHUB_RUN_ID GITHUB_REF=$GITHUB_REF"
-          uname -a || true
-          echo "Outbound-IP (Runner, öffentlich): $(curl -fsS --max-time 10 https://api.ipify.org || echo 'n/a')"
-          echo "::endgroup::"
+          missing=0
 
-          echo "::group::DEPLOY_HOST — Länge & DNS"
-          if [ -z "${DEPLOY_HOST:-}" ]; then
-            echo "::error::Secret DEPLOY_HOST ist leer."
+          if [ -z "${{ secrets.SSH_PRIVATE_KEY }}" ]; then
+            echo "::error::Missing secret: SSH_PRIVATE_KEY"
+            missing=1
+          fi
+          if [ -z "${{ secrets.GHCR_READ_USER }}" ]; then
+            echo "::error::Missing secret: GHCR_READ_USER"
+            missing=1
+          fi
+          if [ -z "${{ secrets.GHCR_READ_TOKEN }}" ]; then
+            echo "::error::Missing secret: GHCR_READ_TOKEN"
+            missing=1
+          fi
+          if [ -z "${{ secrets.SSH_HOST || vars.SSH_HOST }}" ]; then
+            echo "::error::Missing SSH host: set secrets.SSH_HOST or vars.SSH_HOST"
+            missing=1
+          fi
+          if [ -z "${{ secrets.SSH_USER || vars.SSH_USER }}" ]; then
+            echo "::error::Missing SSH user: set secrets.SSH_USER or vars.SSH_USER"
+            missing=1
+          fi
+          if [ -z "${{ secrets.SSH_PORT || vars.SSH_PORT }}" ]; then
+            echo "::error::Missing SSH port: set secrets.SSH_PORT or vars.SSH_PORT"
+            missing=1
+          fi
+
+          if [ "$missing" -ne 0 ]; then
             exit 1
           fi
-          echo "Zeichenlänge DEPLOY_HOST: ${#DEPLOY_HOST}"
-          echo "Ersten 12 Zeichen (zur Plausibilisierung): ${DEPLOY_HOST:0:12}…"
-          getent ahosts "$DEPLOY_HOST" 2>/dev/null || true
-          getent hosts "$DEPLOY_HOST" 2>/dev/null || true
-          if command -v dig >/dev/null 2>&1; then
-            dig +timeout=5 +tries=1 "$DEPLOY_HOST" A 2>/dev/null || true
-            dig +timeout=5 +tries=1 "$DEPLOY_HOST" AAAA 2>/dev/null || true
-          fi
-          echo "::endgroup::"
 
-          echo "::group::TCP $DEPLOY_HOST:$DEPLOY_SSH_PORT (wie drone-ssh / SSH-Client)"
-          if command -v nc >/dev/null 2>&1; then
-            if nc -zv -w 15 "$DEPLOY_HOST" "$DEPLOY_SSH_PORT" 2>&1; then
-              echo "nc: Verbindungsaufbau OK"
-            else
-              echo "::warning::nc -zv fehlgeschlagen (Exit $?) — typisch Firewall/Provider oder falsche IP/Hostname."
-            fi
-          else
-            echo "nc fehlt; versuche bash /dev/tcp"
-            timeout 15 bash -c "echo >/dev/tcp/${DEPLOY_HOST}/${DEPLOY_SSH_PORT}" && echo "bash /dev/tcp: OK" || echo "::warning::bash /dev/tcp fehlgeschlagen"
-          fi
-          echo "::endgroup::"
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: SSH — Checkout, Build, API neu starten
-        uses: appleboy/ssh-action@v1.2.0
+      - name: Login to GHCR
+        uses: docker/login-action@v3
         with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=long,prefix=sha-
+
+      - name: Extract web image metadata
+        id: meta_web
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.WEB_IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=long,prefix=sha-
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          build-args: |
+            VCS_REF=${{ github.sha }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Build and push web image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile.web
+          push: true
+          build-args: |
+            VCS_REF=${{ github.sha }}
+          tags: ${{ steps.meta_web.outputs.tags }}
+          labels: ${{ steps.meta_web.outputs.labels }}
+
+      - name: Upload deploy files to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST || vars.SSH_HOST }}
+          username: ${{ secrets.SSH_USER || vars.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ vars.DEPLOY_SSH_PORT || '22' }}
-          protocol: ${{ vars.DEPLOY_SSH_PROTOCOL || 'tcp' }}
-          timeout: 2m
-          debug: true
+          port: ${{ secrets.SSH_PORT || vars.SSH_PORT }}
+          source: "deploy/docker-compose.prod.yml"
+          target: "${{ env.DEPLOY_DIR }}"
+          strip_components: 1
+          overwrite: true
+
+      - name: Deploy on server
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ github.sha }}
+          WEB_IMAGE: ${{ env.REGISTRY }}/${{ env.WEB_IMAGE_NAME }}:sha-${{ github.sha }}
+          GHCR_USER: ${{ secrets.GHCR_READ_USER }}
+          GHCR_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
+          DEPLOY_DIR: ${{ env.DEPLOY_DIR }}
+        with:
+          host: ${{ secrets.SSH_HOST || vars.SSH_HOST }}
+          username: ${{ secrets.SSH_USER || vars.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || vars.SSH_PORT }}
+          envs: IMAGE,WEB_IMAGE,GHCR_USER,GHCR_TOKEN,DEPLOY_DIR
           script_stop: true
           script: |
             set -euo pipefail
-            # Nicht-interaktive SSH hat oft kein nvm/fnm im PATH (kein ~/.bashrc) — Node 24 wie lokal/.nvmrc
-            export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
-            if [ -s "$NVM_DIR/nvm.sh" ]; then
-              # shellcheck source=/dev/null
-              . "$NVM_DIR/nvm.sh"
-            fi
-            if command -v fnm >/dev/null 2>&1; then
-              eval "$(fnm env)"
-            fi
-            cd "${{ secrets.DEPLOY_PATH }}"
-            if type nvm >/dev/null 2>&1; then
-              nvm install
-              nvm use
-            elif command -v fnm >/dev/null 2>&1; then
-              fnm use --install-if-missing 2>/dev/null || fnm use
-            fi
-            node_maj="$(node -p 'parseInt(process.versions.node,10)' 2>/dev/null || echo 0)"
-            if [ "$node_maj" -lt 24 ]; then
-              echo "Deploy bricht ab: Node.js 24+ nötig, aktiv: $(node -v 2>/dev/null || echo '?') ($(command -v node 2>/dev/null || echo kein node))." >&2
-              echo "Hinweis: SSH-Deploy lädt keine interaktive Shell — nvm/fnm siehe docs/hosting.md (GitHub Actions / VPS-Deploy)." >&2
+            mkdir -p "$DEPLOY_DIR"
+            cd "$DEPLOY_DIR"
+
+            if [ ! -f ".env" ]; then
+              echo ".env fehlt in $DEPLOY_DIR. Deployment abgebrochen."
               exit 1
             fi
-            git fetch origin
-            git reset --hard "origin/${{ github.event.repository.default_branch }}"
-            npm ci
-            npm ci --prefix web
-            npm ci --prefix server
-            npm run build --prefix web
-            # sudo -n: nur ohne Passwort, wenn NOPASSWD für diese Unit gesetzt ist — docs/hosting.md (Abschnitt GitHub Actions / VPS-Deploy)
-            sudo -n systemctl restart "${{ vars.DEPLOY_SYSTEMD_UNIT || 'dsabrew-api' }}"
+
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+            export IMAGE
+            export WEB_IMAGE
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            docker image prune -f
