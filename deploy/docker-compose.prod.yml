@@ -1,0 +1,50 @@
+services:
+  api:
+    image: ${IMAGE}
+    container_name: dsabrew-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    labels:
+      - com.rathch.stack=dsabrew
+      - com.rathch.service=api
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-traefik}
+      - traefik.http.routers.dsabrew-api.rule=(Host("${DSABREW_HOST:-dsabrew.rath-ulrich.de}") || Host("${BREW_HOST:-brew.rath-ulrich.de}")) && PathPrefix(`/api`)
+      - traefik.http.routers.dsabrew-api.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.dsabrew-api.tls=true
+      - traefik.http.routers.dsabrew-api.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
+      - traefik.http.routers.dsabrew-api.priority=100
+      - traefik.http.services.dsabrew-api.loadbalancer.server.port=3001
+    environment:
+      - SQLITE_PATH=/data/dsabrew.db
+    volumes:
+      - ./data:/data
+      - ./logs:/app/server/logs
+    networks:
+      - default
+      - traefik
+
+  web:
+    image: ${WEB_IMAGE}
+    container_name: dsabrew-web
+    restart: unless-stopped
+    labels:
+      - com.rathch.stack=dsabrew
+      - com.rathch.service=web
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-traefik}
+      - traefik.http.routers.dsabrew-web.rule=Host("${DSABREW_HOST:-dsabrew.rath-ulrich.de}") || Host("${BREW_HOST:-brew.rath-ulrich.de}")
+      - traefik.http.routers.dsabrew-web.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.dsabrew-web.tls=true
+      - traefik.http.routers.dsabrew-web.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
+      - traefik.http.routers.dsabrew-web.priority=10
+      - traefik.http.services.dsabrew-web.loadbalancer.server.port=80
+    networks:
+      - default
+      - traefik
+
+networks:
+  traefik:
+    external: true
+    name: ${TRAEFIK_NETWORK:-traefik}
