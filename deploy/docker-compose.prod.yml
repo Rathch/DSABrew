@@ -9,7 +9,7 @@ services:
       - com.rathch.stack=dsabrew
       - com.rathch.service=api
       - traefik.enable=true
-      - traefik.docker.network=${TRAEFIK_NETWORK:-traefik}
+      - traefik.docker.network=${TRAEFIK_NETWORK:-proxy}
       - traefik.http.routers.dsabrew-api.rule=(Host("${DSABREW_HOST:-dsabrew.rath-ulrich.de}") || Host("${BREW_HOST:-brew.rath-ulrich.de}")) && PathPrefix(`/api`)
       - traefik.http.routers.dsabrew-api.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
       - traefik.http.routers.dsabrew-api.tls=true
@@ -23,7 +23,7 @@ services:
       - ./logs:/app/server/logs
     networks:
       - default
-      - traefik
+      - proxy
 
   web:
     image: ${WEB_IMAGE}
@@ -33,7 +33,7 @@ services:
       - com.rathch.stack=dsabrew
       - com.rathch.service=web
       - traefik.enable=true
-      - traefik.docker.network=${TRAEFIK_NETWORK:-traefik}
+      - traefik.docker.network=${TRAEFIK_NETWORK:-proxy}
       - traefik.http.routers.dsabrew-web.rule=Host("${DSABREW_HOST:-dsabrew.rath-ulrich.de}") || Host("${BREW_HOST:-brew.rath-ulrich.de}")
       - traefik.http.routers.dsabrew-web.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
       - traefik.http.routers.dsabrew-web.tls=true
@@ -42,9 +42,9 @@ services:
       - traefik.http.services.dsabrew-web.loadbalancer.server.port=80
     networks:
       - default
-      - traefik
+      - proxy
 
 networks:
-  traefik:
+  proxy:
     external: true
-    name: ${TRAEFIK_NETWORK:-traefik}
+    name: ${TRAEFIK_NETWORK:-proxy}

@@ -150,6 +150,18 @@ jobs:
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
             export IMAGE
             export WEB_IMAGE
+
+            # docker-compose.prod.yml: externes Proxy-Netz (wie andere Stacks) — bei Bedarf anlegen.
+            set -a
+            # shellcheck disable=SC1091
+            [ -f .env ] && . ./.env
+            set +a
+            _edge_net="${TRAEFIK_NETWORK:-proxy}"
+            if ! docker network inspect "$_edge_net" >/dev/null 2>&1; then
+              echo "Docker-Netzwerk '$_edge_net' fehlt — wird angelegt (Traefik sollte dasselbe Netz nutzen)."
+              docker network create "$_edge_net"
+            fi
+
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
             docker image prune -f
