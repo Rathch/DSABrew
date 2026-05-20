@@ -1661,7 +1661,13 @@ html.dark .privacy-strip {
 
   /* Gap from last text line to footer strip (.book-footer-strip) */
   --page-footer-gap-above-strip: 5mm;
-  --book-footer-strip-clearance: 5mm;
+
+  /* Running-title strip: min-height + vertical padding (see .book-footer-strip--even) */
+  --book-footer-strip-block: calc(14mm + 3mm + 2.5mm);
+
+  /* Space reserved at the bottom of A4 so columns stop above the strip */
+  --page-body-footer-clearance: calc(var(--page-footer-gap-above-strip) + var(--book-footer-strip-block));
+  --a4-page-height: 297mm;
 }
 
 /* Public pages (impressum, privacy), error/404 views: page may scroll with content */
@@ -3152,19 +3158,27 @@ html.dark .hosted-banner__static-h1 {
 
 /* Scriptorium-style footer strip: running title + page number (after impressum) */
 
-/* Flex: .page-body stretches to page height (footer strip is position:absolute). */
+/* Flex + fixed A4 height: column flow stops above .book-footer-strip (position:absolute). */
 .a4-page.a4-page--with-book-footer {
   display: flex;
   flex-direction: column;
-  min-height: 297mm;
+  height: var(--a4-page-height);
+  min-height: var(--a4-page-height);
+  max-height: var(--a4-page-height);
 }
 
+/*
+ * Fixed height on .page-body so column-count:2 breaks at the footer line instead of
+ * growing under the running-title strip. Content that does not fit flows to column 2.
+ */
 .a4-page.a4-page--with-book-footer .page-body {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   min-height: 0;
   width: 100%;
+  height: calc(var(--a4-page-height) - var(--page-body-footer-clearance));
+  max-height: calc(var(--a4-page-height) - var(--page-body-footer-clearance));
   box-sizing: border-box;
-  padding: 20mm 15mm calc(var(--page-footer-gap-above-strip) + var(--book-footer-strip-clearance));
+  padding: 20mm 15mm var(--page-footer-gap-above-strip);
 }
 
 /*
@@ -3293,7 +3307,7 @@ html.dark .hosted-banner__static-h1 {
   font-size: var(--fs-text);
 }
 
-/* {{tocDepthH3}} — table of contents with dot leader and page number on the right (one column) */
+/* {{tocDepthH3}} — table of contents with dot leader and page number on the right */
 .page-body .toc {
   box-sizing: border-box;
   width: 100%;
@@ -3302,6 +3316,7 @@ html.dark .hosted-banner__static-h1 {
   margin: 0.35em 0 0.75em;
   padding: 0.55em 0.45em 0.65em;
   overflow: hidden;
+  column-span: all;
   font-family: var(--font-gentium);
   font-size: var(--fs-text);
   line-height: 1.35;
@@ -3327,10 +3342,62 @@ html.dark .hosted-banner__static-h1 {
   min-width: 0;
 }
 
+/* Long TOC: two columns inside the full-width block */
+.page-body .toc-list.toc-list--two-columns {
+  column-count: 2;
+  column-gap: 5mm;
+  column-fill: auto;
+}
+
+/* TOC: two equal columns (50/50 entry count), not page-body multicol fragments */
+.page-body .toc .toc-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5mm;
+  width: 100%;
+  box-sizing: border-box;
+  align-items: start;
+}
+
+.page-body .toc .toc-columns > .toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.a4-page.a4-page--toc-sheet .page-body .toc.toc--page-flow {
+  display: block;
+  width: 100%;
+  margin: 0.35em 0 0.75em;
+  padding: 0;
+  overflow: visible;
+  background: none;
+  box-shadow: none;
+  column-span: all;
+}
+
+.a4-page.a4-page--toc-sheet .page-body .toc.toc--page-flow > .toc-heading {
+  margin: 0 0 0.55em;
+  padding: 0.55em 0.45em 0.65em;
+  background: rgb(252 246 232 / 42%);
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 1px rgb(80 60 35 / 10%);
+}
+
+.a4-page.a4-page--toc-sheet.page-bg-einband:not(.page-einband-hell)
+  .page-body
+  .toc.toc--page-flow
+  > .toc-heading {
+  background: rgb(35 40 48 / 35%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 6%);
+}
+
 .page-body .toc-item {
   margin: 0.28em 0;
   min-width: 0;
   max-width: 100%;
+  break-inside: avoid;
 }
 
 .page-body .toc-line {
@@ -3389,8 +3456,13 @@ html.dark .hosted-banner__static-h1 {
   padding-left: 2em;
 }
 
+.page-body .toc-l4 .toc-line {
+  padding-left: 2.9em;
+}
+
 .page-body .toc-l2 .toc-title,
-.page-body .toc-l3 .toc-title {
+.page-body .toc-l3 .toc-title,
+.page-body .toc-l4 .toc-title {
   font-weight: 400;
   text-transform: none;
   letter-spacing: normal;
