@@ -1,3 +1,12 @@
+# [0.46.0](https://github.com/Rathch/DSABrew/compare/v0.45.0...v0.46.0) (2026-05-20)
+
+
+### Features
+
+* **web:** nested box macros, page scroll sync, footer and audit pins ([f7ef6e2](https://github.com/Rathch/DSABrew/commit/f7ef6e251500bd6f3ebe5836c2bc618cfe60273e))
+* **web:** page-aligned scroll sync and tocDepthH3 e2e ([35c7818](https://github.com/Rathch/DSABrew/commit/35c78183b08116340f66a718fafe561f8055c40b))
+* **web:** toc layout, depth macros, and einband exclusion ([f9f522a](https://github.com/Rathch/DSABrew/commit/f9f522a39abd71275a87c92618ec218be920bc4d))
+
 # [0.45.0](https://github.com/Rathch/DSABrew/compare/v0.44.0...v0.45.0) (2026-05-01)
 
 
