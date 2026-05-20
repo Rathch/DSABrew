@@ -146,8 +146,24 @@ Headings are expressed using plain Markdown headings:
 **Type**: Generated content
 
 - Inserts a table of contents at the macro location.
-- The TOC is generated from document headings up to depth H3.
+- The TOC is generated from document headings **H2–H3** (`##` … `###`); **excludes** `#` (H1).
+- **Excludes** pages with `\\map{einband}` (cover) and `\\map{final}` (back cover).
 - Heading sources include Markdown headings.
+- Long TOCs use two columns; overflow continues on extra pages (renderer).
+
+## Macro: `{{tocDepthH2}}`
+
+**Type**: Generated content
+
+- Same layout and pagination rules as `{{tocDepthH3}}` (page-body columns, continuation sheets).
+- Includes only **H2** (`##`); **excludes** H1, H3, and H4.
+
+## Macro: `{{tocDepthH4}}`
+
+**Type**: Generated content
+
+- Same layout and pagination rules as `{{tocDepthH3}}`.
+- Includes only **H2–H4** (`##` … `####`); **excludes** `#` (H1) lines.
 
 ## Macro: `{{abschnitt N | LABEL}}`
 
@@ -158,7 +174,7 @@ Headings are expressed using plain Markdown headings:
 - **Ziel-Anker**: dieselbe Regel wie bei automatischen Überschriften-IDs: `p{Seitennummer}-{slug}` (Slug aus dem **gesamten** H2-Titel inkl. `N.`).
 - **Dokumentweite Karte**: Mehrere H2 mit derselben führenden Nummer → Warnung; es gilt der **zuletzt** im Quelltext vorkommende Treffer. Unbekanntes **`N`** → sichtbarer Platzhalter (`.dsa-abschnitt-ref--missing`) und Warnung.
 - Nicht auf derselben Seite wie `{{impressumPage}}` im Fließtext-Makropfad nötig; Impressum-Seite rendert keinen normalen Markdown-Body.
-- **Nicht** im **INHALT** von `{{readAloudNote}}` / `{{gmNote}}` / `{{roulbox}}` verwenden (diese Körper werden separat gerendert; das Makro wird dort nicht expandiert).
+- **Im INHALT** von `{{readAloudNote}}`, `{{gmNote}}`, `{{roulbox}}` und `{{easier}}`/`{{harder}}` **erlaubt**: der Parser schließt den Kasten auf der **äußersten** `}}` (verschachtelte `{{…}}` zählen mit); `{{abschnitt …}}` im INHALT wird beim Rendern des Kastens expandiert.
 
 ## Macro: `{{readAloudNote TITEL | INHALT}}` (Alias: `{{vorlesenNote …}}`)
 
@@ -166,7 +182,7 @@ Headings are expressed using plain Markdown headings:
 
 - Rendert einen hellen Pergament-Kasten mit **zerrissenen Kanten** (Clip-Pfad), Schlagschatten, **fettem** Titel und **kursivem** Fließtext — angelehnt an Scriptorium-„Zum Vorlesen“-Boxen.
 - **TITEL** steht links vom ersten `|`; **INHALT** ist Markdown (Absätze, Fettung, Listen, Links, …). Leerer Titel → Standard **„Zum Vorlesen oder Nacherzählen:“**.
-- **Fußnoten** im INHALT: `{{footnote …}}` wird im Renderer **vor** dem Auslesen dieser Makros ersetzt (Platzhalter ohne `}}`), funktioniert damit im INHALT. **Nicht** im INHALT verwenden: wörtliches `}}`, das das Makro vorzeitig beendet (selten).
+- **Fußnoten** im INHALT: `{{footnote …}}` wird **vor** dem Auslesen des Kastens durch Platzhalter ohne `}}` ersetzt. **`{{abschnitt N | …}}`** im INHALT: erlaubt (siehe oben). **Nicht** im INHALT: weitere Kasten-Makros (`{{roulbox}}` in `{{gmNote}}`, …).
 
 ## Macro: `{{gmNote TITEL | INHALT}}` (Alias: `{{meisterNote …}}`)
 
@@ -174,16 +190,16 @@ Headings are expressed using plain Markdown headings:
 
 - Rendert einen **dunklen** Kastel (weißer/heller Text) mit denselben zerrissenen Kanten — für SL-only Infos.
 - Leerer TITEL → Standard **„Meisterinformation:“**.
-- Dasselbe Parsing wie bei `readAloudNote` (Markdown im INHALT; `}}`-Hinweis wie oben).
+- Dasselbe Parsing wie bei `readAloudNote` (Markdown im INHALT; `{{footnote}}` / `{{abschnitt}}` wie oben).
 
 ## Macro: `{{roulbox TITEL | UNTERTITEL | INHALT}}`
 
 **Type**: Styled block (Regel / Optional-Regel, DSA-ähnlicher Kasten)
 
-- **Drei durch `|` getrennte Felder:** **TITEL** (groß, weiß im dunklen Kopfbalken), **UNTERTITEL** (kleiner, kursiv, weiß; optional leer: `TITEL | | INHALT`), **INHALT** = Markdown (Absätze, **Fett** als Zwischenüberschrift, Listen).
+- **Felder:** **TITEL** | **UNTERTITEL** | **INHALT** (drei Teile, durch `|` getrennt) **oder** **TITEL** | **INHALT** (zwei Teile; Untertitel leer). Leerer Untertitel mit zwei Pipes: `TITEL | | INHALT`. **INHALT** = Markdown inkl. verschachteltem `{{abschnitt …}}`.
 - Leerer TITEL → Standard **„Regel“**.
 - **Aufzählungslisten** (`-` / `*`) im INHALT verwenden ein **stilisiertes Augen-Symbol** (grün / Lid-Farben) statt Standard-Bullets; nummerierte Listen bleiben normal.
-- Derselbe `}}`-Hinweis wie bei `readAloudNote` (wörtliches `}}` im INHALT beendet das Makro vorzeitig).
+- Derselbe Hinweis wie bei `readAloudNote` zu `{{footnote}}` / `{{abschnitt}}` und fremden verschachtelten `{{…}}` mit `}}`.
 
 ## Macro: `{{npcBlock` … `{{/npcBlock}}`
 

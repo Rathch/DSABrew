@@ -13,13 +13,15 @@
   "overrides": {
     "@semantic-release/npm": {
       "npm": {
-        "brace-expansion": "5.0.5",
-        "picomatch": "4.0.4"
+        "brace-expansion": "5.0.6",
+        "picomatch": "4.0.4",
+        "ip-address": "10.2.0"
       }
     },
     "npm": {
-      "brace-expansion": "5.0.5",
-      "picomatch": "4.0.4"
+      "brace-expansion": "5.0.6",
+      "picomatch": "4.0.4",
+      "ip-address": "10.2.0"
     }
   },
   "scripts": {
@@ -45,6 +47,7 @@
     "audit:all": "npm audit --audit-level=high",
     "changelog:sync": "node scripts/changelog-from-git.mjs",
     "lock:patch-npm-embed": "node scripts/patch-npm-embed-lock.mjs",
+    "lock:patch-fast-uri": "node scripts/patch-fast-uri-lock.mjs",
     "test:coverage": "npm run test:coverage --prefix web && npm run test:coverage --prefix server"
   },
   "devDependencies": {

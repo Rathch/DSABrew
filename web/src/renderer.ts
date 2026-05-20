@@ -108,15 +108,7 @@ const PAGE_ALIAS = /\{\{page\}\}/g;
 const PAGE_SINGLE_ALIAS = /\{\{\s*pageSingle\s*\}\}/gi;
 const PAGE_NUMBER = /\{\{pageNumber\s+(\d+)\}\}/g;
 const FOOTNOTE_MACRO = /\{\{footnote\s+([^|]+?)\s*\|\s*([^}]+)\}\}/g;
-/** Parchment read-aloud note (light); aliases: `vorlesenNote`. Title | body (Markdown in body). */
-const READ_ALOUD_NOTE_MACRO = /\{\{(readAloudNote|vorlesenNote)\s+([^|]*?)\s*\|\s*([\s\S]*?)\}\}/g;
-/** GM note (dark); alias: `meisterNote`. */
-const GM_NOTE_MACRO = /\{\{(gmNote|meisterNote)\s+([^|]*?)\s*\|\s*([\s\S]*?)\}\}/g;
-/** Rule/optional box (gray body, dark head): `Title | Subtitle | Markdown`. Empty subtitle: `Title | | Body`. */
-const ROULBOX_MACRO =
-  /\{\{\s*roulbox\s+([^|]*?)\s*\|\s*([^|]*?)\s*\|\s*([\s\S]*?)\}\}/gi;
-/** Optional hints: icon on the left (`media/image19` / `image20`), body = Markdown. */
-const EASIER_HARDER_MACRO = /\{\{(easier|harder)\s*\|\s*([\s\S]*?)\}\}/gi;
+/** Box macros (readAloud, gm, roulbox, easier|harder) use `findMacroClose` — nested `{{…}}` allowed in INHALT. */
 /** Inline chess piece: `{{ chess | pawn }}` — names in `resolveChessPiece`. */
 const CHESS_MACRO = /\{\{\s*chess\s*\|\s*([^}]+?)\s*\}\}/gi;
 /** Four diamonds 0–4; optional prefix: `{{ difficulty | Kampf: | grün 4 }}` or `{{ difficulty | rot 3 }}` (alias `dificulty`). Label must not contain `}` — otherwise `[^|]*?` spans past `}}` to the next macro’s `|`. */
@@ -300,7 +292,31 @@ interface PageSegment {
   raw: string;
   /** This page’s content is single-column (after a preceding `\\pageSingle`). */
   singleColumn: boolean;
+  /** Auto-inserted page after a long TOC macro (empty source, TOC chunk only). */
+  isTocContinuation?: boolean;
+  /** 0-based TOC sheet index (each sheet = 2×40-line chunks, left + right). */
+  tocSheetIndex?: number;
+  /** Heading depth for TOC on this page (`{{tocDepthH2}}` / `{{tocDepthH3}}` / `{{tocDepthH4}}`). */
+  tocDepthRange?: TocDepthRange;
 }
+
+interface TocDepthRange {
+  minLevel: number;
+  maxLevel: number;
+}
+
+const TOC_DEPTH_H3: TocDepthRange = { minLevel: 2, maxLevel: 3 };
+const TOC_DEPTH_H2: TocDepthRange = { minLevel: 2, maxLevel: 2 };
+const TOC_DEPTH_H2H4: TocDepthRange = { minLevel: 2, maxLevel: 4 };
+
+const TOC_MACRO_H3 = /\{\{\s*tocDepthH3\s*\}\}/gi;
+const TOC_MACRO_H4 = /\{\{\s*tocDepthH4\s*\}\}/gi;
+const TOC_MACRO_H2 = /\{\{\s*tocDepthH2\s*\}\}/gi;
+
+/** Max TOC entries per chunk (one column) — e.g. 1–40 left, 41–80 right on sheet 1. */
+const TOC_ENTRIES_PER_CHUNK = 40;
+/** Chunks per sheet: left column + right column. */
+const TOC_CHUNKS_PER_SHEET = 2;
 
 function splitPages(input: string): PageSegment[] {
   const normalized = input.replace(/\r\n/g, "\n").trim();
@@ -560,18 +576,30 @@ interface CollectedDifficultyMacro {
 
 function collectEasierHarderMacros(raw: string): { cleaned: string; items: CollectedDifficultyMacro[] } {
   const items: CollectedDifficultyMacro[] = [];
+  const spans: MacroSpanReplacement[] = [];
+  const openRe = /\{\{\s*(easier|harder)\b/gi;
   let nEasier = 1;
   let nHarder = 1;
-  EASIER_HARDER_MACRO.lastIndex = 0;
-  const cleaned = raw.replace(EASIER_HARDER_MACRO, (_full, kindRaw: string, body: string) => {
-    const kind = kindRaw.toLowerCase() as "easier" | "harder";
-    const token =
-      kind === "easier" ? easierPlaceholder(nEasier++) : harderPlaceholder(nHarder++);
+  let m: RegExpExecArray | null;
+  while ((m = openRe.exec(raw)) !== null) {
+    const start = m.index;
+    const close = findMacroClose(raw, start);
+    if (close < 0) {
+      continue;
+    }
+    const inner = raw.slice(start + 2, close - 2);
+    const head = /^\s*(easier|harder)\s*\|/i.exec(inner);
+    if (!head) {
+      continue;
+    }
+    const body = inner.slice(head[0].length);
+    const kind = head[1].toLowerCase() as "easier" | "harder";
+    const token = kind === "easier" ? easierPlaceholder(nEasier++) : harderPlaceholder(nHarder++);
     items.push({ kind, token, body });
-    return token;
-  });
-  EASIER_HARDER_MACRO.lastIndex = 0;
-  return { cleaned, items };
+    spans.push({ start, end: close, token });
+    openRe.lastIndex = close;
+  }
+  return { cleaned: applyMacroSpanReplacements(raw, spans), items };
 }
 
 interface CollectedNoteMacro {
@@ -581,32 +609,127 @@ interface CollectedNoteMacro {
   kind: "readAloud" | "gm";
 }
 
+/** `openAt` = index of first `{` of `{{`; returns index after closing `}}` or -1. */
+function findMacroClose(raw: string, openAt: number): number {
+  if (openAt < 0 || raw.slice(openAt, openAt + 2) !== "{{") {
+    return -1;
+  }
+  let depth = 0;
+  for (let i = openAt; i < raw.length - 1; i++) {
+    if (raw[i] === "{" && raw[i + 1] === "{") {
+      depth++;
+      i++;
+    } else if (raw[i] === "}" && raw[i + 1] === "}") {
+      depth--;
+      if (depth === 0) {
+        return i + 2;
+      }
+      i++;
+    }
+  }
+  return -1;
+}
+
+/** Split on `|` at brace depth 0; keeps remaining text in the last field. */
+function splitMacroFieldsAtDepthZero(inner: string, maxFields: number): string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let start = 0;
+  for (let i = 0; i < inner.length; i++) {
+    if (inner[i] === "{" && inner[i + 1] === "{") {
+      depth++;
+      i++;
+      continue;
+    }
+    if (inner[i] === "}" && inner[i + 1] === "}") {
+      depth--;
+      i++;
+      continue;
+    }
+    if (inner[i] === "|" && depth === 0) {
+      parts.push(inner.slice(start, i));
+      start = i + 1;
+      if (parts.length >= maxFields - 1) {
+        parts.push(inner.slice(start));
+        return parts;
+      }
+    }
+  }
+  parts.push(inner.slice(start));
+  return parts;
+}
+
+interface MacroSpanReplacement {
+  start: number;
+  end: number;
+  token: string;
+}
+
+function applyMacroSpanReplacements(raw: string, spans: MacroSpanReplacement[]): string {
+  let cleaned = raw;
+  for (let i = spans.length - 1; i >= 0; i--) {
+    const s = spans[i];
+    cleaned = cleaned.slice(0, s.start) + s.token + cleaned.slice(s.end);
+  }
+  return cleaned;
+}
+
 function collectReadAloudNotes(raw: string): { cleaned: string; items: CollectedNoteMacro[] } {
-  let sequence = 1;
   const items: CollectedNoteMacro[] = [];
-  READ_ALOUD_NOTE_MACRO.lastIndex = 0;
-  const cleaned = raw.replace(READ_ALOUD_NOTE_MACRO, (_full, _name: string, title: string, body: string) => {
-    const token = readAloudNotePlaceholder(sequence);
-    items.push({ kind: "readAloud", token, title, body });
-    sequence += 1;
-    return token;
-  });
-  READ_ALOUD_NOTE_MACRO.lastIndex = 0;
-  return { cleaned, items };
+  const spans: MacroSpanReplacement[] = [];
+  const openRe = /\{\{\s*(readAloudNote|vorlesenNote)\b/gi;
+  let sequence = 1;
+  let m: RegExpExecArray | null;
+  while ((m = openRe.exec(raw)) !== null) {
+    const start = m.index;
+    const close = findMacroClose(raw, start);
+    if (close < 0) {
+      continue;
+    }
+    const inner = raw.slice(start + 2, close - 2);
+    const head = /^\s*(readAloudNote|vorlesenNote)\s+/i.exec(inner);
+    if (!head) {
+      continue;
+    }
+    const fields = splitMacroFieldsAtDepthZero(inner.slice(head[0].length), 2);
+    if (fields.length < 2) {
+      continue;
+    }
+    const token = readAloudNotePlaceholder(sequence++);
+    items.push({ kind: "readAloud", token, title: fields[0], body: fields[1] });
+    spans.push({ start, end: close, token });
+    openRe.lastIndex = close;
+  }
+  return { cleaned: applyMacroSpanReplacements(raw, spans), items };
 }
 
 function collectGmNotes(raw: string): { cleaned: string; items: CollectedNoteMacro[] } {
-  let sequence = 1;
   const items: CollectedNoteMacro[] = [];
-  GM_NOTE_MACRO.lastIndex = 0;
-  const cleaned = raw.replace(GM_NOTE_MACRO, (_full, _name: string, title: string, body: string) => {
-    const token = gmNotePlaceholder(sequence);
-    items.push({ kind: "gm", token, title, body });
-    sequence += 1;
-    return token;
-  });
-  GM_NOTE_MACRO.lastIndex = 0;
-  return { cleaned, items };
+  const spans: MacroSpanReplacement[] = [];
+  const openRe = /\{\{\s*(gmNote|meisterNote)\b/gi;
+  let sequence = 1;
+  let m: RegExpExecArray | null;
+  while ((m = openRe.exec(raw)) !== null) {
+    const start = m.index;
+    const close = findMacroClose(raw, start);
+    if (close < 0) {
+      continue;
+    }
+    const inner = raw.slice(start + 2, close - 2);
+    const head = /^\s*(gmNote|meisterNote)\s+/i.exec(inner);
+    if (!head) {
+      continue;
+    }
+    const fields = splitMacroFieldsAtDepthZero(inner.slice(head[0].length), 2);
+    if (fields.length < 2) {
+      continue;
+    }
+    const token = gmNotePlaceholder(sequence++);
+    items.push({ kind: "gm", token, title: fields[0], body: fields[1] });
+    spans.push({ start, end: close, token });
+    openRe.lastIndex = close;
+  }
+  return { cleaned: applyMacroSpanReplacements(raw, spans), items };
 }
 
 interface CollectedRoulboxMacro {
@@ -617,55 +740,113 @@ interface CollectedRoulboxMacro {
 }
 
 function collectRoulboxes(raw: string): { cleaned: string; items: CollectedRoulboxMacro[] } {
-  let sequence = 1;
   const items: CollectedRoulboxMacro[] = [];
-  ROULBOX_MACRO.lastIndex = 0;
-  const cleaned = raw.replace(ROULBOX_MACRO, (_full, title: string, subtitle: string, body: string) => {
-    const token = roulboxPlaceholder(sequence);
+  const spans: MacroSpanReplacement[] = [];
+  const openRe = /\{\{\s*roulbox\b/gi;
+  let sequence = 1;
+  let m: RegExpExecArray | null;
+  while ((m = openRe.exec(raw)) !== null) {
+    const start = m.index;
+    const close = findMacroClose(raw, start);
+    if (close < 0) {
+      continue;
+    }
+    const inner = raw.slice(start + 2, close - 2);
+    const head = /^\s*roulbox\s+/i.exec(inner);
+    if (!head) {
+      continue;
+    }
+    const fields = splitMacroFieldsAtDepthZero(inner.slice(head[0].length), 3);
+    let title: string;
+    let subtitle: string;
+    let body: string;
+    if (fields.length >= 3) {
+      title = fields[0];
+      subtitle = fields[1];
+      body = fields[2];
+    } else if (fields.length === 2) {
+      title = fields[0];
+      subtitle = "";
+      body = fields[1];
+    } else {
+      continue;
+    }
+    const token = roulboxPlaceholder(sequence++);
     items.push({ token, title, subtitle, body });
-    sequence += 1;
-    return token;
-  });
-  ROULBOX_MACRO.lastIndex = 0;
-  return { cleaned, items };
+    spans.push({ start, end: close, token });
+    openRe.lastIndex = close;
+  }
+  return { cleaned: applyMacroSpanReplacements(raw, spans), items };
 }
 
 const DEFAULT_READ_ALOUD_TITLE = "Zum Vorlesen oder Nacherzählen:";
 const DEFAULT_GM_TITLE = "Meisterinformation:";
 
-function buildReadAloudNoteHtml(title: string, bodyMarkdown: string): string {
+/** Markdown for box bodies: expands nested `{{abschnitt}}` after `md.render`. */
+function renderMacroBodyMarkdown(
+  bodyMarkdown: string,
+  anchorBySection: Map<number, string>
+): { html: string; warnings: string[] } {
+  const absData = collectAbschnittMacros(bodyMarkdown);
+  const html = md.render(absData.cleaned.trim());
+  const injected = injectAbschnittRefs(html, absData.items, anchorBySection);
+  return { html: injected.html, warnings: [...absData.warnings, ...injected.warnings] };
+}
+
+function buildReadAloudNoteHtml(
+  title: string,
+  bodyMarkdown: string,
+  anchorBySection: Map<number, string>
+): { html: string; warnings: string[] } {
   const titleText = title.trim() || DEFAULT_READ_ALOUD_TITLE;
   const titleHtml = md.utils.escapeHtml(titleText);
-  const bodyHtml = md.render(bodyMarkdown.trim());
-  return `<div class="dsa-note-wrap dsa-note-wrap--read-aloud"><aside class="dsa-note dsa-note--read-aloud" role="note"><h3 class="dsa-note__title">${titleHtml}</h3><div class="dsa-note__body">${bodyHtml}</div></aside></div>`;
+  const body = renderMacroBodyMarkdown(bodyMarkdown, anchorBySection);
+  const html = `<div class="dsa-note-wrap dsa-note-wrap--read-aloud"><aside class="dsa-note dsa-note--read-aloud" role="note"><h3 class="dsa-note__title">${titleHtml}</h3><div class="dsa-note__body">${body.html}</div></aside></div>`;
+  return { html, warnings: body.warnings };
 }
 
-function buildGmNoteHtml(title: string, bodyMarkdown: string): string {
+function buildGmNoteHtml(
+  title: string,
+  bodyMarkdown: string,
+  anchorBySection: Map<number, string>
+): { html: string; warnings: string[] } {
   const titleText = title.trim() || DEFAULT_GM_TITLE;
   const titleHtml = md.utils.escapeHtml(titleText);
-  const bodyHtml = md.render(bodyMarkdown.trim());
-  return `<div class="dsa-note-wrap dsa-note-wrap--gm"><div class="dsa-gm-frame" role="note"><div class="dsa-gm-frame__cap dsa-gm-frame__cap--top"><img class="dsa-gm-frame__cap-img" src="/dsa/gm-frame-cap-top.png" alt="" decoding="async" /></div><div class="dsa-gm-frame__mid"><aside class="dsa-note dsa-note--gm dsa-note--gm-framed"><h3 class="dsa-note__title">${titleHtml}</h3><div class="dsa-note__body">${bodyHtml}</div></aside></div><div class="dsa-gm-frame__cap dsa-gm-frame__cap--bottom"><img class="dsa-gm-frame__cap-img" src="/dsa/gm-frame-cap-bottom.png" alt="" decoding="async" /></div></div></div>`;
+  const body = renderMacroBodyMarkdown(bodyMarkdown, anchorBySection);
+  const html = `<div class="dsa-note-wrap dsa-note-wrap--gm"><div class="dsa-gm-frame" role="note"><div class="dsa-gm-frame__cap dsa-gm-frame__cap--top"><img class="dsa-gm-frame__cap-img" src="/dsa/gm-frame-cap-top.png" alt="" decoding="async" /></div><div class="dsa-gm-frame__mid"><aside class="dsa-note dsa-note--gm dsa-note--gm-framed"><h3 class="dsa-note__title">${titleHtml}</h3><div class="dsa-note__body">${body.html}</div></aside></div><div class="dsa-gm-frame__cap dsa-gm-frame__cap--bottom"><img class="dsa-gm-frame__cap-img" src="/dsa/gm-frame-cap-bottom.png" alt="" decoding="async" /></div></div></div>`;
+  return { html, warnings: body.warnings };
 }
 
-function buildRoulboxHtml(title: string, subtitle: string, bodyMarkdown: string): string {
+function buildRoulboxHtml(
+  title: string,
+  subtitle: string,
+  bodyMarkdown: string,
+  anchorBySection: Map<number, string>
+): { html: string; warnings: string[] } {
   const titleText = title.trim() || "Regel";
   const titleHtml = md.utils.escapeHtml(titleText);
   const subTrim = subtitle.trim();
   const subBlock = subTrim
     ? `<p class="dsa-roulbox__subtitle">${md.utils.escapeHtml(subTrim)}</p>`
     : "";
-  const bodyHtml = md.render(bodyMarkdown.trim());
-  return `<div class="dsa-roulbox-wrap"><aside class="dsa-roulbox" role="note"><header class="dsa-roulbox__header"><h3 class="dsa-roulbox__title">${titleHtml}</h3>${subBlock}</header><div class="dsa-roulbox__body">${bodyHtml}</div></aside></div>`;
+  const body = renderMacroBodyMarkdown(bodyMarkdown, anchorBySection);
+  const html = `<div class="dsa-roulbox-wrap"><aside class="dsa-roulbox" role="note"><header class="dsa-roulbox__header"><h3 class="dsa-roulbox__title">${titleHtml}</h3>${subBlock}</header><div class="dsa-roulbox__body">${body.html}</div></aside></div>`;
+  return { html, warnings: body.warnings };
 }
 
-function buildDifficultyCalloutHtml(kind: "easier" | "harder", bodyMarkdown: string): string {
+function buildDifficultyCalloutHtml(
+  kind: "easier" | "harder",
+  bodyMarkdown: string,
+  anchorBySection: Map<number, string>
+): { html: string; warnings: string[] } {
   const iconSrc = kind === "easier" ? easierIconUrl : harderIconUrl;
-  const bodyHtml = md.render(bodyMarkdown.trim());
+  const body = renderMacroBodyMarkdown(bodyMarkdown, anchorBySection);
   const cls = kind === "easier" ? "dsa-diff dsa-diff--easier" : "dsa-diff dsa-diff--harder";
   const label = kind === "easier" ? "Leichter Hinweis" : "Schwerer Hinweis";
   const labelAttr = md.utils.escapeHtml(label);
   const srcAttr = md.utils.escapeHtml(iconSrc);
-  return `<div class="dsa-diff-wrap"><aside class="${cls}" role="note" aria-label="${labelAttr}"><img class="dsa-diff__icon" src="${srcAttr}" alt="" decoding="async" loading="lazy" /><div class="dsa-diff__body">${bodyHtml}</div></aside></div>`;
+  const html = `<div class="dsa-diff-wrap"><aside class="${cls}" role="note" aria-label="${labelAttr}"><img class="dsa-diff__icon" src="${srcAttr}" alt="" decoding="async" loading="lazy" /><div class="dsa-diff__body">${body.html}</div></aside></div>`;
+  return { html, warnings: body.warnings };
 }
 
 /** Replaces macro placeholders; prefers full `<p>TOKEN</p>` blocks (block-level). */
@@ -679,32 +860,52 @@ function injectBlockToken(html: string, token: string, blockHtml: string): strin
   return out;
 }
 
-function injectNoteMacros(html: string, items: CollectedNoteMacro[]): string {
+function injectNoteMacros(
+  html: string,
+  items: CollectedNoteMacro[],
+  anchorBySection: Map<number, string>
+): { html: string; warnings: string[] } {
   let out = html;
+  const warnings: string[] = [];
   for (const item of items) {
-    const block =
+    const built =
       item.kind === "readAloud"
-        ? buildReadAloudNoteHtml(item.title, item.body)
-        : buildGmNoteHtml(item.title, item.body);
-    out = injectBlockToken(out, item.token, block);
+        ? buildReadAloudNoteHtml(item.title, item.body, anchorBySection)
+        : buildGmNoteHtml(item.title, item.body, anchorBySection);
+    warnings.push(...built.warnings);
+    out = injectBlockToken(out, item.token, built.html);
   }
-  return out;
+  return { html: out, warnings };
 }
 
-function injectRoulboxMacros(html: string, items: CollectedRoulboxMacro[]): string {
+function injectRoulboxMacros(
+  html: string,
+  items: CollectedRoulboxMacro[],
+  anchorBySection: Map<number, string>
+): { html: string; warnings: string[] } {
   let out = html;
+  const warnings: string[] = [];
   for (const item of items) {
-    out = injectBlockToken(out, item.token, buildRoulboxHtml(item.title, item.subtitle, item.body));
+    const built = buildRoulboxHtml(item.title, item.subtitle, item.body, anchorBySection);
+    warnings.push(...built.warnings);
+    out = injectBlockToken(out, item.token, built.html);
   }
-  return out;
+  return { html: out, warnings };
 }
 
-function injectDifficultyMacros(html: string, items: CollectedDifficultyMacro[]): string {
+function injectDifficultyMacros(
+  html: string,
+  items: CollectedDifficultyMacro[],
+  anchorBySection: Map<number, string>
+): { html: string; warnings: string[] } {
   let out = html;
+  const warnings: string[] = [];
   for (const item of items) {
-    out = injectBlockToken(out, item.token, buildDifficultyCalloutHtml(item.kind, item.body));
+    const built = buildDifficultyCalloutHtml(item.kind, item.body, anchorBySection);
+    warnings.push(...built.warnings);
+    out = injectBlockToken(out, item.token, built.html);
   }
-  return out;
+  return { html: out, warnings };
 }
 
 function injectChessMacros(html: string, items: CollectedChessMacro[]): string {
@@ -1121,12 +1322,18 @@ function parseBackgrounds(raw: string): {
   return { cleaned, mapKey, rautenKey, einbandTone, einbandHex, warnings };
 }
 
-/** Entry for {{tocDepthH3}} — from Markdown of all pages (see contracts/macros.md: document-wide). */
+/** Entry for `{{tocDepthH2}}` / `{{tocDepthH3}}` / `{{tocDepthH4}}` — from Markdown of all pages (document-wide). */
 interface TocHeadingItem {
   level: number;
   titleHtml: string;
   pageNumber: number;
   anchorId: string;
+}
+
+/** Einband and back cover (`\\map{einband}` / `\\map{final}`) are omitted from TOC and {{abschnitt}} index. */
+function isTocExcludedHeadingPage(segment: PageSegment): boolean {
+  const mapKey = parseBackgrounds(segment.raw).mapKey;
+  return mapKey === "einband" || mapKey === "final";
 }
 
 /**
@@ -1138,7 +1345,11 @@ function forEachDocumentMarkdownLine(
   onLine: (line: string, displayPage: number) => void
 ): void {
   for (let pageIndex = 0; pageIndex < pageSources.length; pageIndex++) {
-    const source = pageSources[pageIndex].raw;
+    const segment = pageSources[pageIndex];
+    if (isTocExcludedHeadingPage(segment)) {
+      continue;
+    }
+    const source = segment.raw;
     const displayPage = pageNumberStart + pageIndex;
     const lines = source.replace(/\r\n/g, "\n").split("\n");
     let inFence = false;
@@ -1207,17 +1418,26 @@ function forEachDocumentMarkdownLine(
 }
 
 /**
- * Collects `#`–`###` lines in document order (all \\page segments).
+ * Collects Markdown headings in document order (all \\page segments), filtered by depth range.
+ * Skips sheets with `\\map{einband}` or `\\map{final}` (Einband / Rückseite).
  * Skips fenced code, {{npcBlock}}-, {{roulbox …}}-, {{easier|}}/{{harder|}} bodies to avoid false matches.
  * Slug/ID per page like the heading-anchor plugin (p{page}-{slug}).
  */
-function collectDocumentHeadingsForToc(pageSources: PageSegment[], pageNumberStart: number): TocHeadingItem[] {
+function collectDocumentHeadingsForToc(
+  pageSources: PageSegment[],
+  pageNumberStart: number,
+  depth: TocDepthRange
+): TocHeadingItem[] {
   const items: TocHeadingItem[] = [];
-  const headingLineRe = /^\s{0,3}(#{1,3})\s+(.+?)\s*$/;
+  const headingLineRe = /^\s{0,3}(#{1,4})\s+(.+?)\s*$/;
   const slugsByPage = new Map<number, Set<string>>();
   forEachDocumentMarkdownLine(pageSources, pageNumberStart, (line, displayPage) => {
     const m = headingLineRe.exec(line);
     if (!m) {
+      return;
+    }
+    const level = m[1].length;
+    if (level < depth.minLevel || level > depth.maxLevel) {
       return;
     }
     const titleRaw = m[2].trim();
@@ -1241,7 +1461,7 @@ function collectDocumentHeadingsForToc(pageSources: PageSegment[], pageNumberSta
     usedSlugs.add(slug);
     const anchorId = `p${displayPage}-${slug}`;
     items.push({
-      level: m[1].length,
+      level,
       titleHtml: md.renderInline(titleRaw),
       pageNumber: displayPage,
       anchorId
@@ -1362,24 +1582,179 @@ function injectAbschnittRefs(
   return { html: out, warnings };
 }
 
-function buildTocNavHtml(items: TocHeadingItem[]): string {
-  if (items.length === 0) {
-    return `<nav class="toc toc--empty" aria-labelledby="toc-heading"><h2 class="toc-heading" id="toc-heading">Inhaltsverzeichnis</h2><p class="toc-empty">Keine Überschriften gefunden.</p></nav>`;
+function parseTocMacroOnPage(raw: string): TocDepthRange | null {
+  TOC_MACRO_H4.lastIndex = 0;
+  if (TOC_MACRO_H4.test(raw)) {
+    return TOC_DEPTH_H2H4;
   }
-  const lis = items
-    .map((item) => {
-      const href = `#${md.utils.escapeHtml(item.anchorId)}`;
-      const num = String(item.pageNumber);
-      return `<li class="toc-item toc-l${item.level}"><a class="toc-line" href="${href}"><span class="toc-title">${item.titleHtml}</span><span class="toc-leader" aria-hidden="true"></span><span class="toc-num">${num}</span></a></li>`;
-    })
-    .join("");
-  return `<nav class="toc" aria-labelledby="toc-heading"><h2 class="toc-heading" id="toc-heading">Inhaltsverzeichnis</h2><ol class="toc-list">${lis}</ol></nav>`;
+  TOC_MACRO_H3.lastIndex = 0;
+  if (TOC_MACRO_H3.test(raw)) {
+    return TOC_DEPTH_H3;
+  }
+  TOC_MACRO_H2.lastIndex = 0;
+  if (TOC_MACRO_H2.test(raw)) {
+    return TOC_DEPTH_H2;
+  }
+  return null;
 }
 
-/** Replaces literal `{{tocDepthH3}}` in rendered HTML (e.g. inside <p>…</p>). */
-function injectTocMacro(html: string, tocItems: TocHeadingItem[]): string {
-  const tocHtml = buildTocNavHtml(tocItems);
-  return html.split("{{tocDepthH3}}").join(tocHtml);
+function tocMacroReForDepth(depth: TocDepthRange): RegExp {
+  if (depth.minLevel === 2 && depth.maxLevel === 2) {
+    return TOC_MACRO_H2;
+  }
+  if (depth.minLevel === 2 && depth.maxLevel >= 4) {
+    return TOC_MACRO_H4;
+  }
+  return TOC_MACRO_H3;
+}
+
+function stripTocMacrosFromRaw(raw: string): string {
+  TOC_MACRO_H3.lastIndex = 0;
+  TOC_MACRO_H4.lastIndex = 0;
+  TOC_MACRO_H2.lastIndex = 0;
+  return raw.replace(TOC_MACRO_H3, "").replace(TOC_MACRO_H4, "").replace(TOC_MACRO_H2, "");
+}
+
+function tocDepthCacheKey(depth: TocDepthRange): string {
+  return `${depth.minLevel}-${depth.maxLevel}`;
+}
+
+/** Page body contains only the TOC macro (plus map/pageNumber), not regular flow text. */
+function isTocOnlyPageSegment(segment: PageSegment): boolean {
+  if (!segment.tocDepthRange) {
+    return false;
+  }
+  if (segment.isTocContinuation) {
+    return true;
+  }
+  const bg = parseBackgrounds(segment.raw);
+  PAGE_NUMBER.lastIndex = 0;
+  const stripped = stripTocMacrosFromRaw(bg.cleaned).replace(PAGE_NUMBER, "").trim();
+  return stripped.length === 0;
+}
+
+interface SplitTocChunksOptions {
+  maxEntriesPerChunk?: number;
+}
+
+/** Splits TOC entries into chunks of at most `maxEntriesPerChunk` entries (default 40). */
+function splitTocItemsIntoChunks(
+  items: TocHeadingItem[],
+  options?: SplitTocChunksOptions
+): TocHeadingItem[][] {
+  if (items.length === 0) {
+    return [[]];
+  }
+  const maxEntries = options?.maxEntriesPerChunk ?? TOC_ENTRIES_PER_CHUNK;
+  const chunks: TocHeadingItem[][] = [];
+  for (let i = 0; i < items.length; i += maxEntries) {
+    chunks.push(items.slice(i, i + maxEntries));
+  }
+  return chunks;
+}
+
+/** Keeps chunk boundaries from `chunksTemplate` but uses fresh items (correct page numbers). */
+function remapTocChunksBySize(
+  freshItems: TocHeadingItem[],
+  chunksTemplate: TocHeadingItem[][]
+): TocHeadingItem[][] {
+  const sizes = chunksTemplate.map((c) => c.length);
+  const out: TocHeadingItem[][] = [];
+  let offset = 0;
+  for (const size of sizes) {
+    out.push(freshItems.slice(offset, offset + size));
+    offset += size;
+  }
+  return out;
+}
+
+function expandPagesForLongToc(pagesInitial: PageSegment[], pageNumberStart: number): PageSegment[] {
+  const out: PageSegment[] = [];
+  for (const seg of pagesInitial) {
+    const tocDepth = parseTocMacroOnPage(seg.raw);
+    if (!tocDepth) {
+      out.push(seg);
+      continue;
+    }
+    const items = collectDocumentHeadingsForToc(pagesInitial, pageNumberStart, tocDepth);
+    const chunks = splitTocItemsIntoChunks(items, { maxEntriesPerChunk: TOC_ENTRIES_PER_CHUNK });
+    const sheetCount = Math.max(1, Math.ceil(chunks.length / TOC_CHUNKS_PER_SHEET));
+    for (let s = 0; s < sheetCount; s++) {
+      out.push({
+        raw: s === 0 ? seg.raw : "",
+        singleColumn: seg.singleColumn,
+        isTocContinuation: s > 0,
+        tocDepthRange: tocDepth,
+        tocSheetIndex: s
+      });
+    }
+  }
+  return out;
+}
+
+interface BuildTocNavOptions {
+  continuation?: boolean;
+  /** Nested 2-col list inside full-width TOC (TOC mixed into body text, not a TOC sheet). */
+  twoColumns?: boolean;
+  pageFlow?: boolean;
+  singleColumn?: boolean;
+  /** Left + right chunk (≤40 entries each) on one TOC sheet. */
+  pair?: [TocHeadingItem[], TocHeadingItem[]];
+}
+
+function renderTocItemLi(item: TocHeadingItem): string {
+  const href = `#${md.utils.escapeHtml(item.anchorId)}`;
+  const num = String(item.pageNumber);
+  return `<li class="toc-item toc-l${item.level}"><a class="toc-line" href="${href}"><span class="toc-title">${item.titleHtml}</span><span class="toc-leader" aria-hidden="true"></span><span class="toc-num">${num}</span></a></li>`;
+}
+
+function buildTocNavHtml(items: TocHeadingItem[], options?: BuildTocNavOptions): string {
+  const continuation = options?.continuation === true;
+  const pageFlow = options?.pageFlow === true;
+  const singleColumn = options?.singleColumn === true;
+  const twoColumns = !pageFlow && options?.twoColumns === true;
+  const pair = options?.pair;
+  const headingId = continuation ? "toc-heading-cont" : "toc-heading";
+  const headingText = continuation ? "Inhaltsverzeichnis (Fortsetzung)" : "Inhaltsverzeichnis";
+  const navClasses = [
+    "toc",
+    continuation ? "toc--continuation" : "",
+    pageFlow ? "toc--page-flow" : "",
+    twoColumns ? "toc--two-columns" : ""
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const hasEntries =
+    items.length > 0 || (pair != null && (pair[0].length > 0 || pair[1].length > 0));
+  if (!hasEntries && !continuation) {
+    return `<nav class="toc toc--empty" aria-labelledby="${headingId}"><h2 class="toc-heading" id="${headingId}">Inhaltsverzeichnis</h2><p class="toc-empty">Keine Überschriften gefunden.</p></nav>`;
+  }
+
+  let listsHtml: string;
+  if (pair != null && !singleColumn) {
+    const leftOl = `<ol class="toc-list">${pair[0].map(renderTocItemLi).join("")}</ol>`;
+    const rightOl = `<ol class="toc-list">${pair[1].map(renderTocItemLi).join("")}</ol>`;
+    listsHtml = `<div class="toc-columns">${leftOl}${rightOl}</div>`;
+  } else if (pair != null && singleColumn) {
+    listsHtml = `<ol class="toc-list">${[...pair[0], ...pair[1]].map(renderTocItemLi).join("")}</ol>`;
+  } else {
+    const listClass = twoColumns ? "toc-list toc-list--two-columns" : "toc-list";
+    listsHtml = `<ol class="${listClass}">${items.map(renderTocItemLi).join("")}</ol>`;
+  }
+
+  return `<nav class="${navClasses}" aria-labelledby="${headingId}"><h2 class="toc-heading" id="${headingId}">${headingText}</h2>${listsHtml}</nav>`;
+}
+
+/** Replaces the matching TOC macro in rendered HTML (e.g. inside <p>…</p>). */
+function injectTocMacro(
+  html: string,
+  tocItems: TocHeadingItem[],
+  depth: TocDepthRange,
+  tocOptions?: BuildTocNavOptions
+): string {
+  const tocHtml = buildTocNavHtml(tocItems, tocOptions);
+  return html.replace(tocMacroReForDepth(depth), tocHtml);
 }
 
 /** TOC uses `md.renderInline`; the footer strip needs plain text like the Scriptorium reference. */
@@ -1418,16 +1793,34 @@ function htmlToPlainFooterTitle(html: string): string {
 export function renderDocument(markdown: string, options?: RenderDocumentOptions): RenderResult {
   const normalizedBreaks = normalizePageBreakMacros(markdown);
   const pageNumberData = parsePageNumberStart(normalizedBreaks);
-  const pages = splitPages(pageNumberData.cleaned);
+  const pagesInitial = splitPages(pageNumberData.cleaned);
+  const pages = expandPagesForLongToc(pagesInitial, pageNumberData.start);
 
   const globalImp = collectGlobalImpressumOverrides(pageNumberData.cleaned);
   const runningTitleMerged = mergeImpressum({ ...options?.impressum, ...globalImp });
   const runningTitle = runningTitleMerged.projectTitle.trim() || DEFAULT_IMPRESSUM_DATA.projectTitle;
 
-  const documentTocItems = collectDocumentHeadingsForToc(pages, pageNumberData.start);
+  const tocChunksByDepth = new Map<string, TocHeadingItem[][]>();
+  for (const seg of pages) {
+    if (!seg.tocDepthRange) {
+      continue;
+    }
+    const key = tocDepthCacheKey(seg.tocDepthRange);
+    if (tocChunksByDepth.has(key)) {
+      continue;
+    }
+    const itemsInitial = collectDocumentHeadingsForToc(pagesInitial, pageNumberData.start, seg.tocDepthRange);
+    const template = splitTocItemsIntoChunks(itemsInitial, { maxEntriesPerChunk: TOC_ENTRIES_PER_CHUNK });
+    const itemsFinal = collectDocumentHeadingsForToc(pages, pageNumberData.start, seg.tocDepthRange);
+    tocChunksByDepth.set(key, remapTocChunksBySize(itemsFinal, template));
+  }
+
   const abschnittAnchorBySection = collectNumberedH2AnchorMap(pages, pageNumberData.start);
   let abschnittIndexWarningsEmitted = false;
-  const firstH1TocItem = documentTocItems.find((item) => item.level === 1);
+  const firstH1TocItem = collectDocumentHeadingsForToc(pages, pageNumberData.start, {
+    minLevel: 1,
+    maxLevel: 1
+  }).find((item) => item.level === 1);
   const plainFirstH1 = firstH1TocItem ? htmlToPlainFooterTitle(firstH1TocItem.titleHtml) : "";
   const runningFooterTitle = plainFirstH1.length > 0 ? plainFirstH1 : runningTitle;
 
@@ -1464,18 +1857,57 @@ export function renderDocument(markdown: string, options?: RenderDocumentOptions
 
     let html: string;
     let abschnittRefWarnings: string[] = [];
+    let noteMacroWarnings: string[] = [];
+    let roulboxMacroWarnings: string[] = [];
+    let diffMacroWarnings: string[] = [];
+    const tocDepth = segment.tocDepthRange;
+    const lineChunks = tocDepth ? tocChunksByDepth.get(tocDepthCacheKey(tocDepth)) : undefined;
+    const sheetIdx = segment.tocSheetIndex ?? 0;
+    const tocPair: [TocHeadingItem[], TocHeadingItem[]] | undefined =
+      lineChunks != null
+        ? [lineChunks[sheetIdx * TOC_CHUNKS_PER_SHEET] ?? [], lineChunks[sheetIdx * TOC_CHUNKS_PER_SHEET + 1] ?? []]
+        : undefined;
+    const tocOnTocSheet = segment.tocDepthRange != null;
+    const tocBuildOptions: BuildTocNavOptions | undefined = tocPair
+      ? {
+          continuation: (segment.tocSheetIndex ?? 0) > 0,
+          pageFlow: tocOnTocSheet,
+          singleColumn: segment.singleColumn,
+          twoColumns: false,
+          pair: tocPair
+        }
+      : undefined;
+
     if (hasImpressumMacro) {
       html = renderImpressumHtml(impressumDataMerged, (s) => md.utils.escapeHtml(s));
+    } else if (segment.isTocContinuation && tocPair) {
+      html = buildTocNavHtml([], tocBuildOptions);
     } else {
       html = md.render(abschnittMacroData.cleaned);
-      html = injectNoteMacros(html, [...readAloudData.items, ...gmData.items]);
-      html = injectRoulboxMacros(html, roulboxData.items);
-      html = injectDifficultyMacros(html, easierHarderData.items);
+      const noteInjected = injectNoteMacros(
+        html,
+        [...readAloudData.items, ...gmData.items],
+        abschnittAnchorBySection.map
+      );
+      html = noteInjected.html;
+      noteMacroWarnings = noteInjected.warnings;
+      const roulboxInjected = injectRoulboxMacros(html, roulboxData.items, abschnittAnchorBySection.map);
+      html = roulboxInjected.html;
+      roulboxMacroWarnings = roulboxInjected.warnings;
+      const diffInjected = injectDifficultyMacros(
+        html,
+        easierHarderData.items,
+        abschnittAnchorBySection.map
+      );
+      html = diffInjected.html;
+      diffMacroWarnings = diffInjected.warnings;
       html = injectChessMacros(html, chessData.items);
       html = injectDifficultyRatingMacros(html, difficultyRatingData.items);
       html = injectNpcBlocks(html, npcData.items);
       html = injectFootnoteRefs(html, footnoteData.footnotes);
-      html = injectTocMacro(html, documentTocItems);
+      if (tocPair && tocDepth) {
+        html = injectTocMacro(html, [], tocDepth, tocBuildOptions);
+      }
       const abschnittInjected = injectAbschnittRefs(
         html,
         abschnittMacroData.items,
@@ -1498,6 +1930,9 @@ export function renderDocument(markdown: string, options?: RenderDocumentOptions
       ...chessData.warnings,
       ...difficultyRatingData.warnings,
       ...npcData.warnings,
+      ...noteMacroWarnings,
+      ...roulboxMacroWarnings,
+      ...diffMacroWarnings,
       ...abschnittMacroData.warnings,
       ...abschnittRefWarnings
     ];
@@ -1539,12 +1974,17 @@ export function renderDocument(markdown: string, options?: RenderDocumentOptions
       mapKey: effectiveMapKey,
       rautenKey: bgData.rautenKey,
       einbandCustomHex: effectiveMapKey === "einband" ? bgData.einbandHex ?? null : null,
-      pageChromeClasses: buildPageChromeClasses(
-        effectiveMapKey,
-        bgData.rautenKey,
-        effectiveMapKey === "einband" ? bgData.einbandTone : undefined,
-        effectiveMapKey === "einband" ? bgData.einbandHex ?? null : null
-      ),
+      pageChromeClasses: [
+        buildPageChromeClasses(
+          effectiveMapKey,
+          bgData.rautenKey,
+          effectiveMapKey === "einband" ? bgData.einbandTone : undefined,
+          effectiveMapKey === "einband" ? bgData.einbandHex ?? null : null
+        ),
+        isTocOnlyPageSegment(segment) ? "a4-page--toc-sheet" : ""
+      ]
+        .filter(Boolean)
+        .join(" "),
       singleColumn: segment.singleColumn,
       bookFooter
     };

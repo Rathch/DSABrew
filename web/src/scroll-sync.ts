@@ -2,6 +2,9 @@
  * Scroll sync editor ↔ preview + narrow page strip:
  * Always derive scale and stripes from the textarea (scrollHeight, \\page segments, lines like the gutter),
  * so the minimap stays aligned with the markdown even when the preview is visible.
+ *
+ * With scroll link enabled and multiple pages: crossing a \\page / {{page}} segment in the editor
+ * snaps the preview to the matching `.a4-page` (and vice versa), instead of proportional scroll.
  */
 
 import { minimapSegmentLayout, pageSegmentsZeroBased } from "./editor-page-stripes";
@@ -26,6 +29,79 @@ export function setScrollRatio(el: HTMLElement, r: number): void {
 
 export function previewIsVisible(preview: HTMLElement): boolean {
   return getComputedStyle(preview).display !== "none";
+}
+
+/** Active page index from a scroll position and per-page layout tops (minimap / textarea). */
+export function activePageIndexFromScrollTop(
+  scrollTop: number,
+  layouts: { top: number; height: number }[]
+): number {
+  if (layouts.length === 0) {
+    return 0;
+  }
+  const anchor = scrollTop + 4;
+  let idx = 0;
+  for (let i = 0; i < layouts.length; i++) {
+    if (layouts[i]!.top <= anchor) {
+      idx = i;
+    }
+  }
+  return idx;
+}
+
+export function activePageIndexFromTextarea(
+  textarea: HTMLTextAreaElement,
+  segments: { start: number; end: number }[]
+): number {
+  return activePageIndexFromScrollTop(textarea.scrollTop, minimapSegmentLayout(textarea, segments));
+}
+
+export function activePageIndexFromPreview(preview: HTMLElement): number {
+  const pages = preview.querySelectorAll<HTMLElement>(".a4-page");
+  if (pages.length === 0) {
+    return 0;
+  }
+  const anchor = preview.scrollTop + 4;
+  let idx = 0;
+  for (let i = 0; i < pages.length; i++) {
+    if (pages[i]!.offsetTop <= anchor) {
+      idx = i;
+    }
+  }
+  return idx;
+}
+
+export function scrollPreviewToPageIndex(preview: HTMLElement, index: number): void {
+  const pages = preview.querySelectorAll<HTMLElement>(".a4-page");
+  if (pages.length === 0) {
+    return;
+  }
+  const i = Math.max(0, Math.min(index, pages.length - 1));
+  pages[i]!.scrollIntoView({ block: "start", behavior: "auto" });
+}
+
+export function scrollTextareaToPageIndex(
+  textarea: HTMLTextAreaElement,
+  segments: { start: number; end: number }[],
+  index: number
+): void {
+  const layouts = minimapSegmentLayout(textarea, segments);
+  if (layouts.length === 0) {
+    return;
+  }
+  const i = Math.max(0, Math.min(index, layouts.length - 1));
+  textarea.scrollTop = layouts[i]!.top;
+}
+
+function usePageAlignedScrollSync(textarea: HTMLTextAreaElement, preview: HTMLElement): boolean {
+  const segments = pageSegmentsZeroBased(textarea.value);
+  if (segments.length <= 1) {
+    return false;
+  }
+  if (!previewIsVisible(preview)) {
+    return false;
+  }
+  return preview.querySelectorAll(".a4-page").length > 0;
 }
 
 /** One-off load listeners for preview images (scrollHeight changes; #preview box often does not → no ResizeObserver). */
@@ -72,6 +148,14 @@ export function setupEditorPreviewScrollSync(options: {
   const pagesContainer = document.getElementById("editor-viewport-gutter-pages");
 
   let ignore = false;
+  let lastSyncedPageFromEditor = -1;
+  let lastSyncedPageFromPreview = -1;
+  let lastPageSegmentCount = 0;
+
+  function resetPageSyncIndices(): void {
+    lastSyncedPageFromEditor = -1;
+    lastSyncedPageFromPreview = -1;
+  }
 
   function syncMinimapScrollFromTextarea(): void {
     if (!pagesContainer || gutter.hidden) {
@@ -105,6 +189,10 @@ export function setupEditorPreviewScrollSync(options: {
     }
 
     const segments = pageSegmentsZeroBased(textarea.value);
+    if (segments.length !== lastPageSegmentCount) {
+      lastPageSegmentCount = segments.length;
+      resetPageSyncIndices();
+    }
     const multiSource = segments.length > 1;
 
     const pageEls = preview.querySelectorAll<HTMLElement>(".a4-page");
@@ -168,6 +256,19 @@ export function setupEditorPreviewScrollSync(options: {
     if (!isSplitLayout() || !toggle.checked || ignore) {
       return;
     }
+    if (usePageAlignedScrollSync(textarea, preview)) {
+      const idx = activePageIndexFromPreview(preview);
+      if (idx !== lastSyncedPageFromPreview) {
+        lastSyncedPageFromPreview = idx;
+        lastSyncedPageFromEditor = idx;
+        ignore = true;
+        scrollTextareaToPageIndex(textarea, pageSegmentsZeroBased(textarea.value), idx);
+        ignore = false;
+        syncMinimapScrollFromTextarea();
+      }
+      return;
+    }
+    resetPageSyncIndices();
     ignore = true;
     setScrollRatio(textarea, scrollRatio(preview));
     ignore = false;
@@ -179,6 +280,21 @@ export function setupEditorPreviewScrollSync(options: {
     if (!isSplitLayout() || !toggle.checked || ignore) {
       return;
     }
+    if (usePageAlignedScrollSync(textarea, preview)) {
+      const segments = pageSegmentsZeroBased(textarea.value);
+      const idx = activePageIndexFromTextarea(textarea, segments);
+      const pageCount = preview.querySelectorAll(".a4-page").length;
+      const target = Math.min(idx, Math.max(0, pageCount - 1));
+      if (target !== lastSyncedPageFromEditor) {
+        lastSyncedPageFromEditor = target;
+        lastSyncedPageFromPreview = target;
+        ignore = true;
+        scrollPreviewToPageIndex(preview, target);
+        ignore = false;
+      }
+      return;
+    }
+    resetPageSyncIndices();
     ignore = true;
     setScrollRatio(preview, scrollRatio(textarea));
     ignore = false;
@@ -186,7 +302,10 @@ export function setupEditorPreviewScrollSync(options: {
 
   preview.addEventListener("scroll", onPreviewScroll, { passive: true });
   textarea.addEventListener("scroll", onTextareaScroll, { passive: true });
-  textarea.addEventListener("input", () => requestAnimationFrame(() => updatePageStripeGutter()));
+  textarea.addEventListener("input", () => {
+    resetPageSyncIndices();
+    requestAnimationFrame(() => updatePageStripeGutter());
+  });
 
   const ro = new ResizeObserver(() => updatePageStripeGutter());
   ro.observe(preview);

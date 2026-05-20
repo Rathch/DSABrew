@@ -251,7 +251,7 @@ export function buildDocumentLayout(options: { mode: "view" | "edit" }, appVersi
           </div>
         </div>
         <div class="editor__sync-bar editor__sync-bar--hosted" id="editor-sync-bar" hidden>
-          <label class="editor__sync-label" for="scroll-link-toggle">
+          <label class="editor__sync-label" for="scroll-link-toggle" title="Mehrseitige Dokumente: Vorschau springt zur passenden A4-Seite beim Scrollen im Markdown (\\page / {{page}})">
             <input type="checkbox" id="scroll-link-toggle" checked />
             Scroll koppeln
           </label>

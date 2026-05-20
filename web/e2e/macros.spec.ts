@@ -29,8 +29,10 @@ test.describe("Hosted Editor — Makros (nur getippt)", () => {
     await page
       .locator("#markdown-input")
       .fill("{{pageNumber 1}}\n# Alpha\n\n## Beta\n\n{{tocDepthH3}}\n");
-    await expectPreviewContains(page, 'a[href="#p1-alpha"]');
-    await expectPreviewContains(page, 'a[href="#p1-beta"]');
+    /* tocDepthH3 = H2–H3 only (see renderer.functional „lists H2–H3 only“) */
+    await expectPreviewContains(page, 'a.toc-line[href="#p1-beta"]');
+    await expectPreviewContains(page, '[id="p1-alpha"]');
+    await expect(page.locator(`${preview()} a.toc-line[href="#p1-alpha"]`)).toHaveCount(0);
   });
 
   test("{{footnote}} — Referenz und Fußnote", async ({ page }) => {

@@ -2,6 +2,15 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_MARKDOWN_DEMO } from "../src/default-markdown-demo";
 import { renderDocument } from "../src/renderer";
 
+function tocNavHtml(pageHtml: string): string {
+  const start = pageHtml.indexOf('<nav class="toc');
+  if (start < 0) {
+    return "";
+  }
+  const end = pageHtml.indexOf("</nav>", start);
+  return end < 0 ? "" : pageHtml.slice(start, end + "</nav>".length);
+}
+
 describe("renderer functional", () => {
   it("renders exactly one page for empty or whitespace-only input", () => {
     expect(renderDocument("").pages.length).toBe(1);
@@ -41,17 +50,93 @@ describe("renderer functional", () => {
   });
 
   it("TOC entries use fragment links matching heading ids", () => {
-    const md = "{{pageNumber 1}}\n# Kapitel Alpha\n\n{{tocDepthH3}}\n";
+    const md = "{{pageNumber 1}}\n# Kapitel Alpha\n\n## Beta\n\n{{tocDepthH3}}\n";
     const html = renderDocument(md).pages[0].renderedHtml;
-    expect(html).toContain('href="#p1-kapitel-alpha"');
+    expect(html).toContain('href="#p1-beta"');
+    expect(html).toContain('id="p1-beta"');
     expect(html).toContain('id="p1-kapitel-alpha"');
+    expect(html).not.toContain('href="#p1-kapitel-alpha"');
+  });
+
+  it("{{tocDepthH3}} lists H2–H3 only, not H1/H4", () => {
+    const md =
+      "{{pageNumber 1}}\n# Titel\n## Kapitel\n### Abschnitt\n#### Detail\n\n{{tocDepthH3}}\n";
+    const toc = tocNavHtml(renderDocument(md).pages[0].renderedHtml);
+    expect(toc).toContain("Kapitel");
+    expect(toc).toContain("Abschnitt");
+    expect(toc).not.toContain("Detail");
+    expect(toc).not.toContain("Titel");
+    expect(toc).not.toContain('href="#p1-titel"');
   });
 
   it("TOC links target anchors on later pages", () => {
-    const md = "{{pageNumber 1}}\n{{tocDepthH3}}\n\\page\n# Auf Seite Zwei\n";
+    const md = "{{pageNumber 1}}\n{{tocDepthH3}}\n\\page\n## Auf Seite Zwei\n";
     const r = renderDocument(md);
-    expect(r.pages[0].renderedHtml).toContain('href="#p2-auf-seite-zwei"');
+    expect(tocNavHtml(r.pages[0].renderedHtml)).toContain('href="#p2-auf-seite-zwei"');
     expect(r.pages[1].renderedHtml).toContain('id="p2-auf-seite-zwei"');
+  });
+
+  it("TOC sheet uses 40-entry chunks: 1–40 left, 41–80 right on one sheet", () => {
+    const headings = Array.from({ length: 42 }, (_, i) => `## ${i + 1}. Kapitel`).join("\n");
+    const md = `{{pageNumber 1}}\n${headings}\n\\page\n{{tocDepthH2}}\n`;
+    const tocPage = renderDocument(md).pages.find((p) => p.pageChromeClasses.includes("a4-page--toc-sheet"));
+    expect(tocPage?.renderedHtml).toContain("toc-columns");
+    const lists = [...(tocPage?.renderedHtml.matchAll(/<ol class="toc-list">([\s\S]*?)<\/ol>/g) ?? [])];
+    expect(lists.length).toBe(2);
+    const leftCount = (lists[0][1].match(/<li class="toc-item/g) ?? []).length;
+    const rightCount = (lists[1][1].match(/<li class="toc-item/g) ?? []).length;
+    expect(leftCount).toBe(40);
+    expect(rightCount).toBe(2);
+  });
+
+  it("TOC-only page gets a4-page--toc-sheet chrome", () => {
+    const md = "{{pageNumber 1}}\n# Titel\n## Kapitel\n\\page\n{{tocDepthH3}}\n";
+    const tocPage = renderDocument(md).pages.find((p) => p.renderedHtml.includes("Inhaltsverzeichnis</h2>"));
+    expect(tocPage?.pageChromeClasses).toContain("a4-page--toc-sheet");
+  });
+
+  it("TOC excludes pages with \\map{einband} and \\map{final}", () => {
+    const md =
+      "{{pageNumber 1}}\n\\map{einband}\n# Cover\n\\page\n## Kapitel Eins\n\\page\n\\map{final}\n# Rückseite\n\\page\n{{tocDepthH2}}\n";
+    const html = renderDocument(md).pages.find((p) => p.renderedHtml.includes("Inhaltsverzeichnis"))!
+      .renderedHtml;
+    expect(html).toContain("Kapitel Eins");
+    expect(html).not.toContain("Cover");
+    expect(html).not.toContain("Rückseite");
+    expect(html).not.toContain('href="#p1-cover"');
+  });
+
+  it("{{tocDepthH2}} lists only H2, not H1/H3", () => {
+    const md = "{{pageNumber 1}}\n# Titel\n## Kapitel\n### Abschnitt\n\n{{tocDepthH2}}\n";
+    const toc = tocNavHtml(renderDocument(md).pages[0].renderedHtml);
+    expect(toc).toContain("Kapitel");
+    expect(toc).toContain('href="#p1-kapitel"');
+    expect(toc).not.toContain("Abschnitt");
+    expect(toc).not.toContain("Titel");
+    expect(toc).not.toContain('href="#p1-titel"');
+  });
+
+  it("{{tocDepthH4}} lists H2–H4 only, not H1", () => {
+    const md =
+      "{{pageNumber 1}}\n# Nur Titel\n## Kapitel\n### Abschnitt\n#### Unterabschnitt\n\n{{tocDepthH4}}\n";
+    const toc = tocNavHtml(renderDocument(md).pages[0].renderedHtml);
+    expect(toc).toContain("Kapitel");
+    expect(toc).toContain("Abschnitt");
+    expect(toc).toContain("Unterabschnitt");
+    expect(toc).toContain('href="#p1-kapitel"');
+    expect(toc).not.toContain("Nur Titel");
+    expect(toc).not.toContain('href="#p1-nur-titel"');
+  });
+
+  it("long TOC: 40-entry chunks, two per sheet, continuation when needed", () => {
+    const headings = Array.from({ length: 90 }, (_, i) => `## Kapitel ${i + 1}`).join("\n");
+    const md = `{{pageNumber 1}}\n${headings}\n\\page\n{{tocDepthH3}}\n`;
+    const r = renderDocument(md);
+    const tocPage = r.pages.find((p) => p.renderedHtml.includes("Inhaltsverzeichnis</h2>"));
+    expect(tocPage?.renderedHtml).toContain("toc-columns");
+    const contPage = r.pages.find((p) => p.renderedHtml.includes("Inhaltsverzeichnis (Fortsetzung)"));
+    expect(contPage).toBeDefined();
+    expect(r.pages.length).toBeGreaterThan(2);
   });
 
   it("{{abschnitt N | …}} links to numbered H2 anchor (mit Punkt nach N)", () => {
@@ -218,6 +303,50 @@ mu=10
     expect(html).toContain("dsa-note--gm");
     expect(html).toContain("Nur für die SL.");
     expect(html).not.toContain("{{meisterNote");
+  });
+
+  it("expands {{abschnitt}} inside roulbox (empty subtitle, nested }}", () => {
+    const md =
+      "{{pageNumber 1}}\n## 14. Alpha\n\n{{roulbox Regeneration || |\nRegeneration: -2\n{{abschnitt 15 | **Abschnitt 15**}}\n}}\n\n## 15. Beta\n";
+    const html = renderDocument(md).pages[0].renderedHtml;
+    expect(html).toContain("dsa-roulbox");
+    expect(html).toContain("Regeneration");
+    expect(html).toContain('class="dsa-abschnitt-ref"');
+    expect(html).toContain('href="#');
+    expect(html).toContain("<strong>Abschnitt 15</strong>");
+    expect(html).not.toContain("{{abschnitt");
+    expect(html).not.toContain("{{roulbox");
+  });
+
+  it("expands {{abschnitt}} inside gmNote body", () => {
+    const md =
+      "{{pageNumber 1}}\n## 15. Ziel\n\n{{gmNote Meisterinformation: |\nGeheim.\n{{abschnitt 15 | weiter}}\n}}";
+    const html = renderDocument(md).pages[0].renderedHtml;
+    expect(html).toContain("dsa-note--gm");
+    expect(html).toContain('class="dsa-abschnitt-ref"');
+    expect(html).toContain("weiter");
+    expect(html).not.toContain("{{abschnitt");
+  });
+
+  it("expands {{abschnitt}} inside readAloudNote body", () => {
+    const md =
+      "{{pageNumber 1}}\n## 15. Ziel\n\n{{readAloudNote Vorlesen: |\n*Text*\n{{abschnitt 15 | Lies weiter}}\n}}";
+    const html = renderDocument(md).pages[0].renderedHtml;
+    expect(html).toContain("dsa-note--read-aloud");
+    expect(html).toContain('class="dsa-abschnitt-ref"');
+    expect(html).toContain("Lies weiter");
+    expect(html).not.toContain("{{abschnitt");
+  });
+
+  it("renders all three box macros with nested {{abschnitt}} on one line each", () => {
+    const md =
+      "{{pageNumber 1}}\n## 15. Ziel\n\n{{roulbox Regeneration || Regeneration: -2 {{abschnitt 15 | Lies bei Abschnitt 15 weiter}} }}\n\n{{gmNote Meisterinformation: | Geheime Infos. {{abschnitt 15 | Lies bei Abschnitt 15 weiter}} }}\n\n{{readAloudNote Zum Vorlesen: | Hier *kursiver* Text. {{abschnitt 15 | Lies bei Abschnitt 15 weiter}} }}";
+    const html = renderDocument(md).pages[0].renderedHtml;
+    expect(html).toContain("dsa-roulbox");
+    expect(html).toContain("dsa-note--gm");
+    expect(html).toContain("dsa-note--read-aloud");
+    expect(html).toContain("dsa-abschnitt-ref");
+    expect(html).not.toMatch(/\{\{(roulbox|gmNote|readAloudNote)/);
   });
 
   it("renders {{impressumPage}} as impressum sheet markup", () => {

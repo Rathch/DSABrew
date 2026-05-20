@@ -17,10 +17,10 @@ const lockPath = resolve(root, "package-lock.json");
 
 const PATCH = {
   "node_modules/@semantic-release/npm/node_modules/npm/node_modules/brace-expansion": {
-    version: "5.0.5",
-    resolved: "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.5.tgz",
+    version: "5.0.6",
+    resolved: "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.6.tgz",
     integrity:
-      "sha512-VZznLgtwhn+Mact9tfiwx64fA9erHH/MCXEUfB/0bX/6Fz6ny5EGTXYltMocqg4xFAQZtnO3DHWWXi8RiuN7cQ==",
+      "sha512-kLpxurY4Z4r9sgMsyG0Z9uzsBlgiU/EFKhj/h91/8yHu0edo7XuixOIH3VcJ8kkxs6/jPzoI6U9Vj3WqbMQ94g==",
     dev: true,
     license: "MIT",
     dependencies: {
@@ -45,10 +45,10 @@ const PATCH = {
     }
   },
   "node_modules/npm/node_modules/brace-expansion": {
-    version: "5.0.5",
-    resolved: "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.5.tgz",
+    version: "5.0.6",
+    resolved: "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.6.tgz",
     integrity:
-      "sha512-VZznLgtwhn+Mact9tfiwx64fA9erHH/MCXEUfB/0bX/6Fz6ny5EGTXYltMocqg4xFAQZtnO3DHWWXi8RiuN7cQ==",
+      "sha512-kLpxurY4Z4r9sgMsyG0Z9uzsBlgiU/EFKhj/h91/8yHu0edo7XuixOIH3VcJ8kkxs6/jPzoI6U9Vj3WqbMQ94g==",
     dev: true,
     license: "MIT",
     dependencies: {
@@ -71,7 +71,18 @@ const PATCH = {
     funding: {
       url: "https://github.com/sponsors/jonschlinkert"
     }
-  }
+  },
+  "node_modules/npm/node_modules/ip-address": {
+    version: "10.2.0",
+    resolved: "https://registry.npmjs.org/ip-address/-/ip-address-10.2.0.tgz",
+    integrity:
+      "sha512-/+S6j4E9AHvW9SWMSEY9Xfy66O5PWvVEJ08O0y5JGyEKQpojb0K0GKpz/v5HJ/G0vi3D2sjGK78119oXZeE0qA==",
+    dev: true,
+    license: "MIT",
+    engines: {
+      node: ">= 12"
+    }
+  },
 };
 
 const raw = readFileSync(lockPath, "utf8");

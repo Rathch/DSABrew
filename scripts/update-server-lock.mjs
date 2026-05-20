@@ -15,3 +15,9 @@ execSync("npm install --no-audit --no-fund", {
   stdio: "inherit",
   env: process.env
 });
+
+execSync("node scripts/patch-fast-uri-lock.mjs", {
+  cwd: root,
+  stdio: "inherit",
+  env: process.env
+});

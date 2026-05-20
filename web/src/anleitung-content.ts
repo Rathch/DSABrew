@@ -237,13 +237,35 @@ Text …</pre>
 
   <p><strong>5.6 Inhaltsverzeichnis</strong></p>
   <p>
-    <strong><code>{{tocDepthH3}}</code></strong> zieht alle <code>#</code>- bis <code>###</code>-Überschriften aus dem
-    <strong>gesamten</strong> Dokument und rendert daraus an der Makro-Position ein klickbares Inhaltsverzeichnis (in der
-    Vorschau/PDF wie ein Block über die volle Breite). Typische Platzierung: nach Einband oder Impressum, noch vor dem ersten
-    großen Kapitel — oft zusammen mit einer einspaltigen Seite, damit das TOC nicht in zwei Spalten zerfasert.
+    <strong><code>{{tocDepthH3}}</code></strong> zieht alle <code>##</code>- und <code>###</code>-Überschriften (H2–H3) aus dem
+    <strong>gesamten</strong> Dokument — ohne <code>#</code>-Titelzeilen (H1). Seiten mit <code>\\map{einband}</code> (Einband) und
+    <code>\\map{final}</code> (Rückseite) werden ignoriert. Rendert an der Makro-Position ein klickbares Inhaltsverzeichnis (in der
+    Vorschau/PDF wie ein Block über die volle Breite). Bei vielen Einträgen bricht die Liste intern auf <strong>zwei Spalten</strong>
+    um; passt der Inhalt auch dann nicht auf die Seite, folgt automatisch eine Fortsetzungsseite.
+  </p>
+  <p>
+    <strong><code>{{tocDepthH2}}</code></strong> listet nur <code>##</code>-Überschriften (H2) — ohne H1, H3 und H4.
+    Praktisch für nummerierte Kapitel (<code>## 1. …</code>), wenn Unterabschnitte nicht ins Inhaltsverzeichnis sollen.
+  </p>
+  <p>
+    <strong><code>{{tocDepthH4}}</code></strong> listet nur <code>##</code> bis <code>####</code> (H2–H4) — ohne
+    <code>#</code>-Titelzeilen, z. B. wenn der Dokumenttitel nicht im Inhaltsverzeichnis erscheinen soll. Dieselbe
+    Spalten- und Seitenumbruch-Logik wie bei <code>{{tocDepthH3}}</code>.
   </p>
   <pre class="legal-snippet">\\pageSingle
 {{tocDepthH3}}
+
+\\page
+## 1 Die Reise beginnt
+…</pre>
+  <pre class="legal-snippet">\\pageSingle
+{{tocDepthH2}}
+
+\\page
+## 1 Die Reise beginnt
+…</pre>
+  <pre class="legal-snippet">\\pageSingle
+{{tocDepthH4}}
 
 \\page
 ## 1 Die Reise beginnt
@@ -408,7 +430,7 @@ talente=Alchimie 8, Heilkunde 5
   <p>
     <strong>Doppelte Überschriften</strong> auf derselben Seite erhalten bei Bedarf eindeutige IDs mit Suffix
     (<code>-1</code>, <code>-2</code>, …). Rohes HTML (<code>&lt;a id="…"&gt;</code>) wird nicht ausgewertet.
-    Das Makro <code>{{tocDepthH3}}</code> (Abschnitt 5.6) listet H1–H3 dokumentweit auf und verlinkt dieselben Anker.
+    Das Makro <code>{{tocDepthH3}}</code> (Abschnitt 5.6) listet H2–H3 dokumentweit auf und verlinkt dieselben Anker.
   </p>
 
   <h2 class="legal-h2">8. Fehler melden und Quellcode</h2>

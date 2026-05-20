@@ -15,7 +15,7 @@ DSABrew ist ein Web-Tool, das Markdown in ein mehrseitiges A4-Layout rendert und
   - `\map{KEY}` und `\rauten{KEY}` fuer Layout-/Hintergrundsteuerung (Inhaltsseiten ohne `\map`: automatisch gerade/ungerade Hintergrund je nach Seitennummer)
   - `{{pageNumber N}}` fuer Start-Seitennummer
   - `{{footnote LABEL | CONTENT}}` fuer Fussnoten pro Seite
-  - `{{tocDepthH3}}` fuer ein automatisch erzeugtes Inhaltsverzeichnis
+  - `{{tocDepthH3}}` — Inhaltsverzeichnis H2–H3; `{{tocDepthH2}}` — nur H2; `{{tocDepthH4}}` — H2–H4 (ohne `\map{einband}` / `\map{final}`)
 - Standarddokument mit 5 Seiten beim Start:
   - Einband
   - Impressum (Daten in `web/src/impressum-config.ts`)
