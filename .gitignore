@@ -19,3 +19,8 @@ web/blob-report/
 server/data/
 tmp/
 ops-mail-state.json
+
+# Cursor-Agent-Hilfsdateien (nicht versionieren)
+.agent-commit.sh
+.git-commit-session.sh
+agent-*.txt
