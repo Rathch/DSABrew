@@ -47,6 +47,7 @@
     "audit:all": "npm audit --audit-level=high",
     "changelog:sync": "node scripts/changelog-from-git.mjs",
     "lock:patch-npm-embed": "node scripts/patch-npm-embed-lock.mjs",
+    "lock:patch-fast-uri": "node scripts/patch-fast-uri-lock.mjs",
     "test:coverage": "npm run test:coverage --prefix web && npm run test:coverage --prefix server"
   },
   "devDependencies": {
