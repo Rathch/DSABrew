@@ -37,14 +37,14 @@
     "@playwright/test": "^1.50.1",
     "@types/markdown-it": "^14.1.2",
     "@types/node": "^24.0.0",
-    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/coverage-v8": "^5.1.0",
     "happy-dom": "^21.0.4",
     "sharp": "^0.35.5",
     "stylelint": "^16.14.1",
     "stylelint-config-standard": "^36.0.1",
     "typescript": "^5.9.2",
     "vite": "^6.4.2",
-    "vitest": "^3.2.4"
+    "vitest": "^5.1.0"
   },
   "overrides": {
     "glob": "^14.0.6",
