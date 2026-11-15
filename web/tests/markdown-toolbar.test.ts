@@ -74,20 +74,26 @@ describe("insertAtCursor", () => {
 });
 
 describe("insertImageFromUrl", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it("fügt Markdown-Bildzeile ein, wenn prompt eine URL liefert", () => {
-    const promptSpy = vi.spyOn(window, "prompt").mockReturnValue("https://example.com/x.png");
+    vi.stubGlobal("window", {
+      prompt: vi.fn(() => "https://example.com/x.png")
+    });
     const ta = createTextarea("", 0, 0);
     insertImageFromUrl(ta);
     expect(ta.value).toContain("![Bild](https://example.com/x.png)");
-    promptSpy.mockRestore();
   });
 
   it("fügt nichts ein bei Abbruch (prompt null)", () => {
-    const promptSpy = vi.spyOn(window, "prompt").mockReturnValue(null);
+    vi.stubGlobal("window", {
+      prompt: vi.fn(() => null)
+    });
     const ta = createTextarea("x", 0, 0);
     insertImageFromUrl(ta);
     expect(ta.value).toBe("x");
-    promptSpy.mockRestore();
   });
 });
 

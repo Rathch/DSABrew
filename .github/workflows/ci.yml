@@ -28,7 +28,7 @@ env:
 jobs:
   web:
     name: Web (Typecheck, Test, Build, E2E)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: web
@@ -99,7 +99,7 @@ jobs:
 
   e2e-integration:
     name: E2E (Integration — API-Server)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: web
