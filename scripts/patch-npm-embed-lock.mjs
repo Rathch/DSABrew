@@ -17,17 +17,17 @@ const lockPath = resolve(root, "package-lock.json");
 
 const PATCH = {
   "node_modules/@semantic-release/npm/node_modules/npm/node_modules/brace-expansion": {
-    version: "5.0.6",
-    resolved: "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.6.tgz",
+    version: "5.0.13",
+    resolved: "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.13.tgz",
     integrity:
-      "sha512-kLpxurY4Z4r9sgMsyG0Z9uzsBlgiU/EFKhj/h91/8yHu0edo7XuixOIH3VcJ8kkxs6/jPzoI6U9Vj3WqbMQ94g==",
+      "sha512-Vh3dmFbc4wZeox7M9I/0L9GfFd83Su4+yCck/OF9Gi/P/dAHn0RT7X4K9R7gMNMhDck3DvhR6QXsnQdjjgwNvQ==",
     dev: true,
     license: "MIT",
     dependencies: {
       "balanced-match": "^4.0.2"
     },
     engines: {
-      node: "18 || 20 || >=22"
+      node: "20 || >=22"
     }
   },
   "node_modules/@semantic-release/npm/node_modules/npm/node_modules/picomatch": {
@@ -45,17 +45,17 @@ const PATCH = {
     }
   },
   "node_modules/npm/node_modules/brace-expansion": {
-    version: "5.0.6",
-    resolved: "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.6.tgz",
+    version: "5.0.13",
+    resolved: "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.13.tgz",
     integrity:
-      "sha512-kLpxurY4Z4r9sgMsyG0Z9uzsBlgiU/EFKhj/h91/8yHu0edo7XuixOIH3VcJ8kkxs6/jPzoI6U9Vj3WqbMQ94g==",
+      "sha512-Vh3dmFbc4wZeox7M9I/0L9GfFd83Su4+yCck/OF9Gi/P/dAHn0RT7X4K9R7gMNMhDck3DvhR6QXsnQdjjgwNvQ==",
     dev: true,
     license: "MIT",
     dependencies: {
       "balanced-match": "^4.0.2"
     },
     engines: {
-      node: "18 || 20 || >=22"
+      node: "20 || >=22"
     }
   },
   "node_modules/npm/node_modules/tinyglobby/node_modules/picomatch": {
@@ -73,10 +73,10 @@ const PATCH = {
     }
   },
   "node_modules/npm/node_modules/ip-address": {
-    version: "10.2.0",
-    resolved: "https://registry.npmjs.org/ip-address/-/ip-address-10.2.0.tgz",
+    version: "10.7.5",
+    resolved: "https://registry.npmjs.org/ip-address/-/ip-address-10.7.5.tgz",
     integrity:
-      "sha512-/+S6j4E9AHvW9SWMSEY9Xfy66O5PWvVEJ08O0y5JGyEKQpojb0K0GKpz/v5HJ/G0vi3D2sjGK78119oXZeE0qA==",
+      "sha512-t2v0rkILYv9WXmSL7TpAaU3HXgaFYOPUcH3QHgwQ++gpJuH3bqyMy4Fvt/DJCTKwzH3Cf+bAp5W/mFL39KPLzA==",
     dev: true,
     license: "MIT",
     engines: {
