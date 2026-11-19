@@ -22,7 +22,7 @@
     "nanoid": "^5.0.9",
     "node-cron": "^4.2.1",
     "nodemailer": "^10.6.0",
-    "pino": "^10.3.0",
+    "pino": "^10.4.0",
     "rotating-file-stream": "^3.2.5"
   },
   "devDependencies": {
