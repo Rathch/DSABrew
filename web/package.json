@@ -30,7 +30,7 @@
   "dependencies": {
     "html2canvas": "^1.4.1",
     "jspdf": "^4.0.0",
-    "markdown-it": "^14.1.0"
+    "markdown-it": "^15.0.3"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",
