@@ -111,7 +111,7 @@ jobs:
           labels: ${{ steps.meta_web.outputs.labels }}
 
       - name: Upload deploy files to server
-        uses: appleboy/scp-action@v0.1.7
+        uses: appleboy/scp-action@v1.0.0
         with:
           host: ${{ secrets.SSH_HOST || vars.SSH_HOST }}
           username: ${{ secrets.SSH_USER || vars.SSH_USER }}
