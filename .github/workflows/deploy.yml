@@ -24,7 +24,7 @@ jobs:
       DEPLOY_DIR: /opt/apps/dsabrew
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Validate deploy configuration
         run: |
