@@ -36,7 +36,7 @@
     "@axe-core/playwright": "^4.11.1",
     "@playwright/test": "^1.50.1",
     "@types/markdown-it": "^14.1.2",
-    "@types/node": "^24.0.0",
+    "@types/node": "^26.6.6",
     "@vitest/coverage-v8": "^5.1.0",
     "happy-dom": "^21.0.4",
     "sharp": "^0.35.5",
