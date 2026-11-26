@@ -1,218 +1,161 @@
 /**
- * Export the preview as a downloadable PDF (one A4 page per `.a4-page`).
+ * Export the preview as a downloadable PDF/UA tagged PDF (one A4 page per `.a4-page`).
  *
- * - **Visible:** raster from html2canvas (same as the preview).
- * - **Invisible on top:** real PDF text (`renderingMode: "invisible"`) → selectable/searchable.
- * - **Links:** PDF link annotations (`#…` → internal page, `http(s):` → URL).
- *
- * Not a full PDF/UA tagged structure tree (would need pdf-lib + marked content);
- * language is set via `setLanguage("de")`.
+ * - **Visible:** raster from html2canvas (Artifact in structure tree).
+ * - **Accessible:** StructTreeRoot + MCID-marked invisible text and link annotations.
+ * - **Language:** de-DE; embedded Gentium Book Plus for tagged text.
  */
 
-import type { jsPDF } from "jspdf";
+import {
+  buildDocumentAccessibilityModel,
+  buildPageAccessibilityTree
+} from "./pdf-accessibility-tree";
+import {
+  buildTaggedPdfBytes,
+  isAllowedLinkHref,
+  type AnchorDest,
+  type LinkInput,
+  type PageRasterInput
+} from "./pdf-lib-writer";
+import { letterboxImageMm, type ImgBoxMm, type RectMm } from "./pdf-rect";
 
-import { isUnsafeUrlScheme } from "./unsafe-url-schemes";
+export type { ExportPdfOptions } from "./pdf-export-api";
+export {
+  buildAnchorToPageMap,
+  defaultPdfFilename,
+  inferFontStyle,
+  isAllowedLinkHref,
+  pxToPt,
+  rectToPdfMm,
+  sanitizePdfText,
+  slugifyForFilename
+} from "./pdf-export-api";
 
-export interface ExportPdfOptions {
-  filename?: string;
-  onProgress?: (current: number, total: number) => void;
+import type { ExportPdfOptions } from "./pdf-export-api";
+import { defaultPdfFilename } from "./pdf-export-api";
+
+async function canvasToPngBytes(canvas: HTMLCanvasElement): Promise<Uint8Array> {
+  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
+  if (!blob) {
+    throw new Error("PNG-Erzeugung aus der Seitenvorschau fehlgeschlagen.");
+  }
+  return new Uint8Array(await blob.arrayBuffer());
 }
 
-export function defaultPdfFilename(): string {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `dsabrew-${y}-${m}-${day}.pdf`;
+function resetPageZoomForCapture(pageEl: HTMLElement): () => void {
+  const prevInline = pageEl.style.zoom;
+  pageEl.style.zoom = "1";
+  const preview = pageEl.closest<HTMLElement>(".preview");
+  const prevPreviewZoom = preview?.style.zoom ?? "";
+  if (preview) {
+    preview.style.zoom = "1";
+  }
+  return () => {
+    pageEl.style.zoom = prevInline;
+    if (preview) {
+      preview.style.zoom = prevPreviewZoom;
+    }
+  };
 }
 
-export function buildAnchorToPageMap(pages: NodeListOf<HTMLElement>): Map<string, number> {
-  const map = new Map<string, number>();
-  pages.forEach((page, idx) => {
-    const n = idx + 1;
-    page.querySelectorAll<HTMLElement>("[id]").forEach((node) => {
-      const id = node.getAttribute("id");
-      if (id) {
-        map.set(id, n);
-      }
-    });
-  });
-  return map;
-}
-
-interface ImgBoxMm {
+interface RelBox {
   x: number;
   y: number;
   w: number;
   h: number;
 }
 
-/** DOM rect relative to the page → mm in the image frame (letterbox). */
-export function rectToPdfMm(
-  elRect: DOMRect,
-  pageRect: DOMRect,
-  box: ImgBoxMm
-): { x: number; y: number; w: number; h: number } {
-  const relL = elRect.left - pageRect.left;
-  const relT = elRect.top - pageRect.top;
+interface PendingLink {
+  href: string;
+  rel: RelBox;
+}
+
+interface PendingAnchor {
+  id: string;
+  relTop: number;
+}
+
+/** Element box as a fraction of the page. Captured while preview zoom is 1. */
+function relativeBox(elRect: DOMRect, pageRect: DOMRect): RelBox | null {
   const pw = pageRect.width;
   const ph = pageRect.height;
-  if (pw <= 0 || ph <= 0) {
-    return { x: box.x, y: box.y, w: 0, h: 0 };
+  if (pw <= 0 || ph <= 0 || elRect.width < 1 || elRect.height < 1) {
+    return null;
   }
   return {
-    x: box.x + (relL / pw) * box.w,
-    y: box.y + (relT / ph) * box.h,
-    w: (elRect.width / pw) * box.w,
-    h: (elRect.height / ph) * box.h
+    x: (elRect.left - pageRect.left) / pw,
+    y: (elRect.top - pageRect.top) / ph,
+    w: elRect.width / pw,
+    h: elRect.height / ph
   };
 }
 
-export function sanitizePdfText(s: string): string {
-  return s.replace(/\0/g, "").replace(/\r/g, "").trim();
+function relToMm(rel: RelBox, box: ImgBoxMm): RectMm {
+  return {
+    x: box.x + rel.x * box.w,
+    y: box.y + rel.y * box.h,
+    w: rel.w * box.w,
+    h: rel.h * box.h
+  };
 }
 
-export function isAllowedLinkHref(href: string): boolean {
-  return !isUnsafeUrlScheme(href);
-}
-
-export function pxToPt(px: number): number {
-  return (px * 72) / 96;
-}
-
-function drawInvisibleTextInRect(
-  pdf: jsPDF,
-  rawText: string,
-  r: { x: number; y: number; w: number; h: number },
-  fontPt: number,
-  fontStyle: "normal" | "bold" | "italic" | "bolditalic"
-): void {
-  const text = sanitizePdfText(rawText);
-  if (!text || r.w < 0.5 || r.h < 0.5) {
-    return;
-  }
-
-  pdf.setFont("helvetica", fontStyle);
-  pdf.setFontSize(Math.min(Math.max(fontPt, 5), 28));
-
-  const lineH = pdf.getLineHeight() / pdf.internal.scaleFactor;
-  const lines = pdf.splitTextToSize(text, Math.max(r.w - 0.5, 1)).filter((ln: string) => ln.trim().length > 0);
-  let y = r.y + 0.5;
-  const bottom = r.y + r.h;
-  for (const line of lines) {
-    // Do not require the full jsPDF line height to fit the measured box:
-    // For headings, getBoundingClientRect().height is often tighter than activeFontSize×1.15
-    // (subpixels, font metrics) — otherwise no text is drawn and nothing is selectable.
-    if (y >= bottom - 0.15) {
-      break;
-    }
-    pdf.text(line, r.x + 0.25, y, {
-      baseline: "top",
-      renderingMode: "invisible"
-    });
-    y += lineH * 1.08;
-  }
-}
-
-export function inferFontStyle(el: HTMLElement): "normal" | "bold" | "italic" | "bolditalic" {
-  const cs = getComputedStyle(el);
-  const w = cs.fontWeight;
-  const bold = w === "bold" || Number.parseInt(w, 10) >= 600;
-  const italic = cs.fontStyle === "italic";
-  if (bold && italic) {
-    return "bolditalic";
-  }
-  if (bold) {
-    return "bold";
-  }
-  if (italic) {
-    return "italic";
-  }
-  return "normal";
-}
-
-const TEXT_BLOCK_SELECTOR = [
-  "p",
-  "h1",
-  "h2",
-  "h3",
-  "h4",
-  "h5",
-  "h6",
-  "td",
-  "th",
-  "li",
-  ".toc-heading",
-  ".warnings p",
-  ".footnotes p",
-  ".dsa-note__title",
-  ".dsa-roulbox__title",
-  ".dsa-roulbox__subtitle",
-  ".dsa-npc__name",
-  ".impressum-main-title",
-  ".impressum-disclaimer-heading",
-  ".book-footer-title",
-  ".page-number"
-].join(", ");
-
-function overlayLinksAndInvisibleText(
-  pdf: jsPDF,
-  pageEl: HTMLElement,
-  pageRect: DOMRect,
-  box: ImgBoxMm,
-  anchorToPage: Map<string, number>
-): void {
+function snapshotPageLinks(pageEl: HTMLElement, pageRect: DOMRect): PendingLink[] {
+  const links: PendingLink[] = [];
   pageEl.querySelectorAll<HTMLAnchorElement>("a[href]").forEach((a) => {
     const href = a.getAttribute("href");
     if (!href || !isAllowedLinkHref(href)) {
       return;
     }
-    const ar = a.getBoundingClientRect();
-    if (ar.width < 1 || ar.height < 1) {
+    const rel = relativeBox(a.getBoundingClientRect(), pageRect);
+    if (!rel) {
       return;
     }
-    const r = rectToPdfMm(ar, pageRect, box);
+    links.push({ href, rel });
+  });
+  return links;
+}
+
+function snapshotPageAnchors(pageEl: HTMLElement, pageRect: DOMRect): PendingAnchor[] {
+  const anchors: PendingAnchor[] = [];
+  if (pageRect.height <= 0) {
+    return anchors;
+  }
+  pageEl.querySelectorAll<HTMLElement>("[id]").forEach((node) => {
+    const id = node.getAttribute("id");
+    if (!id) {
+      return;
+    }
+    const er = node.getBoundingClientRect();
+    anchors.push({ id, relTop: (er.top - pageRect.top) / pageRect.height });
+  });
+  return anchors;
+}
+
+function linksFromSnapshot(
+  pending: PendingLink[],
+  pageIndex: number,
+  box: ImgBoxMm
+): LinkInput[] {
+  const links: LinkInput[] = [];
+  for (const item of pending) {
+    const r = relToMm(item.rel, box);
     if (r.w < 0.2 || r.h < 0.2) {
-      return;
+      continue;
     }
+    links.push({ href: item.href, rectMm: r, pageIndex });
+  }
+  return links;
+}
 
-    const trimmed = href.trim();
-    if (trimmed.startsWith("#")) {
-      const id = decodeURIComponent(trimmed.slice(1));
-      const target = anchorToPage.get(id);
-      if (target != null) {
-        pdf.link(r.x, r.y, r.w, r.h, { pageNumber: target });
-      }
-    } else if (/^https?:\/\//i.test(trimmed)) {
-      pdf.link(r.x, r.y, r.w, r.h, { url: trimmed });
-    }
-
-    const fs = pxToPt(parseFloat(getComputedStyle(a).fontSize) || 10);
-    drawInvisibleTextInRect(pdf, a.textContent || "", r, fs, inferFontStyle(a));
-  });
-
-  pageEl.querySelectorAll<HTMLElement>(TEXT_BLOCK_SELECTOR).forEach((el) => {
-    if (el.closest("a")) {
-      return;
-    }
-    if (el.tagName === "LI" && el.querySelector("p")) {
-      return;
-    }
-    const t = sanitizePdfText(el.textContent || "");
-    if (!t) {
-      return;
-    }
-    const er = el.getBoundingClientRect();
-    if (er.width < 1 || er.height < 1) {
-      return;
-    }
-    const r = rectToPdfMm(er, pageRect, box);
-    if (r.w < 0.5 || r.h < 0.5) {
-      return;
-    }
-    const fs = pxToPt(parseFloat(getComputedStyle(el).fontSize) || 10);
-    drawInvisibleTextInRect(pdf, t, r, fs, inferFontStyle(el));
-  });
+function triggerPdfDownload(bytes: Uint8Array, filename: string): void {
+  const blob = new Blob([Uint8Array.from(bytes)], { type: "application/pdf" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.rel = "noopener";
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 /**
@@ -229,28 +172,13 @@ export async function exportPreviewToPdf(
 
   await document.fonts.ready;
 
-  const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
-    import("html2canvas"),
-    import("jspdf")
-  ]);
+  const { default: html2canvas } = await import("html2canvas");
 
-  const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
-  try {
-    pdf.setLanguage("de");
-  } catch {
-    /* older jsPDF builds */
-  }
-  pdf.setProperties({
-    title: "DSABrew Export",
-    creator: "DSABrew",
-    subject: "Markdown → DSA-Layout"
-  });
-
-  const pageW = pdf.internal.pageSize.getWidth();
-  const pageH = pdf.internal.pageSize.getHeight();
-
-  const scale = 2;
-  const anchorToPage = buildAnchorToPageMap(pages);
+  const scale = pages.length > 80 ? 1.5 : 2;
+  const anchorDests = new Map<string, AnchorDest>();
+  const rasters: PageRasterInput[] = [];
+  const pageTrees: ReturnType<typeof buildPageAccessibilityTree>[] = [];
+  const allLinks: LinkInput[] = [];
 
   for (let i = 0; i < pages.length; i++) {
     const el = pages[i];
@@ -258,41 +186,61 @@ export async function exportPreviewToPdf(
 
     el.scrollIntoView({ block: "nearest", behavior: "auto" });
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
+    const restoreZoom = resetPageZoomForCapture(el);
     const pageRect = el.getBoundingClientRect();
+    // Preview CSS zoom scales getBoundingClientRect. Measure while zoom is 1,
+    // otherwise link hotspots and section destinations miss the painted text.
+    const pendingLinks = snapshotPageLinks(el, pageRect);
+    const pendingAnchors = snapshotPageAnchors(el, pageRect);
 
-    const canvas = await html2canvas(el, {
-      scale,
-      useCORS: true,
-      logging: false,
-      backgroundColor: "#ffffff",
-      imageTimeout: 15000
+    let canvas: HTMLCanvasElement;
+    try {
+      canvas = await html2canvas(el, {
+        scale,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+        imageTimeout: 15000,
+        onclone: (clonedDoc) => {
+          clonedDoc.querySelectorAll<HTMLElement>(".a4-page").forEach((page) => {
+            page.style.zoom = "1";
+          });
+          clonedDoc.querySelectorAll<HTMLElement>(".preview").forEach((preview) => {
+            preview.style.zoom = "1";
+          });
+        }
+      });
+    } finally {
+      restoreZoom();
+    }
+
+    if (canvas.width < 2 || canvas.height < 2) {
+      throw new Error(`Seite ${i + 1}: Raster leer (${canvas.width}×${canvas.height}).`);
+    }
+
+    const box = letterboxImageMm(canvas.width, canvas.height);
+    for (const anchor of pendingAnchors) {
+      anchorDests.set(anchor.id, { page: i + 1, topMm: box.y + anchor.relTop * box.h });
+    }
+    pageTrees.push(buildPageAccessibilityTree(el, i, box));
+    allLinks.push(...linksFromSnapshot(pendingLinks, i, box));
+
+    rasters.push({
+      pngBytes: await canvasToPngBytes(canvas),
+      canvasWidth: canvas.width,
+      canvasHeight: canvas.height
     });
-
-    const imgData = canvas.toDataURL("image/png");
-    if (i > 0) {
-      pdf.addPage();
-    }
-
-    const ratio = canvas.width / canvas.height;
-    const pageRatio = pageW / pageH;
-    let imgW = pageW;
-    let imgH = pageH;
-    if (ratio > pageRatio) {
-      imgH = pageW / ratio;
-    } else {
-      imgW = pageH * ratio;
-    }
-    const x = (pageW - imgW) / 2;
-    const y = (pageH - imgH) / 2;
-    pdf.addImage(imgData, "PNG", x, y, imgW, imgH, undefined, "FAST");
-
-    overlayLinksAndInvisibleText(pdf, el, pageRect, { x, y, w: imgW, h: imgH }, anchorToPage);
   }
 
-  let name = options?.filename?.trim() || defaultPdfFilename();
+  const model = buildDocumentAccessibilityModel(pages, pageTrees);
+
+  const pdfBytes = await buildTaggedPdfBytes(model, rasters, allLinks, anchorDests);
+
+  let name = options?.filename?.trim() || defaultPdfFilename(model.metadata.title);
   if (!name.toLowerCase().endsWith(".pdf")) {
     name += ".pdf";
   }
-  pdf.save(name);
+  triggerPdfDownload(pdfBytes, name);
 }
