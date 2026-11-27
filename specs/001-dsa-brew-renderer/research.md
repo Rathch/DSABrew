@@ -67,9 +67,9 @@
 
 ### Decision: PDF export (in-app download)
 
-**Chosen**: **html2canvas** + **jsPDF** in the browser: each `.a4-page` is captured to a canvas and embedded as one A4 page in a downloaded `.pdf` (letterboxed to preserve aspect ratio).
-**Rationale**: Delivers a real PDF file without a server; matches on-screen preview (including backgrounds and web fonts). Trade-off: raster PDF (text not selectable); some CSS (e.g. complex clip-paths) may differ slightly from vector print.
-**Alternatives considered**: Browser-only `window.print()` → “Save as PDF” (no automatic file download); headless Chrome/Puppeteer (requires backend or CLI); full vector rebuild (too heavy for MVP).
+**Chosen**: **html2canvas** + **pdf-lib** (+ **@pdf-lib/fontkit**) in the browser: each `.a4-page` is captured to a canvas and embedded as one A4 page in a downloaded `.pdf` (letterboxed to preserve aspect ratio). A **PDF/UA-oriented tagged structure tree** (MCIDs, `StructTreeRoot`, embedded Gentium Book Plus) is written alongside the raster Artifact layer.
+**Rationale**: Delivers a real accessible PDF file without a server; matches on-screen preview (including backgrounds and web fonts). Trade-off: visible layout remains raster; logical structure is in the tag tree.
+**Alternatives considered**: jsPDF with invisible text only (not PDF/UA); Browser-only `window.print()` → “Save as PDF” (no automatic file download); headless Chrome/Puppeteer (requires backend or CLI); full vector rebuild (too heavy for MVP).
 
 ### Decision: Vite major vs Node LTS
 

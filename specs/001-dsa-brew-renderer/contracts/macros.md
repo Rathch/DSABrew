@@ -231,7 +231,7 @@ Headings are expressed using plain Markdown headings:
 
 ## Layout (preview, PDF export, optional browser print)
 
-- **PDF export**: The app’s **PDF speichern** action rasterizes each `.a4-page` to one A4 PDF sheet (see `web/src/pdf-export.ts`: html2canvas + jsPDF).
+- **PDF export**: The app’s **PDF speichern** action rasterizes each `.a4-page` to one A4 PDF sheet and emits a **tagged PDF/UA-oriented** file (`web/src/pdf-export.ts`: html2canvas + pdf-lib). See `contracts/pdf-ua-export.md`.
 - **Body text**: two columns (`column-count: 2`) for the main flow inside each page body (default).
 - **Single-column page** (`\pageSingle` / `{{pageSingle}}`): the **following** page uses `column-count: 1` on `.page-body` (class `a4-page--single-column` on the page root). Tables, read-aloud / GM / roulbox / diff blocks use the **full** content width of that page. **NPC blocks** on such pages are **not** stretched to full width: `.dsa-npc-wrap` has a `max-width` roughly matching one column of the two-column layout.
 - **Markdown tables** (`table.dsa-md-table`): on two-column pages, **one column** wide (no `column-span`); on a single-column page, `width: 100%` is the full page body width.

@@ -7,7 +7,8 @@ import {
   isAllowedLinkHref,
   pxToPt,
   rectToPdfMm,
-  sanitizePdfText
+  sanitizePdfText,
+  slugifyForFilename
 } from "../src/pdf-export";
 
 describe("pxToPt", () => {
@@ -97,6 +98,16 @@ describe("pdf-export helpers", () => {
   it("defaultPdfFilename folgt dsabrew-YYYY-MM-DD.pdf", () => {
     const name = defaultPdfFilename();
     expect(name).toMatch(/^dsabrew-\d{4}-\d{2}-\d{2}\.pdf$/);
+  });
+
+  it("defaultPdfFilename enthält slugifizierten Titel", () => {
+    const name = defaultPdfFilename("Schatten über Aventuria");
+    expect(name).toMatch(/^dsabrew-Schatten-ueber-Aventuria-\d{4}-\d{2}-\d{2}\.pdf$/);
+  });
+
+  it("slugifyForFilename ersetzt Umlaute und Sonderzeichen", () => {
+    expect(slugifyForFilename("Foo: Bar/Baz")).toBe("Foo-Bar-Baz");
+    expect(slugifyForFilename("  äöüß  ")).toBe("aeoeuess");
   });
 
   it("buildAnchorToPageMap sammelt [id] über alle Seiten", () => {

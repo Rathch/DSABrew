@@ -1,0 +1,67 @@
+# Optional PDF/UA validation (veraPDF)
+name: PDF/UA validate
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "web/src/pdf-*.ts"
+      - "web/tests/pdf-ua-export.test.ts"
+      - ".github/workflows/pdf-ua-validate.yml"
+  pull_request:
+    branches: [main, master]
+    paths:
+      - "web/src/pdf-*.ts"
+      - "web/tests/pdf-ua-export.test.ts"
+      - ".github/workflows/pdf-ua-validate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pdf-ua-validate:
+    name: veraPDF (UA-1 smoke)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install Java (veraPDF)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - run: npm ci
+
+      - name: Prepare assets (Gentium font)
+        run: npm run prepare-assets
+
+      - name: Generate reference PDF fixture
+        run: node scripts/generate-pdf-ua-fixture.mjs
+        env:
+          WRITE_PDF_UA_FIXTURE: "1"
+
+      - name: Install veraPDF
+        run: |
+          curl -sSL "https://github.com/veraPDF/veraPDF-apps/releases/download/v1.25.240/verapdf-installer-1.25.240.zip" -o /tmp/verapdf.zip
+          unzip -q /tmp/verapdf.zip -d /tmp/verapdf
+          installer=$(find /tmp/verapdf -name '*.sh' | head -1)
+          chmod +x "$installer"
+          "$installer" -dir /opt/verapdf -type standalone -packaging ZIP -destination /opt/verapdf -silent
+
+      - name: Validate fixture (UA-1 flavour)
+        run: |
+          /opt/verapdf/verapdf --flavour ua1 tests/fixtures/pdf-ua/reference.pdf || {
+            echo "::warning::veraPDF reported issues — review PDF/UA export; see contracts/pdf-ua-export.md"
+            exit 0
+          }

@@ -55,7 +55,7 @@ Browser: **`http://localhost:5173/`** — legt wie **`/new`** ein Dokument an un
 
 ## Export to PDF
 
-Use **PDF speichern** in the editor toolbar: the app builds a multi-page A4 PDF (one page per preview page) and triggers a download. Tagged PDF mode adds invisible text and link annotations for copy/search; you can still use the browser’s print dialog (`Ctrl+P` / “Print”) if you prefer system printing.
+Use **PDF speichern** in the editor toolbar: the app builds a multi-page A4 PDF (one page per preview page) and triggers a download. Export is a **PDF/UA-oriented tagged PDF** (structure tree, embedded Gentium font, invisible tagged text, link annotations) with rasterized page backgrounds. You can still use the browser’s print dialog (`Ctrl+P` / “Print”) if you prefer system printing.
 
 ## API & Deployment
 
