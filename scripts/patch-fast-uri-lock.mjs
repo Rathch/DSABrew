@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Erzwingt fast-uri@3.1.2 im Lockfile (GHSA-q3j6, GHSA-v39h; betrifft ajv / @fastify/ajv-compiler).
- * Nach package.json overrides oder wenn `npm audit` noch <=3.1.1 meldet:
+ * Erzwingt fast-uri@3.1.9 im Lockfile (GHSA-q3j6, GHSA-v39h; betrifft ajv / @fastify/ajv-compiler).
+ * Nach package.json overrides oder wenn `npm audit` noch <=3.1.8 meldet:
  *   node scripts/patch-fast-uri-lock.mjs
  *   cd web && rm -rf node_modules && npm ci && npm audit --audit-level=high
  *   cd ../server && rm -rf node_modules && npm ci && npm audit --audit-level=high
@@ -14,10 +14,10 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, "..");
 
 const FAST_URI = {
-  version: "3.1.2",
-  resolved: "https://registry.npmjs.org/fast-uri/-/fast-uri-3.1.2.tgz",
+  version: "3.1.9",
+  resolved: "https://registry.npmjs.org/fast-uri/-/fast-uri-3.1.9.tgz",
   integrity:
-    "sha512-rVjf7ArG3LTk+FS6Yw81V1DLuZl1bRbNrev6Tmd/9RaroeeRRJhAt7jg/6YFxbvAQXUCavSoZhPPj6oOx+5KjQ==",
+    "sha512-hS/0Wt3Ya043oKXs0sIxrMpKQITXhMLIrVAKKXi4gozGC9v7YRWVnXIZzjNPTO02M9BdxLCWqK1yRXgNziVyJQ==",
   funding: [
     {
       type: "github",
